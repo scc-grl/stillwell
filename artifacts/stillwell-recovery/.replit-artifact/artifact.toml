@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Stillwell Recovery"
+description = "A standalone customer-facing concept for adults recovering at home after a clinician-assessed concussion. It offers a needs-and-symptoms guide, care overview, FAQs, and a simulated eligibility experience without collecting health information or making real appointments."
+version = "1.0.0"
+id = "artifacts/stillwell-recovery"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25321
+
+[services.development]
+run = "pnpm --filter @workspace/stillwell-recovery run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/stillwell-recovery", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/stillwell-recovery/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25321"
+BASE_PATH = "/"
