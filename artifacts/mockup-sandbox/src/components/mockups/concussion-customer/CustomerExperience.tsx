@@ -36,6 +36,53 @@ const questions = [
   },
 ];
 
+const needs = [
+  {
+    id: "headaches",
+    label: "Headaches",
+    title: "Make room for what the headaches change.",
+    description:
+      "A clinician can ask when the pain shows up, how it affects your day, and what else has changed since the concussion.",
+  },
+  {
+    id: "focus",
+    label: "Thinking & focus",
+    title: "Talk through the moments that feel harder.",
+    description:
+      "Share what you notice with focus, memory, or mental energy. A single symptom does not tell the whole story.",
+  },
+  {
+    id: "balance",
+    label: "Dizziness & balance",
+    title: "Describe how it affects getting around.",
+    description:
+      "A clinician can learn when dizziness or balance changes happen and help consider whether in-person assessment may be appropriate.",
+  },
+  {
+    id: "sleep",
+    label: "Sleep & energy",
+    title: "Connect rest with how the day feels.",
+    description:
+      "Talk about changes in sleep and energy, and how they affect the routines you want to return to.",
+  },
+  {
+    id: "light",
+    label: "Light & sound",
+    title: "Name the settings that feel different.",
+    description:
+      "You can discuss sensitivity to light or noise and which everyday environments feel most difficult.",
+  },
+  {
+    id: "mood",
+    label: "Mood & stress",
+    title: "There’s space for the emotional side, too.",
+    description:
+      "Share changes in mood, stress, or feeling unlike yourself. Your clinician can consider what support may be useful.",
+  },
+] as const;
+
+type NeedId = (typeof needs)[number]["id"];
+
 function BrandMark() {
   return (
     <span className="relative flex h-9 w-9 items-center justify-center rounded-full border border-[#b7c9bd] bg-[#e6eee7]">
@@ -59,6 +106,7 @@ export function CustomerExperience() {
   const [showNextStep, setShowNextStep] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [openQuestion, setOpenQuestion] = useState<number | null>(0);
+  const [activeNeed, setActiveNeed] = useState<NeedId>("headaches");
 
   useEffect(() => {
     if (!panelOpen) return;
@@ -73,6 +121,30 @@ export function CustomerExperience() {
     setShowNextStep(false);
     setPanelOpen(true);
   };
+
+  const handleNeedKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    const currentIndex = needs.findIndex((need) => need.id === activeNeed);
+    let nextIndex = currentIndex;
+
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+      nextIndex = (currentIndex + 1) % needs.length;
+    } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+      nextIndex = (currentIndex - 1 + needs.length) % needs.length;
+    } else if (event.key === "Home") {
+      nextIndex = 0;
+    } else if (event.key === "End") {
+      nextIndex = needs.length - 1;
+    } else {
+      return;
+    }
+
+    event.preventDefault();
+    const nextNeed = needs[nextIndex];
+    setActiveNeed(nextNeed.id);
+    document.getElementById(`need-tab-${nextNeed.id}`)?.focus();
+  };
+
+  const selectedNeed = needs.find((need) => need.id === activeNeed) ?? needs[0];
 
   return (
     <div className="concussion-page min-h-[100dvh] bg-[#f5f4ed] text-[#253b34]">
@@ -114,6 +186,7 @@ export function CustomerExperience() {
             </span>
           </a>
           <nav className="hidden items-center gap-8 text-[13px] font-medium text-[#52665c] md:flex" aria-label="Main navigation">
+            <a className="transition-colors hover:text-[#233e33]" href="#needs">Needs &amp; symptoms</a>
             <a className="transition-colors hover:text-[#233e33]" href="#approach">Our approach</a>
             <a className="transition-colors hover:text-[#233e33]" href="#care">Your care</a>
             <a className="transition-colors hover:text-[#233e33]" href="#questions">Common questions</a>
@@ -138,6 +211,7 @@ export function CustomerExperience() {
         {menuOpen && (
           <nav className="grid gap-1 border-t border-[#dce2d8] px-5 py-3 md:hidden" aria-label="Mobile navigation">
             {[
+              ["Needs & symptoms", "#needs"],
               ["Our approach", "#approach"],
               ["Your care", "#care"],
               ["Common questions", "#questions"],
@@ -224,6 +298,80 @@ export function CustomerExperience() {
             <div className="flex items-start gap-3">
               <span className="mt-0.5 text-[#6e8877]"><HeartHandshake size={19} strokeWidth={1.6} /></span>
               <div><p className="text-[13px] font-semibold text-[#354c40]">Connected care</p><p className="mt-1 text-[12px] leading-5 text-[#718077]">Follow-up and referrals when they make sense.</p></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="needs" className="mx-auto max-w-[1240px] px-5 py-20 sm:px-8 lg:px-12 lg:py-24">
+          <div className="grid gap-10 lg:grid-cols-[.75fr_1.25fr] lg:items-start lg:gap-20">
+            <div className="max-w-[430px]">
+              <SectionLabel>Needs &amp; symptoms</SectionLabel>
+              <h2 className="display-font text-[clamp(2.5rem,5vw,3.7rem)] leading-[1.04] tracking-[-.05em] text-[#29453a]">
+                Start with what feels different.
+              </h2>
+              <p className="mt-5 text-[14px] leading-7 text-[#64736a]">
+                Concussion can affect how you feel, think, sleep, or move through your day. Your experience is individual, and you don’t need the perfect words to begin a conversation.
+              </p>
+              <p className="mt-4 text-[12px] leading-6 text-[#7a8379]">
+                Choose a topic to see what a clinician-guided conversation might make room for.
+              </p>
+            </div>
+            <div>
+              <div
+                role="tablist"
+                aria-label="Needs and symptoms"
+                className="flex flex-wrap gap-2"
+              >
+                {needs.map((need) => {
+                  const selected = activeNeed === need.id;
+                  return (
+                    <button
+                      key={need.id}
+                      id={`need-tab-${need.id}`}
+                      type="button"
+                      role="tab"
+                      aria-selected={selected}
+                      aria-controls="need-panel"
+                      tabIndex={selected ? 0 : -1}
+                      onClick={() => setActiveNeed(need.id)}
+                      onKeyDown={handleNeedKeyDown}
+                      className={`min-h-11 rounded-full border px-4 text-[12px] font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#507763] ${
+                        selected
+                          ? "border-[#345849] bg-[#345849] text-[#fffdf8]"
+                          : "border-[#d4ddd2] bg-[#fbfaf5] text-[#54695b] hover:border-[#9db19f] hover:bg-[#edf1e9]"
+                      }`}
+                    >
+                      {need.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <div
+                id="need-panel"
+                role="tabpanel"
+                aria-labelledby={`need-tab-${selectedNeed.id}`}
+                tabIndex={0}
+                className="mt-5 rounded-[24px] border border-[#dce3d8] bg-[#fbfaf5] p-6 shadow-[0_14px_38px_rgba(45,67,51,.045)] outline-none focus-visible:ring-2 focus-visible:ring-[#8aa28f] sm:p-8"
+              >
+                <p className="text-[10px] font-semibold uppercase tracking-[.16em] text-[#748977]">
+                  A conversation, not a checklist
+                </p>
+                <h3 className="display-font mt-3 text-[27px] leading-[1.12] tracking-[-.035em] text-[#355345] sm:text-[31px]">
+                  {selectedNeed.title}
+                </h3>
+                <p className="mt-4 max-w-[620px] text-[13px] leading-7 text-[#69776d]">
+                  {selectedNeed.description}
+                </p>
+                <div className="mt-6 flex gap-3 rounded-[16px] bg-[#edf1e9] p-4">
+                  <span className="mt-0.5 shrink-0 text-[#6c8774]"><ShieldCheck size={17} strokeWidth={1.7} /></span>
+                  <p className="text-[11px] leading-[1.8] text-[#68776c]">
+                    Selecting a topic only changes this example. It does not assess or diagnose symptoms, and nothing is saved or sent.
+                  </p>
+                </div>
+              </div>
+              <p className="mt-4 text-[10px] leading-5 text-[#8a8e84]">
+                Some symptoms after a head injury need urgent evaluation. This page is not for emergencies or a new injury.
+              </p>
             </div>
           </div>
         </section>
