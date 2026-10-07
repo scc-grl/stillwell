@@ -12,6 +12,7 @@ import {
   LockKeyhole,
   Moon,
   MoveUpRight,
+  Phone,
   RotateCcw,
   ShieldCheck,
   Sparkles,
@@ -52,7 +53,11 @@ export function RecoveryCompass() {
   const [step, setStep] = useState(0);
   const [selected, setSelected] = useState<string[]>([]);
   const [moment, setMoment] = useState<string | null>(null);
+  const [phone, setPhone] = useState("");
+  const [accountAcknowledged, setAccountAcknowledged] = useState(false);
+  const [phoneError, setPhoneError] = useState("");
   const [showSafety, setShowSafety] = useState(false);
+  const [protocolSteps, setProtocolSteps] = useState<string[]>([]);
 
   const toggleConcern = (id: string) => {
     setSelected((current) =>
@@ -68,7 +73,35 @@ export function RecoveryCompass() {
     setStep(0);
     setSelected([]);
     setMoment(null);
+    setPhone("");
+    setAccountAcknowledged(false);
+    setPhoneError("");
     setShowSafety(false);
+    setProtocolSteps([]);
+  };
+
+  const toggleProtocolStep = (id: string) => {
+    setProtocolSteps((current) =>
+      current.includes(id) ? current.filter((item) => item !== id) : [...current, id],
+    );
+  };
+
+  const continueFlow = () => {
+    if (step !== 2) {
+      setStep((current) => Math.min(4, current + 1));
+      return;
+    }
+    const digits = phone.replace(/\D/g, "");
+    if (digits.length < 7 || digits.length > 15) {
+      setPhoneError("Enter a phone number with 7–15 digits, including country code.");
+      return;
+    }
+    if (!accountAcknowledged) {
+      setPhoneError("Confirm the prototype privacy note to continue.");
+      return;
+    }
+    setPhoneError("");
+    setStep(3);
   };
 
   const selectedLabels = concerns
@@ -105,6 +138,9 @@ export function RecoveryCompass() {
           .rc-layout { grid-template-columns: 1fr !important; }
           .rc-side { display: none !important; }
           .rc-mobile-steps { display: flex !important; }
+          .rc-plan-grid { grid-template-columns: 1fr !important; }
+          .rc-plan-food, .rc-plan-supplements, .rc-plan-movement { grid-column: span 1 !important; }
+          .rc-movement-phases { grid-template-columns: 1fr !important; }
         }
         @media (prefers-reduced-motion: reduce) { .rc-root *, .rc-root *::before, .rc-root *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
       `}</style>
@@ -133,13 +169,15 @@ export function RecoveryCompass() {
               {[
                 ["01", "What feels different?"],
                 ["02", "How is today going?"],
-                ["03", "A next step"],
+                ["03", "Create an account"],
+                ["04", "Your reflection"],
+                ["05", "Recovery plan"],
               ].map(([number, title], index) => {
                 const active = step === index;
                 const complete = step > index;
                 return (
                   <div key={number} style={{ position: "relative", display: "flex", gap: 13, minHeight: 72 }}>
-                    {index < 2 && <span style={{ position: "absolute", left: 14, top: 31, bottom: 0, width: 1, background: complete ? "#89a28f" : "#d9e1d7" }} />}
+                    {index < 4 && <span style={{ position: "absolute", left: 14, top: 31, bottom: 0, width: 1, background: complete ? "#89a28f" : "#d9e1d7" }} />}
                     <span style={{ zIndex: 1, width: 29, height: 29, flex: "0 0 29px", borderRadius: "50%", display: "grid", placeItems: "center", background: active || complete ? "#345849" : "#eeefe8", color: active || complete ? "#fffdf7" : "#8a9689", fontSize: 10, fontWeight: 700 }}>
                       {complete ? <Check size={13} /> : number}
                     </span>
@@ -164,9 +202,9 @@ export function RecoveryCompass() {
         <section id="start" style={{ minWidth: 0, maxWidth: 760, width: "100%", margin: "0 auto" }}>
           <div className="rc-mobile-steps" style={{ display: "none", justifyContent: "space-between", alignItems: "center", marginBottom: 28 }}>
             <div style={{ display: "flex", gap: 6 }}>
-              {[0, 1, 2].map((index) => <span key={index} style={{ height: 3, width: index === step ? 34 : 20, borderRadius: 9, background: index <= step ? "#557866" : "#dce3d8", transition: "width .2s" }} />)}
+              {[0, 1, 2, 3, 4].map((index) => <span key={index} style={{ height: 3, width: index === step ? 34 : 20, borderRadius: 9, background: index <= step ? "#557866" : "#dce3d8", transition: "width .2s" }} />)}
             </div>
-            <span style={{ color: "#7d897d", fontSize: 10, fontWeight: 650 }}>STEP {String(step + 1).padStart(2, "0")} / 03</span>
+            <span style={{ color: "#7d897d", fontSize: 10, fontWeight: 650 }}>STEP {String(step + 1).padStart(2, "0")} / 05</span>
           </div>
 
           {step === 0 && (
@@ -246,13 +284,55 @@ export function RecoveryCompass() {
           {step === 2 && (
             <div className="rc-enter">
               <div style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "7px 11px", border: "1px solid #d7e0d4", borderRadius: 99, background: "#edf2e9", color: "#627a68", fontSize: 10, fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase" }}>
+                <Phone size={13} /> Prototype account step
+              </div>
+              <h1 className="rc-display" style={{ maxWidth: 620, margin: "23px 0 12px", fontSize: "clamp(38px, 5vw, 59px)", fontWeight: 500, letterSpacing: "-.055em", lineHeight: 1.02 }}>
+                Before your reflection, <em style={{ color: "#81927f", fontWeight: 400 }}>create an account.</em>
+              </h1>
+              <p style={{ maxWidth: 555, margin: 0, color: "#6d7b70", fontSize: 14, lineHeight: 1.8 }}>
+                A real Stillwell service could use your mobile number to create and verify an account before showing a saved reflection. This demo does not create an account or send a text.
+              </p>
+              <form noValidate onSubmit={(event) => { event.preventDefault(); continueFlow(); }} style={{ marginTop: 27 }}>
+                <label htmlFor="rc-phone" style={{ display: "block", marginBottom: 8, color: "#506758", fontSize: 11, fontWeight: 700 }}>Mobile phone number</label>
+                <input
+                  id="rc-phone"
+                  name="phone"
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  placeholder="+1 555 010 2040"
+                  value={phone}
+                  onChange={(event) => { setPhone(event.target.value); setPhoneError(""); }}
+                  aria-invalid={Boolean(phoneError && phone.replace(/\D/g, "").length < 7)}
+                  aria-describedby="rc-phone-note rc-phone-error"
+                  style={{ width: "100%", maxWidth: 470, minHeight: 54, border: "1px solid #cbd8cb", borderRadius: 13, background: "#fffdf7", padding: "0 16px", color: "#365346", fontFamily: "inherit", fontSize: 15, outlineColor: "#72907b" }}
+                />
+                <p id="rc-phone-note" style={{ maxWidth: 470, margin: "9px 0 0", color: "#879186", fontSize: 10, lineHeight: 1.7 }}>
+                  Enter a country code too. A live service would verify number access and explain how it handles your information.
+                </p>
+                <label htmlFor="rc-account-ack" style={{ display: "flex", alignItems: "flex-start", gap: 10, maxWidth: 520, marginTop: 20, padding: 14, border: "1px solid #dfe5db", borderRadius: 13, background: "#f4f5ef", color: "#637267", cursor: "pointer", fontSize: 11, lineHeight: 1.7 }}>
+                  <input id="rc-account-ack" type="checkbox" checked={accountAcknowledged} onChange={(event) => { setAccountAcknowledged(event.target.checked); setPhoneError(""); }} style={{ width: 16, height: 16, marginTop: 1, accentColor: "#54745e", flexShrink: 0 }} />
+                  <span>I understand this concept keeps the number in temporary page state only. No account is created, and no SMS or data is sent.</span>
+                </label>
+                {phoneError && <p id="rc-phone-error" role="alert" style={{ maxWidth: 470, margin: "10px 0 0", color: "#a04f42", fontSize: 11, fontWeight: 600 }}>{phoneError}</p>}
+              </form>
+              <div style={{ marginTop: 19, display: "flex", alignItems: "flex-start", gap: 9, maxWidth: 520, color: "#7b8175", fontSize: 10, lineHeight: 1.7 }}>
+                <LockKeyhole size={13} style={{ flexShrink: 0, marginTop: 1 }} />
+                <span>This is a mock account gate so you can review the flow. It does not verify a number or associate your reflection with a real profile.</span>
+              </div>
+            </div>
+          )}
+
+          {step === 3 && (
+            <div className="rc-enter">
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "7px 11px", border: "1px solid #d7e0d4", borderRadius: 99, background: "#edf2e9", color: "#627a68", fontSize: 10, fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase" }}>
                 <Leaf size={13} /> Your reflection
               </div>
               <h1 className="rc-display" style={{ maxWidth: 620, margin: "23px 0 12px", fontSize: "clamp(38px, 5vw, 59px)", fontWeight: 500, letterSpacing: "-.055em", lineHeight: 1.02 }}>
                 A next step can be <em style={{ color: "#81927f", fontWeight: 400 }}>small.</em>
               </h1>
               <p style={{ maxWidth: 555, margin: 0, color: "#6d7b70", fontSize: 14, lineHeight: 1.8 }}>
-                You’ve made a little room to notice what’s going on. This summary stays here, on your screen, and can help you decide what to bring into a clinician conversation.
+                You’ve made a little room to notice what’s going on. This summary stays here, on your screen; it hasn’t been sent or linked to a real account.
               </p>
               <div style={{ marginTop: 29, padding: "21px 22px", borderRadius: 19, border: "1px solid #dfe5db", background: "#fffdf7" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#788878", fontSize: 9, fontWeight: 700, letterSpacing: ".15em", textTransform: "uppercase" }}>
@@ -280,15 +360,88 @@ export function RecoveryCompass() {
             </div>
           )}
 
+          {step === 4 && (
+            <div className="rc-enter">
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "7px 11px", border: "1px solid #d7e0d4", borderRadius: 99, background: "#edf2e9", color: "#627a68", fontSize: 10, fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase" }}>
+                <Leaf size={13} /> A clinician-guided recovery plan
+              </div>
+              <h1 className="rc-display" style={{ maxWidth: 680, margin: "23px 0 12px", fontSize: "clamp(38px, 5vw, 57px)", fontWeight: 500, letterSpacing: "-.055em", lineHeight: 1.02 }}>
+                Fuel, move, <em style={{ color: "#81927f", fontWeight: 400 }}>recover.</em>
+              </h1>
+              <p style={{ maxWidth: 590, margin: 0, color: "#6d7b70", fontSize: 13, lineHeight: 1.8 }}>
+                Use these as conversation starters—not treatment instructions. A clinician can adapt food, supplements, and activity to your health, medications, and symptoms.
+              </p>
+
+              <div className="rc-plan-grid" style={{ display: "grid", gridTemplateColumns: "repeat(12, minmax(0, 1fr))", gap: 12, marginTop: 25 }}>
+                <article className="rc-plan-food" style={{ gridColumn: "span 7", padding: 19, border: "1px solid #dfe5db", borderRadius: 17, background: "#fffdf7" }}>
+                  <div style={{ color: "#7a8b78", fontSize: 9, fontWeight: 700, letterSpacing: ".14em", textTransform: "uppercase" }}>01 · Nourishment</div>
+                  <h2 className="rc-display" style={{ margin: "10px 0 7px", color: "#345346", fontSize: 23, fontWeight: 500, letterSpacing: "-.035em" }}>Steady meals, easy choices.</h2>
+                  <p style={{ margin: 0, color: "#758176", fontSize: 11, lineHeight: 1.75 }}>
+                    Aim for regular meals with a protein, fruit or vegetable, and a filling grain or starch when available. Keep water within reach. No special or restrictive diet is prescribed here.
+                  </p>
+                  <button className="rc-button" type="button" onClick={() => toggleProtocolStep("nourishment")} aria-pressed={protocolSteps.includes("nourishment")} style={{ display: "inline-flex", alignItems: "center", gap: 7, minHeight: 34, marginTop: 15, padding: "0 12px", border: "1px solid #cbd9ca", borderRadius: 99, background: protocolSteps.includes("nourishment") ? "#e6efe4" : "transparent", color: "#4d6b58", fontSize: 10, fontWeight: 700, cursor: "pointer" }}>
+                    {protocolSteps.includes("nourishment") && <Check size={12} />} {protocolSteps.includes("nourishment") ? "Added to this plan" : "Add nourishment reminder"}
+                  </button>
+                </article>
+
+                <article className="rc-plan-supplements" style={{ gridColumn: "span 5", padding: 19, border: "1px solid #d7e0d4", borderRadius: 17, background: "#edf2e9" }}>
+                  <div style={{ color: "#728574", fontSize: 9, fontWeight: 700, letterSpacing: ".14em", textTransform: "uppercase" }}>02 · Supplements</div>
+                  <h2 className="rc-display" style={{ margin: "10px 0 7px", color: "#345346", fontSize: 23, fontWeight: 500, letterSpacing: "-.035em" }}>Review before adding.</h2>
+                  <p style={{ margin: 0, color: "#718073", fontSize: 11, lineHeight: 1.75 }}>
+                    No supplement is recommended here. Bring your current products and doses to a clinician or pharmacist; check evidence and interactions before starting, stopping, or changing anything.
+                  </p>
+                  <button className="rc-button" type="button" onClick={() => toggleProtocolStep("supplements")} aria-pressed={protocolSteps.includes("supplements")} style={{ display: "inline-flex", alignItems: "center", gap: 7, minHeight: 34, marginTop: 15, padding: "0 12px", border: "1px solid #bdd0bf", borderRadius: 99, background: protocolSteps.includes("supplements") ? "#dce8d9" : "transparent", color: "#4d6b58", fontSize: 10, fontWeight: 700, cursor: "pointer" }}>
+                    {protocolSteps.includes("supplements") && <Check size={12} />} {protocolSteps.includes("supplements") ? "Question added" : "Add a supplement question"}
+                  </button>
+                </article>
+
+                <article className="rc-plan-movement" style={{ gridColumn: "span 12", padding: 19, border: "1px solid #eadfd4", borderRadius: 17, background: "#f7f1e9" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
+                    <div>
+                      <div style={{ color: "#96735e", fontSize: 9, fontWeight: 700, letterSpacing: ".14em", textTransform: "uppercase" }}>03 · Gentle movement</div>
+                      <h2 className="rc-display" style={{ margin: "10px 0 6px", color: "#59483c", fontSize: 23, fontWeight: 500, letterSpacing: "-.035em" }}>Start low. Build slowly.</h2>
+                      <p style={{ maxWidth: 640, margin: 0, color: "#7b6c5f", fontSize: 11, lineHeight: 1.75 }}>
+                        Only after your clinician clears you: keep activity easy and below a symptom flare. Don’t push through worsening symptoms.
+                      </p>
+                    </div>
+                    <button className="rc-button" type="button" onClick={() => toggleProtocolStep("movement")} aria-pressed={protocolSteps.includes("movement")} style={{ display: "inline-flex", alignItems: "center", gap: 7, minHeight: 34, padding: "0 12px", border: "1px solid #dbcbbb", borderRadius: 99, background: protocolSteps.includes("movement") ? "#f1e4d8" : "transparent", color: "#795f4d", fontSize: 10, fontWeight: 700, cursor: "pointer" }}>
+                      {protocolSteps.includes("movement") && <Check size={12} />} {protocolSteps.includes("movement") ? "Movement idea added" : "Add movement idea"}
+                    </button>
+                  </div>
+                  <div className="rc-movement-phases" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 9, marginTop: 17 }}>
+                    {[
+                      ["Begin", "Ask whether a 5–10 minute easy walk or gentle mobility is appropriate for you."],
+                      ["Repeat", "Keep the same light effort for a few sessions and notice how you feel during and afterward."],
+                      ["Progress", "Only if symptoms stay steady and your clinician agrees, add a few minutes at a time."],
+                    ].map(([title, copy], index) => (
+                      <div key={title} style={{ padding: "12px 13px", border: "1px solid rgba(196,173,153,.45)", borderRadius: 12, background: "rgba(255,253,247,.65)" }}>
+                        <div style={{ marginBottom: 6, color: "#a07c65", fontSize: 9, fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase" }}>0{index + 1} · {title}</div>
+                        <p style={{ margin: 0, color: "#766b5f", fontSize: 10, lineHeight: 1.65 }}>{copy}</p>
+                      </div>
+                    ))}
+                  </div>
+                </article>
+              </div>
+
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 9, marginTop: 14, padding: "12px 13px", borderRadius: 12, background: "#f3eee5", color: "#786d5e" }}>
+                <ShieldCheck size={14} style={{ flexShrink: 0, marginTop: 1 }} />
+                <p style={{ margin: 0, fontSize: 10, lineHeight: 1.7 }}>This plan is a discussion guide, not a prescription. For a new injury or severe or rapidly worsening symptoms, seek urgent medical care.</p>
+              </div>
+              <p style={{ margin: "10px 0 0", color: "#899186", fontSize: 9 }}>
+                {protocolSteps.length ? `${protocolSteps.length} idea${protocolSteps.length === 1 ? "" : "s"} marked on this page only · nothing is saved.` : "Choose any reminders you’d like to discuss. These selections stay on this page only."}
+              </p>
+            </div>
+          )}
+
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginTop: 30, paddingTop: 19, borderTop: "1px solid #dfe4da" }}>
             {step > 0 ? (
               <button className="rc-button" type="button" onClick={() => setStep((current) => Math.max(0, current - 1))} style={{ display: "inline-flex", alignItems: "center", gap: 7, minHeight: 43, padding: "0 8px", border: 0, background: "transparent", color: "#6e7e71", fontSize: 12, fontWeight: 650, cursor: "pointer" }}>
                 <ArrowLeft size={15} /> Back
               </button>
             ) : <span style={{ color: "#899286", fontSize: 10 }}>You can skip any question.</span>}
-            {step < 2 ? (
-              <button className="rc-button" type="button" onClick={() => setStep((current) => current + 1)} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 14, minHeight: 47, padding: "0 18px 0 21px", border: 0, borderRadius: 99, background: "#345849", color: "#fffdf7", fontSize: 12, fontWeight: 700, cursor: "pointer", boxShadow: "0 7px 18px rgba(48,82,64,.12)" }}>
-                {step === 0 ? "Continue" : "See my reflection"} <ArrowRight size={15} />
+            {step < 4 ? (
+              <button className="rc-button" type="button" onClick={continueFlow} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 14, minHeight: 47, padding: "0 18px 0 21px", border: 0, borderRadius: 99, background: "#345849", color: "#fffdf7", fontSize: 12, fontWeight: 700, cursor: "pointer", boxShadow: "0 7px 18px rgba(48,82,64,.12)" }}>
+                {step === 0 ? "Continue" : step === 1 ? "Continue to account" : step === 2 ? "Continue to my reflection" : "Build my recovery plan"} <ArrowRight size={15} />
               </button>
             ) : (
               <button className="rc-button" type="button" onClick={reset} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, minHeight: 43, padding: "0 16px", border: "1px solid #cfdbce", borderRadius: 99, background: "#fffdf7", color: "#4d6b58", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
@@ -296,10 +449,10 @@ export function RecoveryCompass() {
               </button>
             )}
           </div>
-          {step === 2 && <button className="rc-button" type="button" onClick={() => setShowSafety((current) => !current)} style={{ display: "flex", alignItems: "center", gap: 6, margin: "18px auto 0", border: 0, background: "transparent", color: "#778478", cursor: "pointer", fontSize: 10 }}>
+          {(step === 3 || step === 4) && <button className="rc-button" type="button" onClick={() => setShowSafety((current) => !current)} style={{ display: "flex", alignItems: "center", gap: 6, margin: "18px auto 0", border: 0, background: "transparent", color: "#778478", cursor: "pointer", fontSize: 10 }}>
             <MoveUpRight size={12} /> Learn when to seek urgent care
           </button>}
-          {step === 2 && showSafety && <div className="rc-enter" style={{ marginTop: 12, borderRadius: 14, padding: 15, background: "#f5e9e1", color: "#795746", fontSize: 11, lineHeight: 1.7 }}>
+          {(step === 3 || step === 4) && showSafety && <div className="rc-enter" style={{ marginTop: 12, borderRadius: 14, padding: 15, background: "#f5e9e1", color: "#795746", fontSize: 11, lineHeight: 1.7 }}>
             This experience is for adults already assessed by a clinician and recovering at home. For a new head injury, severe or rapidly worsening symptoms, seek urgent medical care or contact your local emergency number.
           </div>}
           <p style={{ margin: "26px 0 0", color: "#a0a397", textAlign: "center", fontSize: 9, letterSpacing: ".04em" }}>
