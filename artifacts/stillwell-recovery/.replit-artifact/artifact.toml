@@ -1,7 +1,7 @@
 kind = "web"
 previewPath = "/"
 title = "Stillwell Recovery"
-description = "A standalone customer-facing concept for adults recovering at home after a clinician-assessed concussion. It offers a needs-and-symptoms guide, care overview, FAQs, and a simulated eligibility experience without collecting health information or making real appointments."
+description = "A private self-guided concussion and post-concussive recovery journal with a starting quiz, email accounts, personalized educational routines, and saved symptom and activity logs. Includes consent, account-restricted access, and recovery-data deletion controls."
 version = "1.0.0"
 id = "artifacts/stillwell-recovery"
 router = "path"

@@ -1,10 +1,16 @@
 ---
 name: Recovery protocol content
-description: Product scope and safety boundary for nutrition, supplements, and exercise in the Stillwell concussion-recovery concept.
+description: Self-guided concussion journal scope, health-data consent, and safety boundaries.
 ---
 
-Include food and hydration, supplement review, and gradual movement as parts of the Stillwell recovery conversation. Do not recommend supplement products or doses, or prescribe an individualized exercise plan; keep these decisions clinician-guided and make urgent-care boundaries clear.
+Stillwell supports a self-guided, personalized routine with or without clinician involvement. Users track concussion or post-concussive symptoms and document what they did or did not do each day through diet, exercise, and meditation. Start with a quiz, then account creation with the first logged summary. The user explicitly chose a working app with saved logs rather than a prototype.
 
-**Why:** The user asked to include these areas in a concussion-recovery protocol, where appropriate guidance depends on the person and clinical context.
+**Why:** The user wants an ongoing personal recovery journal, not only a clinician-led service preview.
 
-**How to apply:** Provide educational prompts and a clinician-personalized progression framework. Do not collect or save health details or present the concept as medical advice.
+**How to apply:** Save health records only with explicit consent and authenticated, owner-scoped access. Keep symptom choices, health details, free text, and identifiers out of analytics. Self-guided personalization means user-chosen priorities and educational routines, not diagnoses or prescribed treatment. Do not recommend supplement products/doses or individualized exercise intensity/progression. Keep urgent-care boundaries clear and encourage appropriate medical review.
+
+Journal calendar dates in URL paths must also be redacted from access logs.
+
+**Why:** Journal timing can reveal health-related activity even when notes and symptom ratings are absent.
+
+**How to apply:** Log generic route patterns rather than date-specific journal paths or authentication resource identifiers.

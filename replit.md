@@ -1,10 +1,10 @@
-# [Project name]
+# Stillwell Recovery
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Self-guided concussion and post-concussive recovery journaling, with optional clinician involvement.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- Managed workflows run the website and shared API; restart the existing artifact workflows, not duplicate servers.
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
@@ -30,7 +30,15 @@ _Populate as you build — non-obvious choices a reader couldn't infer from the 
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+Public landing → starting quiz → explicit storage consent → email-based account creation → first saved summary and private daily journal. Users can edit routine priorities, log symptoms and food/movement/meditation/pacing, edit or delete individual days, and delete all recovery data without deleting their sign-in account.
+
+## Health-data safety
+
+- Personalization means user-chosen educational routines, not diagnosis or prescribed treatment. No supplement doses or individualized exercise intensity/progression.
+- Every recovery API derives ownership from the authenticated Clerk user; never trust a client-supplied owner.
+- Never send health fields, notes, symptom choices, or account identifiers to analytics or logs.
+- A quiz draft is kept in memory before consent; only a consented draft may be held in tab session storage for up to 30 minutes during signup. Clear it after save, cancellation, logout, or account change.
+- Keep emergency/new-injury boundaries visible. Do not claim HIPAA compliance or end-to-end encryption.
 
 ## User preferences
 

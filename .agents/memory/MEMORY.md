@@ -1,1 +1,1 @@
-- [Recovery protocol content](recovery-protocol-content.md) — keep nutrition, supplement review, and exercise clinician-guided, non-prescriptive, and privacy-safe.
+- [Recovery journaling scope](recovery-protocol-content.md) — self-guided routines with optional clinician involvement; consented private logs, no diagnosis or treatment prescriptions.
