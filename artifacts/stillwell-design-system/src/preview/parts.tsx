@@ -1,5 +1,9 @@
 import type { ReactNode } from 'react';
 
+export function Frame({ children }: { children: ReactNode }) {
+  return <div className="space-y-6 rounded-[calc(var(--radius)*1.5)] border bg-card p-5 text-card-foreground sm:p-6">{children}</div>;
+}
+
 export function Row({
   label,
   children,

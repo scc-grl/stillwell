@@ -1,0 +1,8 @@
+import * as M from '../../components/ui/sidebar';
+import { Frame } from '../parts';
+import * as React from 'react';
+import * as Icon from 'lucide-react';
+
+export function SidebarDemo() {
+  return <Frame><M.SidebarProvider className="relative min-h-80 overflow-hidden rounded-xl border" style={{'--sidebar-width':'12rem'} as React.CSSProperties}><M.Sidebar collapsible="none"><M.SidebarHeader><M.SidebarInput placeholder="Search example…" aria-label="Search sidebar example"/></M.SidebarHeader><M.SidebarSeparator/><M.SidebarContent><M.SidebarGroup><M.SidebarGroupLabel>Example navigation</M.SidebarGroupLabel><M.SidebarGroupAction aria-label="Add example"><Icon.Plus/></M.SidebarGroupAction><M.SidebarGroupContent><M.SidebarMenu><M.SidebarMenuItem><M.SidebarMenuButton isActive><Icon.Leaf/><span>Overview</span></M.SidebarMenuButton><M.SidebarMenuBadge>2</M.SidebarMenuBadge><M.SidebarMenuAction aria-label="Item actions"><Icon.MoreHorizontal/></M.SidebarMenuAction><M.SidebarMenuSub><M.SidebarMenuSubItem><M.SidebarMenuSubButton href="#page=brand-logo">Brand</M.SidebarMenuSubButton></M.SidebarMenuSubItem></M.SidebarMenuSub></M.SidebarMenuItem><M.SidebarMenuItem><M.SidebarMenuButton>Supporting page</M.SidebarMenuButton></M.SidebarMenuItem><M.SidebarMenuSkeleton showIcon/></M.SidebarMenu></M.SidebarGroupContent></M.SidebarGroup></M.SidebarContent><M.SidebarFooter className="text-xs">Source sidebar family</M.SidebarFooter><M.SidebarRail/></M.Sidebar><M.SidebarInset className="min-w-0 bg-card p-4"><M.SidebarTrigger/><p className="mt-4 text-xs leading-6 text-muted-foreground">A bounded, pinned example. The source also supports off-canvas and icon-collapsed modes.</p></M.SidebarInset></M.SidebarProvider></Frame>;
+}

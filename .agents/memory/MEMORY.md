@@ -1,2 +1,3 @@
 - [Recovery journaling scope](recovery-protocol-content.md) — self-guided routines with optional clinician involvement; consented private logs, no diagnosis or treatment prescriptions.
 - [Design language reuse](design-language-reuse.md) — the reusable system should carry Stillwell’s existing visual identity, not introduce a separate direction.
+- [Canvas preview verification](canvas-preview-verification.md) — app screenshots can pass while a canvas iframe has a wrong URL; verify its registered host and path.

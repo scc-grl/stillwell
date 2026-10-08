@@ -3,7 +3,13 @@ name: Recovery protocol content
 description: Self-guided concussion journal scope, health-data consent, and safety boundaries.
 ---
 
-Stillwell supports a self-guided, personalized routine with or without clinician involvement. Users track concussion or post-concussive symptoms and document what they did or did not do each day through diet, exercise, and meditation. Start with a quiz, then account creation with the first logged summary. The user explicitly chose a working app with saved logs rather than a prototype.
+Stillwell supports a self-guided, personalized routine with or without clinician involvement. Users track concussion or post-concussive symptoms and document what they did or did not do each day through diet, exercise, and meditation. The user previously chose a working app with saved logs rather than a prototype.
+
+The newer requested design begins with an optional assessment after account creation, then a personalized pick-and-choose protocol, starting with exercise and diet. Users want audio or manual-quiz logs, daily during the first month and weekly thereafter, three exercise milestones they can move through at their own pace, clinician/material resources, and a protocol/record summary they can choose to share with their physician.
+
+**Why:** The user explicitly described this recovery flow and cadence.
+
+**How to apply:** Treat the new flow as the intended design direction, not permission to silently replace the existing working account/logging flow. Integrate an approved prototype only when asked. Support missing/skipped answers without inventing symptom scores; cadence is a logging schedule, not a recovery prediction or medical clearance.
 
 **Why:** The user wants an ongoing personal recovery journal, not only a clinician-led service preview.
 
