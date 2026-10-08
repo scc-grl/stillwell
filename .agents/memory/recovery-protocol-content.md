@@ -11,6 +11,20 @@ The newer requested design begins with an optional assessment after account crea
 
 **How to apply:** Treat the new flow as the intended design direction, not permission to silently replace the existing working account/logging flow. Integrate an approved prototype only when asked. Support missing/skipped answers without inventing symptom scores; cadence is a logging schedule, not a recovery prediction or medical clearance.
 
+## Design-first product direction
+
+“Focus on the design flow first before we talk about any type of backend capabilities.” The user wants to see the flow, get it right, and iterate before backend discussions.
+
+The phone app visit centers on a patient check-in. The eventual clinician portal/dashboard should help review progress and summarize experiences, bringing quantitative measures and qualitative reflections together so patients and clinicians can recognize meaningful moments in the journey. The user's future vision includes provisioning protocols to medical research to help other patients and further the field.
+
+**Why:** The user explicitly clarified the design-first priority and the patient, clinician, and future research roles.
+
+**How to apply:** Keep iteration on the canvas; do not propose backend integration until the user asks. Distinguish patient-reported changes alongside a routine from evidence that the routine caused those changes. Future research contribution is separate from ordinary journaling and clinician sharing, with separate informed consent rather than automatic reuse of health records.
+
+## Privacy and medical boundaries
+
+Journaling must remain patient-controlled and non-prescriptive.
+
 **Why:** The user wants an ongoing personal recovery journal, not only a clinician-led service preview.
 
 **How to apply:** Save health records only with explicit consent and authenticated, owner-scoped access. Keep symptom choices, health details, free text, and identifiers out of analytics. Self-guided personalization means user-chosen priorities and educational routines, not diagnoses or prescribed treatment. Do not recommend supplement products/doses or individualized exercise intensity/progression. Keep urgent-care boundaries clear and encourage appropriate medical review.
