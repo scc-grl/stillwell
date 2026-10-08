@@ -1,0 +1,19 @@
+kind = "design-system"
+previewPath = "/stillwell-design-system/"
+title = "Stillwell Design System"
+description = "Reusable Stillwell brand tokens and source-based UI components, with a living style guide for warm-paper surfaces, botanical greens, Fraunces headlines, DM Sans interfaces, and accessible states."
+version = "1.0.0"
+id = "artifacts/stillwell-design-system"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/stillwell-design-system/" ]
+localPort = 22630
+
+[services.development]
+run = "pnpm --filter @workspace/stillwell-design-system run dev"
+
+[services.env]
+PORT = "22630"
+BASE_PATH = "/stillwell-design-system/"
