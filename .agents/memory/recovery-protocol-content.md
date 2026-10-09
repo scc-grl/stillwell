@@ -21,6 +21,14 @@ The phone app visit centers on a patient check-in. The eventual clinician portal
 
 **How to apply:** Keep iteration on the canvas; do not propose backend integration until the user asks. Distinguish patient-reported changes alongside a routine from evidence that the routine caused those changes. Future research contribution is separate from ordinary journaling and clinician sharing, with separate informed consent rather than automatic reuse of health records.
 
+## Whole-check-in voice direction
+
+The user chose a voice-led route for the whole check-in—symptoms, diet/exercise, and reflection—rather than voice only for the personal reflection.
+
+**Why:** The user explicitly selected “Whole check-in.”
+
+**How to apply:** Design voice guidance throughout the phone flow, preserving a manual alternative and patient review. Keep the current design-only scope; do not interpret this choice as permission to enable microphones, transcription, or backend capabilities.
+
 ## Privacy and medical boundaries
 
 Journaling must remain patient-controlled and non-prescriptive.
