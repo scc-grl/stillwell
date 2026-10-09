@@ -48,5 +48,11 @@ Thumbs.db
 .cache/
 .local/
 
+# Environment and secret files
+.env
+.env.*
+!.env.example
+!.env.template
+
 # Prepared source exports and other generated artifacts
 /generated-artifacts/
