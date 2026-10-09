@@ -1,3 +1,4 @@
 - [Recovery journaling scope](recovery-protocol-content.md) — design-first phone/clinician flows; patient-chosen routines, private logs, future research consent; no treatment prescriptions.
 - [Design language reuse](design-language-reuse.md) — the reusable system should carry Stillwell’s existing visual identity, not introduce a separate direction.
 - [Canvas preview verification](canvas-preview-verification.md) — app screenshots can pass while a canvas iframe has a wrong URL; verify its registered host and path.
+- [GitHub access verification](github-access-verification.md) — an active provider connection does not prove Git authentication or repository tracking works.
