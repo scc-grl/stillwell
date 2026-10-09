@@ -14,3 +14,9 @@ The generic integration authorization card also failed validation for this works
 **Why:** Git-provider connections were reported active but were not accepted by the generic connector authorization form.
 
 **How to apply:** If that mismatch recurs, stop retrying generic cards and direct the user to Git-provider authorization. Replit's documentation distinguishes account settings → Git Providers from Connected Services; reconnecting only Connected Services does not repair the separate Git connection. Do not ask for credentials in chat.
+
+Do not conclude that a user-supplied credential is invalid solely because fetching through an authenticated URL fails.
+
+**Why:** The authenticated-URL fetch failed here, but the same credential succeeded when supplied through a temporary, scoped HTTP authentication header with credential helpers disabled.
+
+**How to apply:** When explicitly authorized to use a stored credential, let the Git process receive it through ephemeral environment configuration. Keep the saved repository URL credential-free, suppress raw authentication output, and never put credentials in files or command arguments. Check the credential-supply method before asking the user to replace a token.
