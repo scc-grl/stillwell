@@ -2,7 +2,7 @@
 
 Status: pending. Chunk 4.
 
-Source: artifacts/stillwell-recovery/src/components/ui/breadcrumb.tsx:1–114. License: local project unspecified; retain upstream primitive licenses.
+Source: artifacts/website/src/components/ui/breadcrumb.tsx:1–114. License: local project unspecified; retain upstream primitive licenses.
 
 Public export: @workspace/stillwell-design-system/components/ui/breadcrumb. Exports: Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbPage, BreadcrumbSeparator, BreadcrumbEllipsis,. Dependencies: react, @radix-ui/react-slot, lucide-react. Local component peers: none. Usage evidence: .
 

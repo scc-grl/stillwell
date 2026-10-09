@@ -2,7 +2,7 @@
 
 Status: pending. Chunk 8.
 
-Source: artifacts/stillwell-recovery/src/components/ui/kbd.tsx:1–28. License: local project unspecified; retain upstream primitive licenses.
+Source: artifacts/website/src/components/ui/kbd.tsx:1–28. License: local project unspecified; retain upstream primitive licenses.
 
 Public export: @workspace/stillwell-design-system/components/ui/kbd. Exports: Kbd, KbdGroup. Dependencies: . Local component peers: none. Usage evidence: .
 

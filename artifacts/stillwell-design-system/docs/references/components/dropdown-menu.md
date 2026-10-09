@@ -2,7 +2,7 @@
 
 Status: pending. Chunk 6.
 
-Source: artifacts/stillwell-recovery/src/components/ui/dropdown-menu.tsx:1–200. License: local project unspecified; retain upstream primitive licenses.
+Source: artifacts/website/src/components/ui/dropdown-menu.tsx:1–200. License: local project unspecified; retain upstream primitive licenses.
 
 Public export: @workspace/stillwell-design-system/components/ui/dropdown-menu. Exports: DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuCheckboxItem, DropdownMenuRadioItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuGroup, DropdownMenuPortal, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuRadioGroup,. Dependencies: react, @radix-ui/react-dropdown-menu, lucide-react. Local component peers: none. Usage evidence: .
 

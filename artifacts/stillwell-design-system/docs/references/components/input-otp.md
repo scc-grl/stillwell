@@ -2,7 +2,7 @@
 
 Status: pending. Chunk 7.
 
-Source: artifacts/stillwell-recovery/src/components/ui/input-otp.tsx:1–68. License: local project unspecified; retain upstream primitive licenses.
+Source: artifacts/website/src/components/ui/input-otp.tsx:1–68. License: local project unspecified; retain upstream primitive licenses.
 
 Public export: @workspace/stillwell-design-system/components/ui/input-otp. Exports: InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator. Dependencies: react, input-otp, lucide-react. Local component peers: none. Usage evidence: .
 

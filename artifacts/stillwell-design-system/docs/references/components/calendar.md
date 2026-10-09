@@ -2,7 +2,7 @@
 
 Status: pending. Chunk 5.
 
-Source: artifacts/stillwell-recovery/src/components/ui/calendar.tsx:1–212. License: local project unspecified; retain upstream primitive licenses.
+Source: artifacts/website/src/components/ui/calendar.tsx:1–212. License: local project unspecified; retain upstream primitive licenses.
 
 Public export: @workspace/stillwell-design-system/components/ui/calendar. Exports: Calendar, CalendarDayButton. Dependencies: react, react-day-picker, lucide-react. Local component peers: button. Usage evidence: .
 

@@ -2,7 +2,7 @@
 
 Status: pending. Chunk 5.
 
-Source: artifacts/stillwell-recovery/src/components/ui/collapsible.tsx:1–11. License: local project unspecified; retain upstream primitive licenses.
+Source: artifacts/website/src/components/ui/collapsible.tsx:1–11. License: local project unspecified; retain upstream primitive licenses.
 
 Public export: @workspace/stillwell-design-system/components/ui/collapsible. Exports: Collapsible, CollapsibleTrigger, CollapsibleContent. Dependencies: @radix-ui/react-collapsible. Local component peers: none. Usage evidence: .
 

@@ -2,7 +2,7 @@
 
 Status: pending. Chunk 9.
 
-Source: artifacts/stillwell-recovery/src/components/ui/scroll-area.tsx:1–45. License: local project unspecified; retain upstream primitive licenses.
+Source: artifacts/website/src/components/ui/scroll-area.tsx:1–45. License: local project unspecified; retain upstream primitive licenses.
 
 Public export: @workspace/stillwell-design-system/components/ui/scroll-area. Exports: ScrollArea, ScrollBar. Dependencies: react, @radix-ui/react-scroll-area. Local component peers: none. Usage evidence: .
 

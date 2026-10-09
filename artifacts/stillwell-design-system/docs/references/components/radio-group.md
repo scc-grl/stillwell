@@ -2,7 +2,7 @@
 
 Status: pending. Chunk 9.
 
-Source: artifacts/stillwell-recovery/src/components/ui/radio-group.tsx:1–41. License: local project unspecified; retain upstream primitive licenses.
+Source: artifacts/website/src/components/ui/radio-group.tsx:1–41. License: local project unspecified; retain upstream primitive licenses.
 
 Public export: @workspace/stillwell-design-system/components/ui/radio-group. Exports: RadioGroup, RadioGroupItem. Dependencies: react, @radix-ui/react-radio-group, lucide-react. Local component peers: none. Usage evidence: .
 

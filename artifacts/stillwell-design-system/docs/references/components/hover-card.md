@@ -2,7 +2,7 @@
 
 Status: pending. Chunk 7.
 
-Source: artifacts/stillwell-recovery/src/components/ui/hover-card.tsx:1–26. License: local project unspecified; retain upstream primitive licenses.
+Source: artifacts/website/src/components/ui/hover-card.tsx:1–26. License: local project unspecified; retain upstream primitive licenses.
 
 Public export: @workspace/stillwell-design-system/components/ui/hover-card. Exports: HoverCard, HoverCardTrigger, HoverCardContent. Dependencies: react, @radix-ui/react-hover-card. Local component peers: none. Usage evidence: .
 

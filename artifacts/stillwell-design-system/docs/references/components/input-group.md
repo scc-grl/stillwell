@@ -2,7 +2,7 @@
 
 Status: pending. Chunk 7.
 
-Source: artifacts/stillwell-recovery/src/components/ui/input-group.tsx:1–167. License: local project unspecified; retain upstream primitive licenses.
+Source: artifacts/website/src/components/ui/input-group.tsx:1–167. License: local project unspecified; retain upstream primitive licenses.
 
 Public export: @workspace/stillwell-design-system/components/ui/input-group. Exports: InputGroup, InputGroupAddon, InputGroupButton, InputGroupText, InputGroupInput, InputGroupTextarea,. Dependencies: react, class-variance-authority. Local component peers: button, input, textarea. Usage evidence: .
 

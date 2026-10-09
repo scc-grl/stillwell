@@ -2,7 +2,7 @@
 
 Status: pending. Chunk 10.
 
-Source: artifacts/stillwell-recovery/src/components/ui/sonner.tsx:1–31. License: local project unspecified; retain upstream primitive licenses.
+Source: artifacts/website/src/components/ui/sonner.tsx:1–31. License: local project unspecified; retain upstream primitive licenses.
 
 Public export: @workspace/stillwell-design-system/components/ui/sonner. Exports: Toaster. Dependencies: next-themes, sonner. Local component peers: none. Usage evidence: .
 

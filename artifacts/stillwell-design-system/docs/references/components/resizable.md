@@ -2,7 +2,7 @@
 
 Status: pending. Chunk 9.
 
-Source: artifacts/stillwell-recovery/src/components/ui/resizable.tsx:1–44. License: local project unspecified; retain upstream primitive licenses.
+Source: artifacts/website/src/components/ui/resizable.tsx:1–44. License: local project unspecified; retain upstream primitive licenses.
 
 Public export: @workspace/stillwell-design-system/components/ui/resizable. Exports: ResizablePanelGroup, ResizablePanel, ResizableHandle. Dependencies: react-resizable-panels, lucide-react. Local component peers: none. Usage evidence: .
 

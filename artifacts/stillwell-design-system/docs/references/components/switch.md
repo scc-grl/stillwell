@@ -2,7 +2,7 @@
 
 Status: pending. Chunk 11.
 
-Source: artifacts/stillwell-recovery/src/components/ui/switch.tsx:1–26. License: local project unspecified; retain upstream primitive licenses.
+Source: artifacts/website/src/components/ui/switch.tsx:1–26. License: local project unspecified; retain upstream primitive licenses.
 
 Public export: @workspace/stillwell-design-system/components/ui/switch. Exports: Switch. Dependencies: react, @radix-ui/react-switch. Local component peers: none. Usage evidence: .
 

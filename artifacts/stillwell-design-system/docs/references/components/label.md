@@ -2,7 +2,7 @@
 
 Status: pending. Chunk 2.
 
-Source: artifacts/stillwell-recovery/src/components/ui/label.tsx:1–25. License: local project unspecified; retain upstream primitive licenses.
+Source: artifacts/website/src/components/ui/label.tsx:1–25. License: local project unspecified; retain upstream primitive licenses.
 
 Public export: @workspace/stillwell-design-system/components/ui/label. Exports: Label. Dependencies: react, @radix-ui/react-label, class-variance-authority. Local component peers: none. Usage evidence: field.tsx, form.tsx.
 

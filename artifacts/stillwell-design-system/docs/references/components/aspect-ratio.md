@@ -2,7 +2,7 @@
 
 Status: pending. Chunk 4.
 
-Source: artifacts/stillwell-recovery/src/components/ui/aspect-ratio.tsx:1–5. License: local project unspecified; retain upstream primitive licenses.
+Source: artifacts/website/src/components/ui/aspect-ratio.tsx:1–5. License: local project unspecified; retain upstream primitive licenses.
 
 Public export: @workspace/stillwell-design-system/components/ui/aspect-ratio. Exports: AspectRatio. Dependencies: @radix-ui/react-aspect-ratio. Local component peers: none. Usage evidence: .
 

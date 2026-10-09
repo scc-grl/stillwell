@@ -22,7 +22,12 @@ Self-guided concussion and post-concussive recovery journaling, with optional cl
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/website` (`@workspace/website`) — landing page, starting quiz, sign-in/up, private journal/dashboard, and privacy page. Public routes remain at `/`, `/quiz`, `/dashboard`, and `/privacy`.
+- `artifacts/api-server` — shared API, still served at `/api`.
+- `artifacts/stillwell-design-system` — reusable Stillwell tokens and components; `artifacts/mockup-sandbox` holds design explorations.
+- `design/` — separate imported design exports; not another application.
+- Website workflow: `artifacts/website: web`, running `pnpm --filter @workspace/website run dev`. Production builds use the same package and serve `artifacts/website/dist/public`.
+- The website keeps its original stable artifact ID for canvas links; folder and package names do not determine public URLs.
 
 ## Architecture decisions
 

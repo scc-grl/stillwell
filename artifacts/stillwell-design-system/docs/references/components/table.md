@@ -2,7 +2,7 @@
 
 Status: pending. Chunk 11.
 
-Source: artifacts/stillwell-recovery/src/components/ui/table.tsx:1–119. License: local project unspecified; retain upstream primitive licenses.
+Source: artifacts/website/src/components/ui/table.tsx:1–119. License: local project unspecified; retain upstream primitive licenses.
 
 Public export: @workspace/stillwell-design-system/components/ui/table. Exports: Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell, TableCaption,. Dependencies: react. Local component peers: none. Usage evidence: .
 

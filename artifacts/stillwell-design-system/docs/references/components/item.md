@@ -2,7 +2,7 @@
 
 Status: pending. Chunk 8.
 
-Source: artifacts/stillwell-recovery/src/components/ui/item.tsx:1–192. License: local project unspecified; retain upstream primitive licenses.
+Source: artifacts/website/src/components/ui/item.tsx:1–192. License: local project unspecified; retain upstream primitive licenses.
 
 Public export: @workspace/stillwell-design-system/components/ui/item. Exports: Item, ItemMedia, ItemContent, ItemActions, ItemGroup, ItemSeparator, ItemTitle, ItemDescription, ItemHeader, ItemFooter,. Dependencies: react, @radix-ui/react-slot, class-variance-authority. Local component peers: separator. Usage evidence: .
 

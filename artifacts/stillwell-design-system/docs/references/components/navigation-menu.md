@@ -2,7 +2,7 @@
 
 Status: pending. Chunk 8.
 
-Source: artifacts/stillwell-recovery/src/components/ui/navigation-menu.tsx:1–127. License: local project unspecified; retain upstream primitive licenses.
+Source: artifacts/website/src/components/ui/navigation-menu.tsx:1–127. License: local project unspecified; retain upstream primitive licenses.
 
 Public export: @workspace/stillwell-design-system/components/ui/navigation-menu. Exports: navigationMenuTriggerStyle, NavigationMenu, NavigationMenuList, NavigationMenuItem, NavigationMenuContent, NavigationMenuTrigger, NavigationMenuLink, NavigationMenuIndicator, NavigationMenuViewport,. Dependencies: react, @radix-ui/react-navigation-menu, class-variance-authority, lucide-react. Local component peers: none. Usage evidence: .
 

@@ -2,7 +2,7 @@
 
 Status: pending. Chunk 5.
 
-Source: artifacts/stillwell-recovery/src/components/ui/carousel.tsx:1–259. License: local project unspecified; retain upstream primitive licenses.
+Source: artifacts/website/src/components/ui/carousel.tsx:1–259. License: local project unspecified; retain upstream primitive licenses.
 
 Public export: @workspace/stillwell-design-system/components/ui/carousel. Exports: type CarouselApi, Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext,. Dependencies: react, embla-carousel-react, lucide-react. Local component peers: button. Usage evidence: .
 

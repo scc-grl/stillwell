@@ -3,8 +3,8 @@ name: GitHub source placement
 description: Why the GitHub source folder differs from the live Replit workspace layout.
 ---
 
-Keep the live workspace's directory layout unchanged when syncing the site into GitHub's `stillwell-site/` folder.
+Keep GitHub and the live workspace on the same top-level project layout. Do not recreate the temporary `stillwell-site/` wrapper.
 
-**Why:** The user requested that folder on GitHub's main branch, preservation of existing design exports, and no changes to application code, design, or behavior.
+**Why:** The user replaced the earlier wrapper-folder approach with matching GitHub/workspace layouts and normal Git synchronization. The website is named separately to leave room for a future phone app, not to change its routes or behavior.
 
-**How to apply:** Prepare future updates in an isolated Git working copy based on GitHub's current history. Copy the site and its required workspace packages/configuration into `stillwell-site/`, preserve `design/`, verify source files match the live workspace, and push normally. Do not push the workspace's root-layout main directly over the folder-layout GitHub main. Exclude environment files, dependencies, generated outputs, and agent/reference-only files.
+**How to apply:** Keep the project source at repository root and preserve the separate `design/` exports. Use normal tracked Git operations; if a requested fast-forward cannot be applied cleanly, stop rather than merge or rewrite history. Do not create the phone app until asked.

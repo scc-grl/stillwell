@@ -2,7 +2,7 @@
 
 Status: pending. Chunk 2.
 
-Source: artifacts/stillwell-recovery/src/components/ui/dialog.tsx:1–119. License: local project unspecified; retain upstream primitive licenses.
+Source: artifacts/website/src/components/ui/dialog.tsx:1–119. License: local project unspecified; retain upstream primitive licenses.
 
 Public export: @workspace/stillwell-design-system/components/ui/dialog. Exports: Dialog, DialogPortal, DialogOverlay, DialogTrigger, DialogClose, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription,. Dependencies: react, @radix-ui/react-dialog, lucide-react. Local component peers: none. Usage evidence: command.tsx.
 

@@ -2,7 +2,7 @@
 
 Status: pending. Chunk 3.
 
-Source: artifacts/stillwell-recovery/src/components/ui/tooltip.tsx:1–31. License: local project unspecified; retain upstream primitive licenses.
+Source: artifacts/website/src/components/ui/tooltip.tsx:1–31. License: local project unspecified; retain upstream primitive licenses.
 
 Public export: @workspace/stillwell-design-system/components/ui/tooltip. Exports: Tooltip, TooltipTrigger, TooltipContent, TooltipProvider. Dependencies: react, @radix-ui/react-tooltip. Local component peers: none. Usage evidence: sidebar.tsx.
 

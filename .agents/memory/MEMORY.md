@@ -2,4 +2,5 @@
 - [Design language reuse](design-language-reuse.md) — the reusable system should carry Stillwell’s existing visual identity, not introduce a separate direction.
 - [Canvas preview verification](canvas-preview-verification.md) — app screenshots can pass while a canvas iframe has a wrong URL; verify its registered host and path.
 - [GitHub access verification](github-access-verification.md) — an active provider connection does not prove Git authentication or repository tracking works.
-- [GitHub source placement](github-source-placement.md) — sync source into stillwell-site/ without relocating the running Replit app or changing existing design exports.
+- [GitHub source placement](github-source-placement.md) — GitHub and Replit now share the top-level layout; preserve design exports and do not recreate a wrapper folder.
+- [Artifact rename lifecycle](artifact-rename-lifecycle.md) — removing a managed workflow during a folder move may leave its server listening; stop it before renaming.

@@ -2,7 +2,7 @@
 
 Status: pending. Chunk 4.
 
-Source: artifacts/stillwell-recovery/src/components/ui/badge.tsx:1–42. License: local project unspecified; retain upstream primitive licenses.
+Source: artifacts/website/src/components/ui/badge.tsx:1–42. License: local project unspecified; retain upstream primitive licenses.
 
 Public export: @workspace/stillwell-design-system/components/ui/badge. Exports: Badge, badgeVariants. Dependencies: react, class-variance-authority. Local component peers: none. Usage evidence: .
 

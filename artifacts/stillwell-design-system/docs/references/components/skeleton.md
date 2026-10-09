@@ -2,7 +2,7 @@
 
 Status: pending. Chunk 2.
 
-Source: artifacts/stillwell-recovery/src/components/ui/skeleton.tsx:1–15. License: local project unspecified; retain upstream primitive licenses.
+Source: artifacts/website/src/components/ui/skeleton.tsx:1–15. License: local project unspecified; retain upstream primitive licenses.
 
 Public export: @workspace/stillwell-design-system/components/ui/skeleton. Exports: Skeleton. Dependencies: . Local component peers: none. Usage evidence: sidebar.tsx.
 

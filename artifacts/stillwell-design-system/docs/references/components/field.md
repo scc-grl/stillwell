@@ -2,7 +2,7 @@
 
 Status: pending. Chunk 7.
 
-Source: artifacts/stillwell-recovery/src/components/ui/field.tsx:1–243. License: local project unspecified; retain upstream primitive licenses.
+Source: artifacts/website/src/components/ui/field.tsx:1–243. License: local project unspecified; retain upstream primitive licenses.
 
 Public export: @workspace/stillwell-design-system/components/ui/field. Exports: Field, FieldLabel, FieldDescription, FieldError, FieldGroup, FieldLegend, FieldSeparator, FieldSet, FieldContent, FieldTitle,. Dependencies: react, class-variance-authority. Local component peers: label, separator. Usage evidence: .
 

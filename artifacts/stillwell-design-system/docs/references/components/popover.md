@@ -2,7 +2,7 @@
 
 Status: pending. Chunk 9.
 
-Source: artifacts/stillwell-recovery/src/components/ui/popover.tsx:1–30. License: local project unspecified; retain upstream primitive licenses.
+Source: artifacts/website/src/components/ui/popover.tsx:1–30. License: local project unspecified; retain upstream primitive licenses.
 
 Public export: @workspace/stillwell-design-system/components/ui/popover. Exports: Popover, PopoverTrigger, PopoverContent, PopoverAnchor. Dependencies: react, @radix-ui/react-popover. Local component peers: none. Usage evidence: .
 

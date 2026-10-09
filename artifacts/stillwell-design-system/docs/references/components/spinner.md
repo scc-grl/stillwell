@@ -2,7 +2,7 @@
 
 Status: pending. Chunk 10.
 
-Source: artifacts/stillwell-recovery/src/components/ui/spinner.tsx:1–15. License: local project unspecified; retain upstream primitive licenses.
+Source: artifacts/website/src/components/ui/spinner.tsx:1–15. License: local project unspecified; retain upstream primitive licenses.
 
 Public export: @workspace/stillwell-design-system/components/ui/spinner. Exports: Spinner. Dependencies: lucide-react. Local component peers: none. Usage evidence: .
 

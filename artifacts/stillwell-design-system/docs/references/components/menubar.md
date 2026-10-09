@@ -2,7 +2,7 @@
 
 Status: pending. Chunk 8.
 
-Source: artifacts/stillwell-recovery/src/components/ui/menubar.tsx:1–253. License: local project unspecified; retain upstream primitive licenses.
+Source: artifacts/website/src/components/ui/menubar.tsx:1–253. License: local project unspecified; retain upstream primitive licenses.
 
 Public export: @workspace/stillwell-design-system/components/ui/menubar. Exports: Menubar, MenubarMenu, MenubarTrigger, MenubarContent, MenubarItem, MenubarSeparator, MenubarLabel, MenubarCheckboxItem, MenubarRadioGroup, MenubarRadioItem, MenubarPortal, MenubarSubContent, MenubarSubTrigger, MenubarGroup, MenubarSub, MenubarShortcut,. Dependencies: react, @radix-ui/react-menubar, lucide-react. Local component peers: none. Usage evidence: .
 

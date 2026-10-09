@@ -2,7 +2,7 @@
 
 Status: pending. Chunk 5.
 
-Source: artifacts/stillwell-recovery/src/components/ui/chart.tsx:1–366. License: local project unspecified; retain upstream primitive licenses.
+Source: artifacts/website/src/components/ui/chart.tsx:1–366. License: local project unspecified; retain upstream primitive licenses.
 
 Public export: @workspace/stillwell-design-system/components/ui/chart. Exports: ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, ChartStyle,. Dependencies: react, recharts. Local component peers: none. Usage evidence: .
 
