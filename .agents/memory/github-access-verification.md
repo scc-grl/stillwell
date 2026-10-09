@@ -13,4 +13,4 @@ The generic integration authorization card also failed validation for this works
 
 **Why:** Git-provider connections were reported active but were not accepted by the generic connector authorization form.
 
-**How to apply:** If that mismatch recurs, stop retrying generic cards and direct the user to the Git tool's Git-provider authorization flow. Do not ask for credentials in chat.
+**How to apply:** If that mismatch recurs, stop retrying generic cards and direct the user to Git-provider authorization. Replit's documentation distinguishes account settings → Git Providers from Connected Services; reconnecting only Connected Services does not repair the separate Git connection. Do not ask for credentials in chat.
