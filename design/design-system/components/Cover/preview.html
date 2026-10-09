@@ -1,0 +1,38 @@
+<!-- @dsCard height=288 -->
+<style>
+  .cv { position: relative; width: 960px; height: 288px; background: var(--background); overflow: hidden; }
+  .cv svg { position: absolute; inset: 0; }
+  .b-primary { fill: var(--primary); }
+  .b-accent { fill: var(--accent); }
+  .b-sage { fill: var(--chart-3); }
+  .b-tint { fill: var(--secondary); }
+  .b-dot { fill: var(--brand-dot); }
+  .r-light { fill: none; stroke: var(--primary-foreground); stroke-width: 1; }
+  .r-ink { fill: none; stroke: var(--primary); stroke-width: 1; }
+  .t { position: absolute; left: 40px; bottom: 36px; max-width: 420px; }
+  .t h1 { margin: 0; font-family: var(--font-serif); font-weight: 400; font-size: 84px; line-height: .92; color: var(--foreground); letter-spacing: -0.01em; }
+  .t p { margin: 16px 0 0; font: 400 14px/20px var(--font-sans); color: var(--muted-foreground); }
+</style>
+<div class="cv">
+  <svg width="960" height="288" viewBox="0 0 960 288" aria-hidden="true">
+    <!--
+      blocks: primary 176x312 (radius-panel 28), accent 168x260 (radius-panel), tint pill 84x124 (radius-pill = 42), chart-3 disc r42, brand-dot r8
+      arrangement: one tall green slab bleeding off the top with a clay slab bleeding off the bottom-right and two soft satellites to its left
+      pattern: literal motif, the mark's concentric rings and clay dot ("soft, friendly, large radii" and the mark itself say Stillwell)
+      steps and radii: gaps space-6 (24), space-8 (32); radius-panel 28, radius-pill; ring radii 56 and 28 echo the mark's 2:1 rings
+    -->
+    <rect class="b-tint" x="504" y="40" width="84" height="124" rx="42"/>
+    <circle class="b-sage" cx="546" cy="226" r="42"/>
+    <rect class="b-primary" x="612" y="-24" width="176" height="248" rx="28"/>
+    <rect class="b-accent" x="812" y="56" width="168" height="260" rx="28"/>
+    <circle class="r-light" cx="700" cy="112" r="56"/>
+    <circle class="r-light" cx="700" cy="112" r="28"/>
+    <circle class="b-dot" cx="740" cy="72" r="8"/>
+    <circle class="r-ink" cx="896" cy="172" r="56"/>
+    <circle class="r-ink" cx="896" cy="172" r="28"/>
+  </svg>
+  <div class="t">
+    <h1>Stillwell</h1>
+    <p>A calm, user-led recovery journal for concussion and post-concussive symptoms.</p>
+  </div>
+</div>
