@@ -23,11 +23,6 @@ const queryClient = new QueryClient({ defaultOptions: { queries: { refetchOnWind
 const appearance = {
   theme: shadcn,
   cssLayerName: "clerk",
-  options: {
-    logoPlacement: "inside" as const,
-    logoLinkUrl: basePath || "/",
-    logoImageUrl: `${window.location.origin}${basePath}/logo.svg`,
-  },
   variables: {
     colorPrimary: "#345849",
     colorForeground: "#29463b",
@@ -55,8 +50,7 @@ const appearance = {
     identityPreviewEditButton: "text-[#345849]",
     formFieldSuccessText: "text-[#4f765c]",
     alertText: "text-[#854c43]",
-    logoBox: "mb-2",
-    logoImage: "max-h-10",
+    logoBox: "hidden",
     socialButtonsBlockButton: "rounded-xl border-[#dce3d8] bg-[#fffefa] hover:bg-[#f2f4ed]",
     formButtonPrimary: "rounded-full bg-[#345849] hover:bg-[#28493b] text-[#fbfaf5]",
     formFieldInput: "rounded-xl border-[#dce3d8] bg-[#fffefa] text-[#29463b]",
