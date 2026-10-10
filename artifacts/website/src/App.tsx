@@ -1,13 +1,16 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { ClerkProvider, SignIn, SignUp, useClerk, useUser } from "@clerk/react";
 import { publishableKeyFromHost } from "@clerk/react/internal";
 import { shadcn } from "@clerk/themes";
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
-import { Activity, ArrowRight, ArrowUpRight, CalendarDays, Check, CircleAlert, Leaf, Menu, ShieldCheck, Sparkles } from "lucide-react";
+import { Activity, ArrowRight, CalendarDays, Check, CircleAlert, Leaf, Menu, ShieldCheck, Sparkles } from "lucide-react";
 import { Link, Redirect, Route, Router as WouterRouter, Switch, useLocation } from "wouter";
 import DashboardPage from "@/pages/DashboardPage";
 import PrivacyPage from "@/pages/PrivacyPage";
 import QuizPage from "@/pages/QuizPage";
+import PublicInfoPage from "@/pages/PublicInfoPage";
+import UnsubscribePage from "@/pages/UnsubscribePage";
+import { PublicLayout } from "@/components/PublicSite";
 import { clearDraft, readDraft } from "@/lib/recovery";
 import { trackEvent } from "@/lib/analytics";
 
@@ -63,18 +66,8 @@ const appearance = {
   },
 };
 
-function Brand({ invert = false }: { invert?: boolean }) {
-  return <Link href="/" className={`flex items-center gap-3 ${invert ? "text-[#f7f6ed]" : "text-[#29463b]"}`} aria-label="Stillwell home"><span className="brand-mark"/><span className="display text-[21px] font-semibold tracking-[-.04em]">stillwell</span></Link>;
-}
 function Landing() {
-  const [menuOpen, setMenuOpen] = useState(false);
-  return <div className="stillwell min-h-[100dvh]">
-    <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-[#fbfaf5] focus:px-4 focus:py-3">Skip to content</a>
-    <header className="relative z-10 border-b border-[#dce2d8] bg-[#f5f4ed]/95"><div className="mx-auto flex max-w-[1240px] items-center justify-between px-5 py-4 sm:px-8 lg:px-12"><Brand/>
-      <nav className="hidden items-center gap-6 text-[12px] font-medium text-[#52665c] lg:flex" aria-label="Main navigation"><a href="#journal">The journal</a><a href="#how">How it works</a><a href="#boundaries">Clear boundaries</a><Link href="/privacy">Privacy</Link></nav>
-      <div className="hidden items-center gap-3 lg:flex"><Link href="/sign-in" className="px-3 py-2 text-xs font-semibold text-[#54705e] hover:text-[#29453a]">Sign in</Link><Link href="/quiz" className="inline-flex items-center gap-2 rounded-full bg-[#345849] px-5 py-3 text-[12px] font-semibold text-[#fbfaf5] hover:bg-[#28493b]">Begin your journal <ArrowUpRight size={15}/></Link></div>
-      <button type="button" className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[#d4ddd4] text-[#355348] lg:hidden" onClick={() => setMenuOpen(v => !v)} aria-label={menuOpen ? "Close navigation" : "Open navigation"} aria-expanded={menuOpen}><Menu size={18}/></button>
-    </div>{menuOpen && <nav className="grid gap-1 border-t border-[#dce2d8] px-5 py-3 lg:hidden">{[["The journal", "#journal"], ["How it works", "#how"], ["Clear boundaries", "#boundaries"]].map(([label, href]) => <a key={href} onClick={() => setMenuOpen(false)} href={href} className="rounded-lg px-3 py-3 text-sm text-[#415a4e]">{label}</a>)}<Link href="/privacy" className="px-3 py-3 text-sm text-[#415a4e]">Privacy</Link><Link href="/sign-in" className="px-3 py-3 text-sm font-semibold text-[#415a4e]">Sign in</Link><Link href="/quiz" className="rounded-full bg-[#345849] px-4 py-3 text-center text-sm font-semibold text-white">Begin your journal</Link></nav>}</header>
+  return <PublicLayout>
     <main id="main">
       <section className="mx-auto grid max-w-[1240px] items-center gap-10 px-5 pb-16 pt-10 sm:px-8 sm:pb-20 sm:pt-14 lg:grid-cols-[1fr_.92fr] lg:gap-14 lg:px-12 lg:pb-24 lg:pt-16">
         <div className="reveal relative z-[1]"><div className="mb-7 inline-flex items-center gap-2 rounded-full border border-[#cfdbcf] bg-[#edf1e8] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[.15em] text-[#587364]"><Sparkles size={13}/> Care for the in-between</div>
@@ -92,8 +85,7 @@ function Landing() {
       <section id="boundaries" className="mx-auto max-w-[1240px] px-5 pb-10 sm:px-8 lg:px-12"><div className="rounded-[28px] border border-[#e2d5c6] bg-[#f3eee4] p-6 sm:p-9"><div className="flex gap-4"><span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#d9c9b7] text-[#a2715c]"><CircleAlert size={18}/></span><div><p className="text-sm font-semibold text-[#554b42]">Clear boundaries are part of good care.</p><p className="mt-2 max-w-[900px] text-xs leading-6 text-[#777066]">Stillwell is an educational recovery journal for adults, not a diagnostic tool, treatment prescription, or substitute for medical advice. It is not for a new head injury, urgent symptoms, or emergency care. If symptoms are worsening, contact a clinician. For severe or rapidly worsening symptoms, seek emergency care now or call your local emergency number. If you work with a clinician, bring your reflections to discussions at any stage of recovery. This app does not provide clinical consultations.</p></div></div></div></section>
       <section className="px-5 pb-20 pt-8 sm:px-8 lg:px-12 lg:pb-24"><div className="relative mx-auto max-w-[1240px] overflow-hidden rounded-[30px] bg-[#355747] px-6 py-10 text-[#f8f7f0] sm:px-10 sm:py-12 lg:px-14"><div className="absolute -right-16 -top-32 h-[350px] w-[350px] rounded-full border border-white/10"/><div className="relative grid gap-8 sm:grid-cols-[1fr_auto] sm:items-center"><div><p className="text-[10px] font-semibold uppercase tracking-[.18em] text-[#c3d2c3]">A thoughtful place to begin</p><h2 className="display mt-3 max-w-[620px] text-[clamp(2.2rem,5vw,3.5rem)] leading-[1.04] tracking-[-.045em]">Let today be enough to start.</h2><p className="mt-4 max-w-[520px] text-sm leading-6 text-[#d8e1d7]">Create a private space for what you want to remember. Skip what you don’t.</p></div><Link href="/quiz" onClick={() => trackEvent("recovery_quiz_started", { entry_point: "footer" })} className="inline-flex min-h-[50px] items-center justify-between gap-7 rounded-full bg-[#f5f3e9] px-5 text-[13px] font-semibold text-[#355747] hover:bg-white">Start your journal <ArrowRight size={16}/></Link></div></div></section>
     </main>
-    <footer className="border-t border-[#dce2d8] bg-[#f0efe7]"><div className="mx-auto flex max-w-[1240px] flex-col gap-5 px-5 py-7 sm:flex-row sm:items-center sm:justify-between sm:px-8 lg:px-12"><Brand/><p className="max-w-[540px] text-[10px] leading-5 text-[#7a8178]">An educational, user-led journal for concussion recovery. Not medical advice or emergency care.</p><div className="flex gap-4 text-[11px] text-[#54705e]"><Link href="/privacy">Privacy</Link><Link href="/sign-in">Sign in</Link></div></div></footer>
-  </div>;
+  </PublicLayout>;
 }
 
 function HomeRedirect() {
@@ -106,8 +98,8 @@ function PrivateDashboard() {
   if (!isLoaded) return <div className="min-h-[100dvh] bg-[#f5f4ed] p-8"><div className="mx-auto h-8 max-w-4xl animate-pulse rounded-xl bg-[#e8ece3]"/></div>;
   return isSignedIn ? <DashboardPage/> : <Redirect to="/"/>;
 }
-function SignInPage() { return <div className="auth-canvas"><div className="auth-intro"><Brand/><p className="eyebrow mt-12">Your notes, when you need them</p><h1 className="display mt-3 max-w-md text-5xl leading-[1.04] text-[#29463b]">A softer place to return to.</h1><p className="mt-5 max-w-sm text-sm leading-7 text-[#6b796e]">Sign in to revisit your Stillwell journal, routines, and reflections.</p></div><SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`}/></div>; }
-function SignUpPage() { return <div className="auth-canvas"><div className="auth-intro"><Brand/><p className="eyebrow mt-12">Begin with your own words</p><h1 className="display mt-3 max-w-md text-5xl leading-[1.04] text-[#29463b]">Your recovery. Your record.</h1><p className="mt-5 max-w-sm text-sm leading-7 text-[#6b796e]">Create a private account. Any consented setup in this tab is sent only once you are signed in.</p></div><div className="w-full max-w-[440px]"><SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`}/><div className="mt-4 text-center"><Link href="/" onClick={() => clearDraft()} className="text-xs font-medium text-[#718077] underline decoration-[#c4d0c3] underline-offset-4">Cancel setup and return home</Link></div></div></div>; }
+function SignInPage() { return <div className="auth-canvas"><div className="auth-intro"><Link href="/" className="flex items-center gap-3 text-[#29463b]"><span className="brand-mark"/><span className="display text-[21px] font-semibold">stillwell</span></Link><p className="eyebrow mt-12">Your notes, when you need them</p><h1 className="display mt-3 max-w-md text-5xl leading-[1.04] text-[#29463b]">A softer place to return to.</h1><p className="mt-5 max-w-sm text-sm leading-7 text-[#6b796e]">Sign in to revisit your Stillwell journal, routines, and reflections.</p></div><SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`}/></div>; }
+function SignUpPage() { return <div className="auth-canvas"><div className="auth-intro"><Link href="/" className="flex items-center gap-3 text-[#29463b]"><span className="brand-mark"/><span className="display text-[21px] font-semibold">stillwell</span></Link><p className="eyebrow mt-12">Begin with your own words</p><h1 className="display mt-3 max-w-md text-5xl leading-[1.04] text-[#29463b]">Your recovery. Your record.</h1><p className="mt-5 max-w-sm text-sm leading-7 text-[#6b796e]">Create a private account. Any consented setup in this tab is sent only once you are signed in.</p></div><div className="w-full max-w-[440px]"><SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`}/><div className="mt-4 text-center"><Link href="/" onClick={() => clearDraft()} className="text-xs font-medium text-[#718077] underline decoration-[#c4d0c3] underline-offset-4">Cancel setup and return home</Link></div></div></div>; }
 function ClerkCacheInvalidator() {
   const { addListener } = useClerk();
   const cache = useQueryClient();
@@ -129,13 +121,22 @@ function ClerkCacheInvalidator() {
 function Routes() {
   const [location, setLocation] = useLocation();
   useEffect(() => {
-    const page = location.startsWith("/sign-in") ? "Sign in" : location.startsWith("/sign-up") ? "Create account" :
+    const metadata: Record<string, { title: string; description: string }> = {
+      "/our-history": { title: "Our history", description: "Learn about the Stillwell Recovery journal and the values behind its user-led approach." },
+      "/faqs": { title: "FAQs", description: "Answers about Stillwell, a private self-guided recovery journal." },
+      "/contact": { title: "Contact us", description: "Contact Stillwell with questions or comments about the recovery journal." },
+      "/unsubscribe": { title: "Unsubscribe from updates", description: "Remove an email address from the Stillwell community update list." },
+      "/partners/health-systems-clinicians": { title: "Health systems & clinicians", description: "Placeholder information for health systems and clinicians interested in Stillwell." },
+      "/partners/care-areas": { title: "Care areas", description: "Placeholder information about care areas Stillwell may describe, including diet and gut health." },
+      "/partners/physiotherapy-mobility": { title: "Physiotherapy & mobility", description: "Placeholder information for organizations interested in physiotherapy and mobility." },
+    };
+    const page = metadata[location]?.title ?? (location.startsWith("/sign-in") ? "Sign in" : location.startsWith("/sign-up") ? "Create account" :
       location === "/quiz" ? "Your starting quiz" : location === "/dashboard" ? "Your private journal" :
-      location === "/privacy" ? "Privacy and data controls" : "Recovery at your pace";
+      location === "/privacy" ? "Privacy and data controls" : "Recovery at your pace");
     document.title = `${page} · Stillwell`;
     document.querySelector('meta[name="description"]')?.setAttribute("content",
-      location === "/" ? "A private, self-guided journal for concussion and post-concussive recovery." :
-      `${page} for your Stillwell recovery journal. Educational routines, not medical advice.`);
+      metadata[location]?.description ?? (location === "/" ? "A private, self-guided journal for concussion and post-concussive recovery." :
+      `${page} for your Stillwell recovery journal. Educational routines, not medical advice.`));
   }, [location]);
   return <ClerkProvider publishableKey={clerkPubKey} proxyUrl={clerkProxyUrl} appearance={appearance} signInUrl={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} localization={{
     signIn: { start: { title: "Welcome back", subtitle: "Sign in to your private Stillwell journal" } },
@@ -147,7 +148,14 @@ function Routes() {
       <Route path="/sign-up/*?" component={SignUpPage}/>
       <Route path="/quiz" component={QuizPage}/>
       <Route path="/dashboard" component={PrivateDashboard}/>
-      <Route path="/privacy" component={PrivacyPage}/>
+      <Route path="/privacy"><PublicLayout><PrivacyPage/></PublicLayout></Route>
+      <Route path="/unsubscribe"><PublicLayout><UnsubscribePage/></PublicLayout></Route>
+      <Route path="/our-history"><PublicLayout><PublicInfoPage content={{ eyebrow: "About Stillwell", title: "Our history", description: "Stillwell is a private, self-guided recovery journal made for people who want a quiet place to record their own reflections.", placeholder: "This page is a placeholder. More about the people, ideas, and history behind Stillwell will be added here." }}/></PublicLayout></Route>
+      <Route path="/faqs"><PublicLayout><PublicInfoPage content={{ eyebrow: "A few helpful notes", title: "FAQs", description: "A place for clear, practical answers about using the Stillwell journal.", placeholder: "This page is a placeholder. Frequently asked questions and answers will be added here. Stillwell is an educational, user-led journal, not medical advice or emergency care." }}/></PublicLayout></Route>
+      <Route path="/contact"><PublicLayout><PublicInfoPage content={{ eyebrow: "We’re here to listen", title: "Contact us", description: "For questions or comments about Stillwell, you can reach us at the placeholder address below.", placeholder: "PLACEHOLDER CONTACT EMAIL: hello@stillwell.example. This address is a temporary placeholder and is not a confirmed support channel." }}/></PublicLayout></Route>
+      <Route path="/partners/health-systems-clinicians"><PublicLayout><PublicInfoPage content={{ eyebrow: "Partner with Stillwell", title: "Health systems & clinicians", description: "Placeholder information for health systems, clinicians, and organizations exploring whether a user-led journal may be relevant to their work.", placeholder: "This page is a placeholder. Details about potential organizational conversations and the Stillwell journal will be added here.", partner: true }}/></PublicLayout></Route>
+      <Route path="/partners/care-areas"><PublicLayout><PublicInfoPage content={{ eyebrow: "Partner with Stillwell", title: "Care areas, including diet & gut health", description: "Placeholder information about areas Stillwell may describe in educational journal content.", placeholder: "Diet and gut health are areas to describe here, not advice, recommendations, or treatment guidance.", partner: true }}/></PublicLayout></Route>
+      <Route path="/partners/physiotherapy-mobility"><PublicLayout><PublicInfoPage content={{ eyebrow: "Partner with Stillwell", title: "Physiotherapy & mobility", description: "Placeholder information for organizations interested in physiotherapy and mobility as topics in a recovery journal.", placeholder: "This page is a placeholder. More information about how these topics may be described in Stillwell will be added here.", partner: true }}/></PublicLayout></Route>
       <Route><div className="min-h-[100dvh] bg-[#f5f4ed] p-10 text-center"><p className="eyebrow">Page not found</p><h1 className="display mt-3 text-4xl text-[#29463b]">Let’s find our way back.</h1><Link href="/" className="mt-6 inline-flex rounded-full bg-[#345849] px-5 py-3 text-sm text-white">Back to Stillwell</Link></div></Route>
     </Switch></QueryClientProvider>
   </ClerkProvider>;

@@ -285,3 +285,37 @@ export const HealthCheckResponse = zod.object({
 })
 
 
+/**
+ * @summary Subscribe an email address to Stillwell updates
+ */
+export const subscribeNewsletterBodyEmailMin = 3;
+export const subscribeNewsletterBodyEmailMax = 254;
+
+
+
+export const SubscribeNewsletterBody = zod.object({
+  "email": zod.string().email().min(subscribeNewsletterBodyEmailMin).max(subscribeNewsletterBodyEmailMax)
+})
+
+export const SubscribeNewsletterResponse = zod.object({
+  "subscribed": zod.literal(true)
+})
+
+
+/**
+ * @summary Remove an email address from Stillwell updates
+ */
+export const unsubscribeNewsletterBodyEmailMin = 3;
+export const unsubscribeNewsletterBodyEmailMax = 254;
+
+
+
+export const UnsubscribeNewsletterBody = zod.object({
+  "email": zod.string().email().min(unsubscribeNewsletterBodyEmailMin).max(unsubscribeNewsletterBodyEmailMax)
+})
+
+export const UnsubscribeNewsletterResponse = zod.object({
+  "unsubscribed": zod.literal(true)
+})
+
+

@@ -512,6 +512,7 @@
 }
 
 html { scroll-behavior: smooth; scroll-padding-top: 5rem; }
+#journal, #how, #boundaries { scroll-margin-top: 6rem; }
 body { margin: 0; background: #f5f4ed; }
 button, a { -webkit-tap-highlight-color: transparent; }
 :focus-visible { outline: 3px solid #799580; outline-offset: 3px; }

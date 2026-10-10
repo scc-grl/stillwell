@@ -21,6 +21,9 @@ import type {
 
 import type {
   HealthStatus,
+  NewsletterSubscriptionAccepted,
+  NewsletterSubscriptionInput,
+  NewsletterUnsubscriptionAccepted,
   RecoveryLog,
   RecoveryLogInput,
   RecoveryPreferences,
@@ -622,4 +625,180 @@ export function useHealthCheck<TData = Awaited<ReturnType<typeof healthCheck>>, 
 
 
 
+
+export const getSubscribeNewsletterUrl = () => {
+
+
+
+
+  return `/api/newsletter/subscribe`
+}
+
+/**
+ * @summary Subscribe an email address to Stillwell updates
+ */
+export const subscribeNewsletter = async (newsletterSubscriptionInput: NewsletterSubscriptionInput, options?: Parameters<typeof customFetch>[1]): Promise<NewsletterSubscriptionAccepted> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<NewsletterSubscriptionAccepted>(getSubscribeNewsletterUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(newsletterSubscriptionInput)
+  }
+);}
+
+
+
+
+
+export const getSubscribeNewsletterMutationKey = () => ['subscribeNewsletter'] as const;
+
+export const getSubscribeNewsletterMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof subscribeNewsletter>>, TError,SubscribeNewsletterMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof subscribeNewsletter>>, TError,SubscribeNewsletterMutationVariables, TContext> => {
+
+const mutationKey = getSubscribeNewsletterMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof subscribeNewsletter>>, SubscribeNewsletterMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  subscribeNewsletter(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SubscribeNewsletterMutationResult = NonNullable<Awaited<ReturnType<typeof subscribeNewsletter>>>
+    export type SubscribeNewsletterMutationBody = BodyType<NewsletterSubscriptionInput>
+    export type SubscribeNewsletterMutationError = ErrorType<void>
+    export type SubscribeNewsletterMutationVariables = {data: BodyType<NewsletterSubscriptionInput>}
+
+    /**
+ * @summary Subscribe an email address to Stillwell updates
+ */
+export const useSubscribeNewsletter = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof subscribeNewsletter>>, TError,SubscribeNewsletterMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof subscribeNewsletter>>,
+        TError,
+        SubscribeNewsletterMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSubscribeNewsletterMutationOptions(options));
+    }
+
+export const getUnsubscribeNewsletterUrl = () => {
+
+
+
+
+  return `/api/newsletter/unsubscribe`
+}
+
+/**
+ * @summary Remove an email address from Stillwell updates
+ */
+export const unsubscribeNewsletter = async (newsletterSubscriptionInput: NewsletterSubscriptionInput, options?: Parameters<typeof customFetch>[1]): Promise<NewsletterUnsubscriptionAccepted> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<NewsletterUnsubscriptionAccepted>(getUnsubscribeNewsletterUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(newsletterSubscriptionInput)
+  }
+);}
+
+
+
+
+
+export const getUnsubscribeNewsletterMutationKey = () => ['unsubscribeNewsletter'] as const;
+
+export const getUnsubscribeNewsletterMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unsubscribeNewsletter>>, TError,UnsubscribeNewsletterMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof unsubscribeNewsletter>>, TError,UnsubscribeNewsletterMutationVariables, TContext> => {
+
+const mutationKey = getUnsubscribeNewsletterMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof unsubscribeNewsletter>>, UnsubscribeNewsletterMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  unsubscribeNewsletter(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UnsubscribeNewsletterMutationResult = NonNullable<Awaited<ReturnType<typeof unsubscribeNewsletter>>>
+    export type UnsubscribeNewsletterMutationBody = BodyType<NewsletterSubscriptionInput>
+    export type UnsubscribeNewsletterMutationError = ErrorType<void>
+    export type UnsubscribeNewsletterMutationVariables = {data: BodyType<NewsletterSubscriptionInput>}
+
+    /**
+ * @summary Remove an email address from Stillwell updates
+ */
+export const useUnsubscribeNewsletter = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof unsubscribeNewsletter>>, TError,UnsubscribeNewsletterMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof unsubscribeNewsletter>>,
+        TError,
+        UnsubscribeNewsletterMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUnsubscribeNewsletterMutationOptions(options));
+    }
 

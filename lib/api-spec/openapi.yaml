@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: newsletter
+    description: Public newsletter subscription
 paths:
   /recovery:
     get:
@@ -130,6 +132,46 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /newsletter/subscribe:
+    post:
+      operationId: subscribeNewsletter
+      tags: [newsletter]
+      summary: Subscribe an email address to Stillwell updates
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewsletterSubscriptionInput"
+      responses:
+        "202":
+          description: Subscription accepted (including repeat submissions)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NewsletterSubscriptionAccepted"
+        "400":
+          description: Invalid email address
+  /newsletter/unsubscribe:
+    post:
+      operationId: unsubscribeNewsletter
+      tags: [newsletter]
+      summary: Remove an email address from Stillwell updates
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NewsletterSubscriptionInput"
+      responses:
+        "200":
+          description: Unsubscription accepted, whether or not the address was on the list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NewsletterUnsubscriptionAccepted"
+        "400":
+          description: Invalid email address
 components:
   schemas:
     RecoveryPreferences:
@@ -249,4 +291,30 @@ components:
           type: string
       required:
         - status
+    NewsletterSubscriptionInput:
+      type: object
+      additionalProperties: false
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 3
+          maxLength: 254
+    NewsletterSubscriptionAccepted:
+      type: object
+      additionalProperties: false
+      required: [subscribed]
+      properties:
+        subscribed:
+          type: boolean
+          enum: [true]
+    NewsletterUnsubscriptionAccepted:
+      type: object
+      additionalProperties: false
+      required: [unsubscribed]
+      properties:
+        unsubscribed:
+          type: boolean
+          enum: [true]
 

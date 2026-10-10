@@ -8,6 +8,9 @@
 
 export * from './activityStatus';
 export * from './healthStatus';
+export * from './newsletterSubscriptionAccepted';
+export * from './newsletterSubscriptionInput';
+export * from './newsletterUnsubscriptionAccepted';
 export * from './recoveryLog';
 export * from './recoveryLogInput';
 export * from './recoveryPreferences';

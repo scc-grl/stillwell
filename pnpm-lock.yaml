@@ -602,6 +602,10 @@ importers:
         version: 7.3.6(@types/node@25.9.6)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)(yaml@2.9.0)
 
   artifacts/website:
+    dependencies:
+      '@workspace/stillwell-design-system':
+        specifier: workspace:*
+        version: link:../stillwell-design-system
     devDependencies:
       '@clerk/react':
         specifier: ^6.17.6

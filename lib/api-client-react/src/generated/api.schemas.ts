@@ -110,3 +110,19 @@ export interface HealthStatus {
   status: string;
 }
 
+export interface NewsletterSubscriptionInput {
+  /**
+     * @minLength 3
+     * @maxLength 254
+     */
+  email: string;
+}
+
+export interface NewsletterSubscriptionAccepted {
+  subscribed: true;
+}
+
+export interface NewsletterUnsubscriptionAccepted {
+  unsubscribed: true;
+}
+
