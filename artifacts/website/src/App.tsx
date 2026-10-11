@@ -1,17 +1,24 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ClerkProvider, SignIn, SignUp, useClerk, useUser } from "@clerk/react";
 import { publishableKeyFromHost } from "@clerk/react/internal";
 import { shadcn } from "@clerk/themes";
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { Activity, ArrowRight, CalendarDays, Check, CircleAlert, Leaf, Menu, ShieldCheck, Sparkles } from "lucide-react";
 import { Link, Redirect, Route, Router as WouterRouter, Switch, useLocation } from "wouter";
+import { getGetAccountTypeQueryKey, useCompleteAccountRegistration, useCreateAccountRegistrationIntent, useGetAccountType } from "@workspace/api-client-react";
+import type { AccountType } from "@workspace/api-client-react";
+import { Button } from "@workspace/stillwell-design-system/components/ui/button";
+import AccountTypeChoicePage from "@/components/AccountTypeChoicePage";
+import AuthPageShell from "@/components/AuthPageShell";
 import DashboardPage from "@/pages/DashboardPage";
+import ClinicianPortalPage from "@/pages/ClinicianPortalPage";
 import PrivacyPage from "@/pages/PrivacyPage";
 import QuizPage from "@/pages/QuizPage";
 import PublicInfoPage from "@/pages/PublicInfoPage";
 import UnsubscribePage from "@/pages/UnsubscribePage";
 import { PublicLayout } from "@/components/PublicSite";
 import { clearDraft, readDraft } from "@/lib/recovery";
+import { clearAccountChoice, clearRegistrationIntent, readAccountChoice, readRegistrationIntent, storeRegistrationIntent } from "@/lib/account";
 import { trackEvent } from "@/lib/analytics";
 
 const clerkPubKey = publishableKeyFromHost(window.location.hostname, import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
@@ -91,15 +98,213 @@ function Landing() {
 function HomeRedirect() {
   const { isLoaded, isSignedIn } = useUser();
   if (!isLoaded) return <div className="min-h-[100dvh] bg-[#f5f4ed] p-8"><div className="mx-auto h-8 max-w-4xl animate-pulse rounded-xl bg-[#e8ece3]"/></div>;
-  return isSignedIn ? <Redirect to="/dashboard"/> : <Landing/>;
+  return isSignedIn ? <Redirect to="/account/continue"/> : <Landing/>;
 }
-function PrivateDashboard() {
+
+function RoleCheckStatus({ children }: { children: ReactNode }) {
+  return <main className="stillwell flex min-h-[100dvh] items-center justify-center bg-background px-5 py-12 text-center">
+    <div className="max-w-md">{children}</div>
+  </main>;
+}
+
+function AccountTypeGate({
+  required,
+  children,
+  allowSignedOut = false,
+  signedOutTo = "/",
+}: {
+  required: AccountType;
+  children: ReactNode;
+  allowSignedOut?: boolean;
+  signedOutTo?: string;
+}) {
   const { isLoaded, isSignedIn } = useUser();
-  if (!isLoaded) return <div className="min-h-[100dvh] bg-[#f5f4ed] p-8"><div className="mx-auto h-8 max-w-4xl animate-pulse rounded-xl bg-[#e8ece3]"/></div>;
-  return isSignedIn ? <DashboardPage/> : <Redirect to="/"/>;
+  const accountTypeQuery = useGetAccountType({ query: { queryKey: getGetAccountTypeQueryKey(), enabled: isLoaded && Boolean(isSignedIn) } });
+
+  if (!isLoaded) return <RoleCheckStatus><div className="mx-auto h-8 w-40 animate-pulse rounded-xl bg-secondary"/></RoleCheckStatus>;
+  if (!isSignedIn) return allowSignedOut ? children : <Redirect to={signedOutTo}/>;
+  if (accountTypeQuery.isError) return <RoleCheckStatus>
+    <p className="text-sm leading-6 text-muted-foreground">We couldn’t confirm your account type right now.</p>
+    <Button className="mt-5" variant="outline" onClick={() => void accountTypeQuery.refetch()}>Try again</Button>
+  </RoleCheckStatus>;
+  if (accountTypeQuery.isPending || !accountTypeQuery.data) return <RoleCheckStatus><div className="mx-auto h-8 w-40 animate-pulse rounded-xl bg-secondary"/></RoleCheckStatus>;
+  if (accountTypeQuery.data.accountType !== required) {
+    return <Redirect to={accountTypeQuery.data.accountType === "clinician" ? "/clinician/portal" : "/dashboard"}/>;
+  }
+  return children;
 }
-function SignInPage() { return <div className="auth-canvas"><div className="auth-intro"><Link href="/" className="flex items-center gap-3 text-[#29463b]"><span className="brand-mark"/><span className="display text-[21px] font-semibold">stillwell</span></Link><p className="eyebrow mt-12">Your notes, when you need them</p><h1 className="display mt-3 max-w-md text-5xl leading-[1.04] text-[#29463b]">A softer place to return to.</h1><p className="mt-5 max-w-sm text-sm leading-7 text-[#6b796e]">Sign in to revisit your Stillwell journal, routines, and reflections.</p></div><SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`}/></div>; }
-function SignUpPage() { return <div className="auth-canvas"><div className="auth-intro"><Link href="/" className="flex items-center gap-3 text-[#29463b]"><span className="brand-mark"/><span className="display text-[21px] font-semibold">stillwell</span></Link><p className="eyebrow mt-12">Begin with your own words</p><h1 className="display mt-3 max-w-md text-5xl leading-[1.04] text-[#29463b]">Your recovery. Your record.</h1><p className="mt-5 max-w-sm text-sm leading-7 text-[#6b796e]">Create a private account. Any consented setup in this tab is sent only once you are signed in.</p></div><div className="w-full max-w-[440px]"><SignUp routing="path" path={`${basePath}/sign-up`} signInUrl={`${basePath}/sign-in`}/><div className="mt-4 text-center"><Link href="/" onClick={() => clearDraft()} className="text-xs font-medium text-[#718077] underline decoration-[#c4d0c3] underline-offset-4">Cancel setup and return home</Link></div></div></div>; }
+
+function PrivateDashboard() {
+  return <AccountTypeGate required="patient"><DashboardPage/></AccountTypeGate>;
+}
+
+function QuizRoute() {
+  return <AccountTypeGate required="patient" allowSignedOut><QuizPage/></AccountTypeGate>;
+}
+
+function ClinicianPortalRoute() {
+  const { signOut } = useClerk();
+  return <AccountTypeGate required="clinician" signedOutTo="/clinician/sign-in">
+    <ClinicianPortalPage onSignOut={() => void signOut()}/>
+  </AccountTypeGate>;
+}
+
+function AccountContinuation() {
+  const { isLoaded, isSignedIn } = useUser();
+  const [, setLocation] = useLocation();
+  const [registrationToken, setRegistrationToken] = useState(readRegistrationIntent);
+  const [retryVersion, setRetryVersion] = useState(0);
+  const [registrationError, setRegistrationError] = useState(false);
+  const registrationAttempted = useRef(false);
+  const completion = useCompleteAccountRegistration();
+  const accountTypeQuery = useGetAccountType({
+    query: { queryKey: getGetAccountTypeQueryKey(), enabled: isLoaded && Boolean(isSignedIn) && !registrationToken },
+  });
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    if (!isSignedIn) {
+      setLocation("/sign-in", { replace: true });
+      return;
+    }
+    if (registrationToken) {
+      if (registrationAttempted.current) return;
+      registrationAttempted.current = true;
+      completion.mutate({ data: { registrationToken } }, {
+        onSuccess: ({ accountType }) => {
+          clearRegistrationIntent();
+          clearAccountChoice();
+          setRegistrationToken(null);
+          setLocation(accountType === "clinician" ? "/clinician/portal" : "/dashboard", { replace: true });
+        },
+        onError: () => setRegistrationError(true),
+      });
+      return;
+    }
+    if (accountTypeQuery.data) {
+      clearAccountChoice();
+      setLocation(accountTypeQuery.data.accountType === "clinician" ? "/clinician/portal" : "/dashboard", { replace: true });
+    }
+  }, [isLoaded, isSignedIn, registrationToken, retryVersion, completion.mutate, accountTypeQuery.data, setLocation]);
+
+  if (registrationError) return <RoleCheckStatus>
+    <h1 className="display text-2xl text-foreground">We couldn’t finish account setup</h1>
+    <p className="mt-3 text-sm leading-6 text-muted-foreground">Your account is safe. Please retry so we can confirm the account type you chose.</p>
+    <Button className="mt-5" onClick={() => {
+      registrationAttempted.current = false;
+      setRegistrationError(false);
+      setRetryVersion(value => value + 1);
+    }}>Try again</Button>
+  </RoleCheckStatus>;
+  if (accountTypeQuery.isError && !registrationToken) return <RoleCheckStatus>
+    <p className="text-sm leading-6 text-muted-foreground">We couldn’t confirm your account type right now.</p>
+    <Button className="mt-5" variant="outline" onClick={() => void accountTypeQuery.refetch()}>Try again</Button>
+  </RoleCheckStatus>;
+  return <RoleCheckStatus><div className="mx-auto h-8 w-40 animate-pulse rounded-xl bg-secondary"/></RoleCheckStatus>;
+}
+
+function SignInPage() {
+  return <AuthPageShell eyebrow="Your notes, when you need them" title="A softer place to return to."
+    description="Sign in to revisit your Stillwell journal, routines, and reflections."
+    crossLinkLabel="Are you a clinician? Sign in to the clinician portal" crossLinkHref="/clinician/sign-in">
+    <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`}
+      forceRedirectUrl={`${basePath}/account/continue`}/>
+  </AuthPageShell>;
+}
+
+function ClinicianSignInPage() {
+  return <AuthPageShell eyebrow="Stillwell for clinicians" title="Welcome back."
+    description="Sign in to your separate clinician account. Clinician accounts are self-identified and not yet verified."
+    crossLinkLabel="Are you a patient? Sign in to your journal" crossLinkHref="/sign-in">
+    <SignIn routing="path" path={`${basePath}/clinician/sign-in`} signUpUrl={`${basePath}/clinician/sign-up`}
+      forceRedirectUrl={`${basePath}/account/continue`}/>
+  </AuthPageShell>;
+}
+
+function AccountCreationPage({ accountType, path }: { accountType: AccountType; path: string }) {
+  const createIntent = useCreateAccountRegistrationIntent();
+  const [attempt, setAttempt] = useState(0);
+  const [ready, setReady] = useState(false);
+  const [storageFailed, setStorageFailed] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    setReady(false);
+    setStorageFailed(false);
+    createIntent.mutate({ data: { accountType } }, {
+      onSuccess: ({ registrationToken }) => {
+        if (!active) return;
+        if (!storeRegistrationIntent(registrationToken)) {
+          setStorageFailed(true);
+          return;
+        }
+        setReady(true);
+      },
+      onError: () => {
+        if (active) setStorageFailed(true);
+      },
+    });
+    return () => { active = false; };
+  }, [accountType, attempt]);
+
+  const isClinician = accountType === "clinician";
+  const signInUrl = isClinician ? `${basePath}/clinician/sign-in` : `${basePath}/sign-in`;
+  const signUpUrl = `${basePath}${path}`;
+  const shellProps = isClinician ? {
+    eyebrow: "Stillwell for clinicians",
+    title: "A separate account for clinicians.",
+    description: "Create a clinician account for the Stillwell portal. Clinician accounts are self-identified and not yet verified.",
+    crossLinkLabel: "Already have a clinician account? Sign in",
+    crossLinkHref: "/clinician/sign-in",
+  } : {
+    eyebrow: "Begin with your own words",
+    title: "Your recovery. Your record.",
+    description: "Create a private patient account. Any consented quiz setup in this tab is sent only after you sign in.",
+    crossLinkLabel: "Already have an account? Sign in",
+    crossLinkHref: "/sign-in",
+  };
+
+  return <AuthPageShell {...shellProps}>
+    {ready ? <SignUp routing="path" path={signUpUrl} signInUrl={signInUrl}
+      forceRedirectUrl={`${basePath}/account/continue`}/> : <div className="py-8 text-center">
+      <p role={storageFailed ? "alert" : "status"} className="text-sm leading-6 text-muted-foreground">
+        {storageFailed
+          ? "We couldn’t prepare a secure account-type handoff. Please try again."
+          : "Preparing your account setup…"}
+      </p>
+      {storageFailed && <Button className="mt-5" variant="outline" onClick={() => setAttempt(value => value + 1)}>Try again</Button>}
+    </div>}
+    {!isClinician && <div className="mt-4 text-center">
+      <Link href="/" onClick={() => { clearDraft(); clearRegistrationIntent(); clearAccountChoice(); }}
+        className="text-xs font-medium text-muted-foreground underline decoration-border underline-offset-4">
+        Cancel setup and return home
+      </Link>
+    </div>}
+  </AuthPageShell>;
+}
+
+function SignUpPage() {
+  const { isLoaded, isSignedIn } = useUser();
+  if (!isLoaded) return <RoleCheckStatus><div className="mx-auto h-8 w-40 animate-pulse rounded-xl bg-secondary"/></RoleCheckStatus>;
+  if (isSignedIn) return <Redirect to="/account/continue"/>;
+  if (readDraft()) return <AccountCreationPage accountType="patient" path="/sign-up"/>;
+  return <AccountTypeChoicePage/>;
+}
+
+function PatientSignUpPage() {
+  const { isLoaded, isSignedIn } = useUser();
+  if (!isLoaded) return <RoleCheckStatus><div className="mx-auto h-8 w-40 animate-pulse rounded-xl bg-secondary"/></RoleCheckStatus>;
+  if (isSignedIn) return <Redirect to="/account/continue"/>;
+  return <AccountCreationPage accountType="patient" path="/sign-up/patient"/>;
+}
+
+function ClinicianSignUpPage() {
+  const { isLoaded, isSignedIn } = useUser();
+  if (!isLoaded) return <RoleCheckStatus><div className="mx-auto h-8 w-40 animate-pulse rounded-xl bg-secondary"/></RoleCheckStatus>;
+  if (isSignedIn) return <Redirect to="/account/continue"/>;
+  if (readDraft()) return <Redirect to="/sign-up"/>;
+  return <AccountCreationPage accountType="clinician" path="/clinician/sign-up"/>;
+}
 function ClerkCacheInvalidator() {
   const { addListener } = useClerk();
   const cache = useQueryClient();
@@ -122,6 +327,13 @@ function Routes() {
   const [location, setLocation] = useLocation();
   useEffect(() => {
     const metadata: Record<string, { title: string; description: string }> = {
+      "/clinician/sign-in": { title: "Clinician sign in", description: "Sign in to your Stillwell clinician account. Clinician accounts are self-identified and not yet verified." },
+      "/clinician/sign-up": { title: "Clinician account", description: "Create a separate Stillwell clinician account. Clinician accounts are self-identified and not yet verified." },
+      "/clinician/portal": { title: "Clinician portal", description: "The Stillwell clinician portal is coming soon. Clinician accounts are self-identified and not yet verified." },
+      "/sign-up/patient": { title: "Create a patient account", description: "Create a private Stillwell journal account for your own recovery notes and reflections." },
+      "/sign-up": { title: "Choose your account", description: "Choose whether you are creating a Stillwell account as a patient or a clinician." },
+      "/sign-in": { title: "Patient sign in", description: "Sign in to revisit your private Stillwell journal, routines, and reflections." },
+      "/account/continue": { title: "Setting up your Stillwell account", description: "Confirming your Stillwell account type." },
       "/our-history": { title: "Our history", description: "Learn about the Stillwell Recovery journal and the values behind its user-led approach." },
       "/faqs": { title: "FAQs", description: "Answers about Stillwell, a private self-guided recovery journal." },
       "/contact": { title: "Contact us", description: "Contact Stillwell with questions or comments about the recovery journal." },
@@ -130,23 +342,29 @@ function Routes() {
       "/partners/care-areas": { title: "Care areas", description: "Placeholder information about care areas Stillwell may describe, including diet and gut health." },
       "/partners/physiotherapy-mobility": { title: "Physiotherapy & mobility", description: "Placeholder information for organizations interested in physiotherapy and mobility." },
     };
-    const page = metadata[location]?.title ?? (location.startsWith("/sign-in") ? "Sign in" : location.startsWith("/sign-up") ? "Create account" :
+    const matchedMetadata = Object.entries(metadata).find(([path]) => location === path || location.startsWith(`${path}/`))?.[1];
+    const page = matchedMetadata?.title ?? (location.startsWith("/sign-in") ? "Sign in" : location.startsWith("/sign-up") ? "Create account" :
       location === "/quiz" ? "Your starting quiz" : location === "/dashboard" ? "Your private journal" :
       location === "/privacy" ? "Privacy and data controls" : "Recovery at your pace");
     document.title = `${page} · Stillwell`;
     document.querySelector('meta[name="description"]')?.setAttribute("content",
-      metadata[location]?.description ?? (location === "/" ? "A private, self-guided journal for concussion and post-concussive recovery." :
+      matchedMetadata?.description ?? (location === "/" ? "A private, self-guided journal for concussion and post-concussive recovery." :
       `${page} for your Stillwell recovery journal. Educational routines, not medical advice.`));
   }, [location]);
   return <ClerkProvider publishableKey={clerkPubKey} proxyUrl={clerkProxyUrl} appearance={appearance} signInUrl={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`} localization={{
-    signIn: { start: { title: "Welcome back", subtitle: "Sign in to your private Stillwell journal" } },
-    signUp: { start: { title: "Create your private journal", subtitle: "A personal place for recovery reflections" } },
+    signIn: { start: { title: "Welcome back", subtitle: "Sign in to your Stillwell account" } },
+    signUp: { start: { title: "Create your Stillwell account", subtitle: "A personal place for your Stillwell experience" } },
   }} routerPush={to => setLocation(stripBase(to))} routerReplace={to => setLocation(stripBase(to), { replace: true })}>
     <QueryClientProvider client={queryClient}><ClerkCacheInvalidator/><Switch>
       <Route path="/" component={HomeRedirect}/>
       <Route path="/sign-in/*?" component={SignInPage}/>
+      <Route path="/clinician/sign-in/*?" component={ClinicianSignInPage}/>
+      <Route path="/account/continue" component={AccountContinuation}/>
+      <Route path="/sign-up/patient/*?" component={PatientSignUpPage}/>
+      <Route path="/clinician/sign-up/*?" component={ClinicianSignUpPage}/>
       <Route path="/sign-up/*?" component={SignUpPage}/>
-      <Route path="/quiz" component={QuizPage}/>
+      <Route path="/clinician/portal" component={ClinicianPortalRoute}/>
+      <Route path="/quiz" component={QuizRoute}/>
       <Route path="/dashboard" component={PrivateDashboard}/>
       <Route path="/privacy"><PublicLayout><PrivacyPage/></PublicLayout></Route>
       <Route path="/unsubscribe"><PublicLayout><UnsubscribePage/></PublicLayout></Route>

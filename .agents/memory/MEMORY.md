@@ -5,3 +5,4 @@
 - [GitHub source placement](github-source-placement.md) — GitHub and Replit now share the top-level layout; preserve design exports and do not recreate a wrapper folder.
 - [Artifact rename lifecycle](artifact-rename-lifecycle.md) — removing a managed workflow during a folder move may leave its server listening; stop it before renaming.
 - [Newsletter data privacy](newsletter-data-privacy.md) — never send newsletter email addresses to Stillwell analytics or application/request logs.
+- [Expo DevTools on Nix](expo-devtools-nix.md) — Metro can serve Expo Go even if optional React Native DevTools cannot load libglib.

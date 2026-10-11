@@ -95,11 +95,28 @@ export function ClinicianJourneyReview() {
       <header className="border-b border-border">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3"><img src="/__mockup/images/stillwell-logo.png" alt="Stillwell" className="h-9 w-auto" /><span className="text-sm text-muted-foreground">Clinician-review concept · not a live portal</span></div>
-          <p className="text-xs text-muted-foreground">Fixed synthetic example · not connected to a patient</p>
+          <div className="flex flex-wrap items-center gap-3">
+            <p className="text-xs text-muted-foreground">Fixed synthetic example · not connected to a patient</p>
+            <Button type="button" variant="outline" size="sm" onClick={() => { window.location.hash = "#/ClinicianPatientDirectory"; }}>All patients</Button>
+          </div>
         </div>
       </header>
 
       <div className="mx-auto max-w-7xl space-y-6 px-6 py-6">
+        <Card>
+          <CardContent className="flex flex-col gap-4 pt-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-1">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Patient portal · synthetic demo</p>
+              <h2 className="font-serif text-2xl font-medium tracking-tight">Taylor Bennett</h2>
+              <p className="text-sm text-muted-foreground">Demo ID DEMO-1042 · fictional example profile</p>
+            </div>
+            <div className="rounded-lg bg-muted p-3 sm:max-w-sm">
+              <p className="text-sm font-semibold">Patient-shared preview</p>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">This concept shows only the example observations below. It is not connected to a patient account or live sharing permissions.</p>
+            </div>
+          </CardContent>
+        </Card>
+
         <section className="space-y-2">
           <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">One patient-chosen example journey</p>
           <h1 className="font-serif text-3xl font-medium leading-tight tracking-tight">A careful review of what was recorded</h1>

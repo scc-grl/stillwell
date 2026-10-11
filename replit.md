@@ -23,11 +23,13 @@ Self-guided concussion and post-concussive recovery journaling, with optional cl
 ## Where things live
 
 - `artifacts/website` (`@workspace/website`) — landing page, starting quiz, sign-in/up, private journal/dashboard, and privacy page. Public routes remain at `/`, `/quiz`, `/dashboard`, and `/privacy`.
+- `artifacts/stillwell-phone` (`@workspace/stillwell-phone`) — separate Expo patient app for iOS and Android; run with `pnpm --filter @workspace/stillwell-phone run dev`, then open the Expo workflow preview or scan its QR code with Expo Go.
 - `artifacts/api-server` — shared API, still served at `/api`.
 - `artifacts/stillwell-design-system` — reusable Stillwell tokens and components; `artifacts/mockup-sandbox` holds design explorations.
 - `design/` — separate imported design exports; not another application.
 - Website workflow: `artifacts/website: web`, running `pnpm --filter @workspace/website run dev`. Production builds use the same package and serve `artifacts/website/dist/public`.
 - The website keeps its original stable artifact ID for canvas links; folder and package names do not determine public URLs.
+- GitHub source control uses one repository, `scc-grl/stillwell`, with the website, phone app, API, and design system in separate folders at the repository root; keep those folders in sync with this workspace.
 
 ## Architecture decisions
 
@@ -42,7 +44,7 @@ Public landing → starting quiz → explicit storage consent → email-based ac
 - Personalization means user-chosen educational routines, not diagnosis or prescribed treatment. No supplement doses or individualized exercise intensity/progression.
 - Every recovery API derives ownership from the authenticated Clerk user; never trust a client-supplied owner.
 - Never send health fields, notes, symptom choices, or account identifiers to analytics or logs.
-- A quiz draft is kept in memory before consent; only a consented draft may be held in tab session storage for up to 30 minutes during signup. Clear it after save, cancellation, logout, or account change.
+- A quiz draft is kept in memory before consent; after explicit consent, keep the mobile draft only in secure storage and the website draft only in tab session storage, for up to 30 minutes. Clear it after save, cancellation, logout, or account change.
 - Keep emergency/new-injury boundaries visible. Do not claim HIPAA compliance or end-to-end encryption.
 
 ## User preferences

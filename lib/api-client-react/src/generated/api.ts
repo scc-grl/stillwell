@@ -20,6 +20,10 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AccountRegistrationIntent,
+  AccountRegistrationIntentInput,
+  AccountTypeResponse,
+  CompleteAccountRegistrationInput,
   HealthStatus,
   NewsletterSubscriptionAccepted,
   NewsletterSubscriptionInput,
@@ -58,6 +62,259 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getCreateAccountRegistrationIntentUrl = () => {
+
+
+
+
+  return `/api/account/registration-intent`
+}
+
+/**
+ * @summary Create a short-lived signed account-type registration intent before sign-up
+ */
+export const createAccountRegistrationIntent = async (accountRegistrationIntentInput: AccountRegistrationIntentInput, options?: Parameters<typeof customFetch>[1]): Promise<AccountRegistrationIntent> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<AccountRegistrationIntent>(getCreateAccountRegistrationIntentUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(accountRegistrationIntentInput)
+  }
+);}
+
+
+
+
+
+export const getCreateAccountRegistrationIntentMutationKey = () => ['createAccountRegistrationIntent'] as const;
+
+export const getCreateAccountRegistrationIntentMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAccountRegistrationIntent>>, TError,CreateAccountRegistrationIntentMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createAccountRegistrationIntent>>, TError,CreateAccountRegistrationIntentMutationVariables, TContext> => {
+
+const mutationKey = getCreateAccountRegistrationIntentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createAccountRegistrationIntent>>, CreateAccountRegistrationIntentMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createAccountRegistrationIntent(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateAccountRegistrationIntentMutationResult = NonNullable<Awaited<ReturnType<typeof createAccountRegistrationIntent>>>
+    export type CreateAccountRegistrationIntentMutationBody = BodyType<AccountRegistrationIntentInput>
+    export type CreateAccountRegistrationIntentMutationError = ErrorType<void>
+    export type CreateAccountRegistrationIntentMutationVariables = {data: BodyType<AccountRegistrationIntentInput>}
+
+    /**
+ * @summary Create a short-lived signed account-type registration intent before sign-up
+ */
+export const useCreateAccountRegistrationIntent = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createAccountRegistrationIntent>>, TError,CreateAccountRegistrationIntentMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createAccountRegistrationIntent>>,
+        TError,
+        CreateAccountRegistrationIntentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreateAccountRegistrationIntentMutationOptions(options));
+    }
+
+export const getGetAccountTypeUrl = () => {
+
+
+
+
+  return `/api/account/type`
+}
+
+/**
+ * @summary Get the signed-in person's account type
+ */
+export const getAccountType = async ( options?: Parameters<typeof customFetch>[1]): Promise<AccountTypeResponse> => {
+
+  return customFetch<AccountTypeResponse>(getGetAccountTypeUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAccountTypeQueryKey = () => {
+    return [
+    `/api/account/type`
+    ] as const;
+    }
+
+
+export const getGetAccountTypeQueryOptions = <TData = Awaited<ReturnType<typeof getAccountType>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAccountType>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAccountTypeQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAccountType>>> = ({ signal }) => getAccountType({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAccountType>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAccountTypeQueryResult = NonNullable<Awaited<ReturnType<typeof getAccountType>>>
+export type GetAccountTypeQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get the signed-in person's account type
+ */
+
+export function useGetAccountType<TData = Awaited<ReturnType<typeof getAccountType>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAccountType>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetAccountTypeQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getCompleteAccountRegistrationUrl = () => {
+
+
+
+
+  return `/api/account/complete-registration`
+}
+
+/**
+ * @summary Record the selected account type for a newly created Clerk user
+ */
+export const completeAccountRegistration = async (completeAccountRegistrationInput: CompleteAccountRegistrationInput, options?: Parameters<typeof customFetch>[1]): Promise<AccountTypeResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<AccountTypeResponse>(getCompleteAccountRegistrationUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(completeAccountRegistrationInput)
+  }
+);}
+
+
+
+
+
+export const getCompleteAccountRegistrationMutationKey = () => ['completeAccountRegistration'] as const;
+
+export const getCompleteAccountRegistrationMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeAccountRegistration>>, TError,CompleteAccountRegistrationMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof completeAccountRegistration>>, TError,CompleteAccountRegistrationMutationVariables, TContext> => {
+
+const mutationKey = getCompleteAccountRegistrationMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof completeAccountRegistration>>, CompleteAccountRegistrationMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  completeAccountRegistration(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CompleteAccountRegistrationMutationResult = NonNullable<Awaited<ReturnType<typeof completeAccountRegistration>>>
+    export type CompleteAccountRegistrationMutationBody = BodyType<CompleteAccountRegistrationInput>
+    export type CompleteAccountRegistrationMutationError = ErrorType<void>
+    export type CompleteAccountRegistrationMutationVariables = {data: BodyType<CompleteAccountRegistrationInput>}
+
+    /**
+ * @summary Record the selected account type for a newly created Clerk user
+ */
+export const useCompleteAccountRegistration = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof completeAccountRegistration>>, TError,CompleteAccountRegistrationMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof completeAccountRegistration>>,
+        TError,
+        CompleteAccountRegistrationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCompleteAccountRegistrationMutationOptions(options));
+    }
 
 export const getGetRecoveryUrl = () => {
 

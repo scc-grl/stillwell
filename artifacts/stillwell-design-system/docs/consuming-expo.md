@@ -24,6 +24,8 @@ Export `useColors` from `src/hooks/use-colors.tsx`. Export a font hook from
 `src/hooks/use-fonts.tsx` that loads every required weight through `useFonts` and
 returns `fontsLoaded` and `fontError`. Use exact registered names such as
 `Inter_400Regular`, not CSS family names.
+`nativeTheme.spacing`, `nativeTheme.radius`, and `nativeTheme.typography` expose
+the converted layout and text-scale values for native screens and primitives.
 
 Expo imports these concrete paths directly:
 
@@ -80,3 +82,23 @@ Import and render
 `@workspace/stillwell-design-system/components/native/button`, then run Expo
 typecheck and the development workflow. The import, native theme, and font hook
 must resolve before broader screen work begins.
+
+## Shared native primitives
+
+Use the package exports rather than recreating common controls inside an Expo
+artifact:
+
+- `components/native/text` — DM Sans body, labels, and Fraunces display styles.
+- `components/native/button` — primary, secondary, outline, and destructive
+  actions.
+- `components/native/card` — token-based card surfaces and spacing.
+- `components/native/input` and `components/native/textarea` — labeled native
+  fields with theme-aware borders and text.
+- `components/native/checkbox` — accessible selected/unselected options.
+- `hooks/use-colors` and `hooks/use-fonts` — shared light/dark tokens and the
+  Stillwell font set.
+
+Keep feature-specific forms and navigation in the consuming app; compose them
+from these package primitives. Use `nativeTheme.spacing` for screen-level
+spacing and `nativeTheme.typography` through `Text` variants rather than
+introducing local color, font, or type-scale values.

@@ -26,8 +26,12 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "peerDependencies": {
+    "@expo-google-fonts/dm-sans": ">=0.4.0",
+    "@expo-google-fonts/fraunces": ">=0.4.0",
+    "expo-font": ">=57",
     "react": ">=18",
-    "react-dom": ">=18"
+    "react-dom": ">=18",
+    "react-native": ">=0.86"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -79,6 +83,9 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@expo-google-fonts/dm-sans": "^0.4.2",
+    "@expo-google-fonts/fraunces": "^0.4.1",
+    "@react-native/metro-config": "0.86.3",
     "@replit/vite-plugin-cartographer": "^0.5.1",
     "@replit/vite-plugin-dev-banner": "^0.1.1",
     "@replit/vite-plugin-runtime-error-modal": "^0.0.6",
@@ -87,8 +94,10 @@
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^5.0.4",
+    "expo-font": "~57.0.4",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "react-native": "0.86.3",
     "sharp": "^0.35.5",
     "tailwindcss": "^4.1.14",
     "vite": "^7.3.0"

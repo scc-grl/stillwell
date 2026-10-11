@@ -1,0 +1,24 @@
+kind = "mobile"
+previewPath = "/stillwell-phone/"
+title = "Stillwell Patient App"
+description = "The Stillwell mobile app for patients and people recovering from concussion or post-concussive symptoms. Includes Clerk sign-in, consented setup quiz, a private daily journal, and history controls for iOS and Android."
+version = "1.0.0"
+id = "artifacts/stillwell-phone"
+router = "expo-domain"
+
+[[services]]
+name = "expo"
+ensurePreviewReachable = "/status"
+paths = [ "/stillwell-phone/" ]
+localPort = 24962
+
+[services.development]
+run = "pnpm --filter @workspace/stillwell-phone run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/stillwell-phone", "run", "build" ]
+run = [ "pnpm", "--filter", "@workspace/stillwell-phone", "run", "serve" ]
+
+[services.env]
+PORT = "24962"
+BASE_PATH = "/stillwell-phone/"

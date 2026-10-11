@@ -6,7 +6,12 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './accountRegistrationIntent';
+export * from './accountRegistrationIntentInput';
+export * from './accountType';
+export * from './accountTypeResponse';
 export * from './activityStatus';
+export * from './completeAccountRegistrationInput';
 export * from './healthStatus';
 export * from './newsletterSubscriptionAccepted';
 export * from './newsletterSubscriptionInput';

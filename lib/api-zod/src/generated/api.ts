@@ -9,6 +9,46 @@ import * as zod from 'zod';
 
 
 /**
+ * @summary Create a short-lived signed account-type registration intent before sign-up
+ */
+export const CreateAccountRegistrationIntentBody = zod.object({
+  "accountType": zod.enum(['patient', 'clinician'])
+})
+
+export const createAccountRegistrationIntentResponseRegistrationTokenMax = 4096;
+
+
+
+export const CreateAccountRegistrationIntentResponse = zod.object({
+  "registrationToken": zod.string().min(1).max(createAccountRegistrationIntentResponseRegistrationTokenMax)
+})
+
+
+/**
+ * @summary Get the signed-in person's account type
+ */
+export const GetAccountTypeResponse = zod.object({
+  "accountType": zod.enum(['patient', 'clinician'])
+})
+
+
+/**
+ * @summary Record the selected account type for a newly created Clerk user
+ */
+export const completeAccountRegistrationBodyRegistrationTokenMax = 4096;
+
+
+
+export const CompleteAccountRegistrationBody = zod.object({
+  "registrationToken": zod.string().min(1).max(completeAccountRegistrationBodyRegistrationTokenMax)
+})
+
+export const CompleteAccountRegistrationResponse = zod.object({
+  "accountType": zod.enum(['patient', 'clinician'])
+})
+
+
+/**
  * @summary Get the signed-in person's recovery profile and daily logs
  */
 export const getRecoveryResponseProfileOneOnePrioritiesMax = 4;

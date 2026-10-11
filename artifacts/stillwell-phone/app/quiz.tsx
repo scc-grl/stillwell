@@ -1,0 +1,383 @@
+import { useEffect, useRef, useState } from "react";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { Redirect, useRouter } from "expo-router";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  getGetRecoveryQueryKey,
+  useStartRecovery,
+  type RecoveryLogInput,
+  type RecoveryPreferences,
+  type RecoveryStartInput,
+} from "@workspace/api-client-react";
+import { StartRecoveryBody } from "@workspace/api-zod";
+import { Button } from "@workspace/stillwell-design-system/components/native/button";
+import { Card } from "@workspace/stillwell-design-system/components/native/card";
+import { Checkbox } from "@workspace/stillwell-design-system/components/native/checkbox";
+import { Text } from "@workspace/stillwell-design-system/components/native/text";
+import { useColors } from "@workspace/stillwell-design-system/hooks/use-colors";
+import { usePatientData } from "@/contexts/PatientDataContext";
+import { spacing } from "@/lib/layout";
+import { RecoveryLogEditor } from "@/components/RecoveryLogEditor";
+import { SafetyNotice } from "@/components/SafetyNotice";
+import { Screen } from "@/components/Screen";
+import {
+  clearConsentedDraft,
+  isPendingPatientSignup,
+  readConsentedDraftForUser,
+  saveConsentedDraft,
+  setPendingPatientSignup,
+} from "@/lib/draft";
+import {
+  emptyLog,
+  priorityChoices,
+} from "@/lib/journal";
+
+const supportModes: ReadonlyArray<{
+  value: RecoveryPreferences["supportMode"];
+  title: string;
+  detail: string;
+}> = [
+  {
+    value: "self_guided",
+    title: "Self-guided",
+    detail: "I am keeping this journal for myself.",
+  },
+  {
+    value: "clinician_supported",
+    title: "With clinician support",
+    detail: "I may review the journal with a clinician.",
+  },
+];
+
+export default function StartingQuizScreen() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const colors = useColors();
+  const {
+    isLoaded,
+    isSignedIn,
+    userId,
+    accountType,
+    accountTypeLoading,
+    recovery,
+    recoveryLoading,
+    recoveryError,
+    refreshRecovery,
+  } = usePatientData();
+  const startRecovery = useStartRecovery();
+  const handoffStarted = useRef(false);
+  const [supportMode, setSupportMode] =
+    useState<RecoveryPreferences["supportMode"]>("self_guided");
+  const [priorities, setPriorities] =
+    useState<RecoveryPreferences["priorities"]>([]);
+  const [firstLog, setFirstLog] =
+    useState<RecoveryLogInput>(() => emptyLog());
+  const [consentAccepted, setConsentAccepted] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [handoffError, setHandoffError] = useState(false);
+  const [restoredDraft, setRestoredDraft] =
+    useState<RecoveryStartInput | null>(null);
+
+  useEffect(() => {
+    if (
+      !isSignedIn ||
+      !userId ||
+      accountType !== "patient" ||
+      recoveryLoading ||
+      handoffStarted.current
+    ) {
+      return;
+    }
+    handoffStarted.current = true;
+    if (recovery?.profile) {
+      if (isPendingPatientSignup()) {
+        void clearConsentedDraft()
+          .finally(() => setPendingPatientSignup(false))
+          .catch(() => undefined);
+      }
+      return;
+    }
+    void readConsentedDraftForUser(userId, isPendingPatientSignup())
+      .then(async (draft) => {
+        if (!draft) {
+          setPendingPatientSignup(false);
+          return;
+        }
+        setRestoredDraft(draft);
+        setSaving(true);
+        try {
+          const saved = await startRecovery.mutateAsync({ data: draft });
+          await clearConsentedDraft();
+          setPendingPatientSignup(false);
+          queryClient.setQueryData(
+            [...getGetRecoveryQueryKey(), userId],
+            saved,
+          );
+          router.replace("/(tabs)/today");
+        } catch {
+          setHandoffError(true);
+          setError("Your saved setup could not be added to this journal yet.");
+        } finally {
+          setSaving(false);
+        }
+      })
+      .catch(() => {
+        setHandoffError(true);
+        setError("We couldn’t open your saved setup securely.");
+      });
+  }, [
+    accountType,
+    isSignedIn,
+    queryClient,
+    recoveryLoading,
+    recovery?.profile,
+    router,
+    startRecovery,
+    userId,
+    handoffError,
+  ]);
+
+  if (
+    isLoaded &&
+    isSignedIn &&
+    (accountTypeLoading || (accountType === "patient" && recoveryLoading))
+  ) {
+    return (
+      <Screen>
+        <View style={styles.loading}>
+          <ActivityIndicator color={colors.primary} />
+          <Text variant="caption">Checking your account…</Text>
+        </View>
+      </Screen>
+    );
+  }
+  if (isSignedIn && accountType === "clinician") {
+    return <Redirect href="/clinician-message" />;
+  }
+  if (isSignedIn && recoveryError) {
+    return (
+      <Screen>
+        <Card>
+          <Text variant="heading">Your journal isn’t available right now</Text>
+          <Button tone="outline" onPress={refreshRecovery}>
+            Try again
+          </Button>
+        </Card>
+      </Screen>
+    );
+  }
+  if (isSignedIn && recoveryLoading) {
+    return (
+      <Screen>
+        <View style={styles.loading}>
+          <ActivityIndicator color={colors.primary} />
+        </View>
+      </Screen>
+    );
+  }
+  if (isSignedIn && recovery?.profile) {
+    return <Redirect href="/(tabs)/today" />;
+  }
+  if (saving) {
+    return (
+      <Screen>
+        <View style={styles.loading}>
+          <ActivityIndicator color={colors.primary} />
+          <Text variant="caption">Saving your first summary…</Text>
+        </View>
+      </Screen>
+    );
+  }
+  if (handoffError && restoredDraft) {
+    return (
+      <Screen>
+        <Card>
+          <Text variant="heading">Your setup is saved securely</Text>
+          <Text variant="body">
+            We couldn’t add it to your journal yet. Try again, or clear the
+            saved setup and start over.
+          </Text>
+          <Button
+            onPress={() => {
+              handoffStarted.current = false;
+              setHandoffError(false);
+              setError("");
+            }}
+          >
+            Try again
+          </Button>
+          <Button
+            tone="outline"
+            onPress={async () => {
+              await clearConsentedDraft();
+              setPendingPatientSignup(false);
+              setRestoredDraft(null);
+              setHandoffError(false);
+              setError("");
+            }}
+          >
+            Clear saved setup
+          </Button>
+        </Card>
+      </Screen>
+    );
+  }
+
+  function togglePriority(
+    id: RecoveryPreferences["priorities"][number],
+  ) {
+    setPriorities((current) =>
+      current.includes(id)
+        ? current.filter((item) => item !== id)
+        : [...current, id],
+    );
+  }
+
+  async function saveStartingSummary() {
+    setError("");
+    const payload: RecoveryStartInput = {
+      preferences: { supportMode, priorities },
+      consentAccepted: true,
+      firstLog,
+    };
+    const parsed = StartRecoveryBody.safeParse(payload);
+    if (!parsed.success) {
+      setError("Choose at least one routine focus and review the answers.");
+      return;
+    }
+    if (!consentAccepted) {
+      setError("Please agree to store this setup in your private journal.");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await saveConsentedDraft(parsed.data, isSignedIn ? userId : null);
+      if (!isSignedIn || !userId) {
+        setPendingPatientSignup(true);
+        router.push("/auth?mode=sign-up");
+        return;
+      }
+
+      const saved = await startRecovery.mutateAsync({ data: parsed.data });
+      await clearConsentedDraft();
+      setPendingPatientSignup(false);
+      queryClient.setQueryData(
+        [...getGetRecoveryQueryKey(), userId],
+        saved,
+      );
+      router.replace("/(tabs)/today");
+    } catch {
+      setError(
+        "Your setup could not be saved yet. It remains on this device so you can retry or clear it.",
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function cancelSetup() {
+    await clearConsentedDraft();
+    setPendingPatientSignup(false);
+    router.replace(isSignedIn ? "/(tabs)/account" : "/");
+  }
+
+  return (
+    <Screen>
+      <Text variant="display">A starting point</Text>
+      <Text variant="body">
+        This short check-in is a place to record what you notice and which
+        routines you want to keep track of. There are no right answers.
+      </Text>
+
+      <Card>
+        <Text variant="heading">How are you feeling today?</Text>
+        <Text variant="caption">
+          Select a number from 0 (none) to 10 (most intense), or leave a
+          symptom unselected to skip it.
+        </Text>
+        <RecoveryLogEditor
+          initial={firstLog}
+          onChange={setFirstLog}
+          title="Your first daily summary"
+          description="Rate symptoms and record food, movement, meditation, and pacing from today. No routine is prescribed."
+        />
+      </Card>
+
+      <Card tone="sage">
+        <Text variant="heading">Choose what matters to track</Text>
+        <Text variant="caption">
+          Pick the parts of your day you want to notice. You can change these
+          later.
+        </Text>
+        <View style={styles.choices}>
+          {priorityChoices.map((choice) => (
+            <Checkbox
+              key={choice.id}
+              checked={priorities.includes(choice.id)}
+              label={choice.title}
+              detail={choice.detail}
+              onPress={() => togglePriority(choice.id)}
+              testID={`priority-${choice.id}`}
+            />
+          ))}
+        </View>
+        {supportModes.map((choice) => (
+          <Checkbox
+            key={choice.value}
+            checked={supportMode === choice.value}
+            label={choice.title}
+            detail={choice.detail}
+            onPress={() => setSupportMode(choice.value)}
+            accessibilityRole="radio"
+            accessibilityState={{ checked: supportMode === choice.value }}
+          />
+        ))}
+      </Card>
+
+      <Card>
+        <Checkbox
+          checked={consentAccepted}
+          label="I agree to store these setup answers and my first daily summary in my private journal."
+          detail="The journal is linked to your account. You can delete your recovery data from the app settings."
+          onPress={() => setConsentAccepted((current) => !current)}
+          testID="storage-consent"
+        />
+      </Card>
+
+      {error ? (
+        <Text variant="caption" accessibilityRole="alert">
+          {error}
+        </Text>
+      ) : null}
+      <SafetyNotice />
+      <Button
+        onPress={() => void saveStartingSummary()}
+        disabled={saving || priorities.length === 0 || !consentAccepted}
+        testID="save-starting-summary"
+      >
+        {saving
+          ? "Saving…"
+          : isSignedIn
+            ? "Save my starting summary"
+            : "Agree and create my account"}
+      </Button>
+      <Button tone="outline" onPress={() => void cancelSetup()}>
+        Cancel and clear this setup
+      </Button>
+    </Screen>
+  );
+}
+
+const styles = StyleSheet.create({
+  loading: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    gap: spacing * 3,
+  },
+  choices: {
+    gap: spacing * 2,
+  },
+});

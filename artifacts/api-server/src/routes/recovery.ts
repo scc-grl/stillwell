@@ -1,7 +1,7 @@
 import { Router, type IRouter, type Request } from "express";
 import { getAuth } from "@clerk/express";
 import { and, desc, eq } from "drizzle-orm";
-import { db, recoveryLogs, recoveryProfiles } from "@workspace/db";
+import { accountRoles, db, recoveryLogs, recoveryProfiles } from "@workspace/db";
 import {
   DeleteRecoveryLogParams,
   GetRecoveryResponse,
@@ -59,7 +59,18 @@ router.use("/recovery", (req, res, next) => {
     res.status(401).json({ error: "Please sign in to access your recovery journal." });
     return;
   }
-  next();
+  const userId = getAuth(req).userId!;
+  void db.select({ accountType: accountRoles.accountType })
+    .from(accountRoles)
+    .where(eq(accountRoles.userId, userId))
+    .then(([role]) => {
+      if (role?.accountType === "clinician") {
+        res.status(403).json({ error: "Clinician accounts cannot access patient recovery data." });
+        return;
+      }
+      next();
+    })
+    .catch(next);
 });
 
 router.get("/recovery", async (req, res): Promise<void> => {

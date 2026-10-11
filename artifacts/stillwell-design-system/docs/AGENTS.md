@@ -10,9 +10,9 @@ on it and import its theme and components directly.
 - `SKILL.md` — observed source design conventions; no invented brand policy.
 - `docs/references/component-inventory.md` and `docs/references/components/` —
   source-backed build contracts. Read these before changing a cataloged family.
-  Only Button, Card, Input, Textarea, and Checkbox currently ship; remaining
-  families await pilot approval. Do not migrate the recovery app while that
-  catalog remains incomplete.
+  The web catalog currently ships Button, Card, Input, Textarea, and Checkbox;
+  remaining web families await pilot approval. Do not migrate the website while
+  that catalog remains incomplete.
 - `docs/references/logos/logo.png` — primary mark captured from the rendered
   source header; served with the artifact base path. The unused source SVG has a
   different wordmark and is retained only as legacy evidence, not displayed.
@@ -29,6 +29,9 @@ on it and import its theme and components directly.
 - `src/components/ui/` — the initial shadcn scaffold, exported as
   `./components/*`. Generated systems keep and theme it; Figma imports prune and
   restyle it; code imports replace it with the source component library.
+- `src/components/native/` — Expo primitives: Text (display, heading, body,
+  label, caption), Button, Card, Input, Textarea, and Checkbox. Native touch
+  targets and accessibility props follow platform conventions.
 - `src/lib/` (`cn`) and `src/hooks/` — exported as `./lib/*` and `./hooks/*`.
 - `src/App.tsx` — the entry point for the living style guide.
 - `src/preview/DesignSystemBrowser.tsx` — the persistent grouped navigation,

@@ -33,6 +33,7 @@ export function PublicHeader() {
     {menuOpen && <nav id="mobile-public-navigation" className="grid gap-1 border-t border-border bg-background px-5 py-3 lg:hidden" aria-label="Mobile navigation">
       {[["The journal", "/#journal"], ["How it works", "/#how"], ["Clear boundaries", "/#boundaries"]].map(([label, href]) => <a key={href} data-testid={`link-mobile-${label.toLowerCase().replaceAll(" ", "-")}`} onClick={closeMenu} href={href} className="rounded-lg px-3 py-3 text-sm text-secondary-foreground hover:bg-secondary">{label}</a>)}
       <Link data-testid="link-mobile-privacy" onClick={closeMenu} href="/privacy" className="px-3 py-3 text-sm text-secondary-foreground">Privacy</Link>
+      <Link data-testid="link-mobile-clinician-portal" onClick={closeMenu} href="/clinician/portal" className="px-3 py-3 text-sm text-secondary-foreground">Clinician portal</Link>
       <Link data-testid="link-mobile-sign-in" onClick={closeMenu} href="/sign-in" className="px-3 py-3 text-sm font-semibold text-secondary-foreground">Sign in</Link>
       <Link data-testid="link-mobile-begin-journal" onClick={closeMenu} href="/quiz" className="rounded-full bg-primary px-4 py-3 text-center text-sm font-semibold text-primary-foreground">Begin your journal</Link>
     </nav>}
@@ -86,7 +87,7 @@ export function PublicFooter() {
       <div className="mx-auto flex max-w-[1240px] flex-col gap-4 px-5 py-6 sm:px-8 lg:flex-row lg:items-center lg:justify-between lg:px-12">
         <Brand inverted/>
         <p data-testid="text-footer-disclaimer" className="max-w-[500px] text-[10px] leading-5 text-primary-foreground/80">An educational, user-led journal for concussion recovery. Not medical advice or emergency care.</p>
-        <div className="flex gap-4 text-[11px] text-primary-foreground/90"><Link data-testid="link-footer-privacy" href="/privacy" className="hover:underline">Privacy</Link><Link data-testid="link-footer-sign-in" href="/sign-in" className="hover:underline">Sign in</Link></div>
+        <div className="flex flex-wrap gap-4 text-[11px] text-primary-foreground/90"><Link data-testid="link-footer-privacy" href="/privacy" className="hover:underline">Privacy</Link><Link data-testid="link-footer-clinician-portal" href="/clinician/portal" className="hover:underline">Clinician portal</Link><Link data-testid="link-footer-sign-in" href="/sign-in" className="hover:underline">Sign in</Link></div>
         <p className="text-[10px] text-primary-foreground/75">© {new Date().getFullYear()} Stillwell</p>
       </div>
     </div>

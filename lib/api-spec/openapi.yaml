@@ -12,7 +12,69 @@ tags:
     description: Health operations
   - name: newsletter
     description: Public newsletter subscription
+  - name: account
+    description: Account type and sign-up registration
 paths:
+  /account/registration-intent:
+    post:
+      operationId: createAccountRegistrationIntent
+      tags: [account]
+      summary: Create a short-lived signed account-type registration intent before sign-up
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountRegistrationIntentInput"
+      responses:
+        "201":
+          description: Signed registration intent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountRegistrationIntent"
+        "400":
+          description: Invalid account type
+  /account/type:
+    get:
+      operationId: getAccountType
+      tags: [account]
+      summary: Get the signed-in person's account type
+      responses:
+        "200":
+          description: Account type (legacy accounts default to patient)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountTypeResponse"
+        "401":
+          description: Sign-in required
+        "403":
+          description: Clinician accounts cannot access patient recovery data
+  /account/complete-registration:
+    post:
+      operationId: completeAccountRegistration
+      tags: [account]
+      summary: Record the selected account type for a newly created Clerk user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompleteAccountRegistrationInput"
+      responses:
+        "200":
+          description: Account type recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountTypeResponse"
+        "400":
+          description: Invalid, expired, or pre-existing-account registration intent
+        "401":
+          description: Sign-in required
+        "409":
+          description: Registration intent already used by another account
   /recovery:
     get:
       operationId: getRecovery
@@ -34,6 +96,8 @@ paths:
           description: Recovery data deleted
         "401":
           description: Sign-in required
+        "403":
+          description: Clinician accounts cannot access patient recovery data
   /recovery/start:
     post:
       operationId: startRecovery
@@ -55,6 +119,8 @@ paths:
           description: Invalid input or missing consent
         "401":
           description: Sign-in required
+        "403":
+          description: Clinician accounts cannot access patient recovery data
   /recovery/profile:
     put:
       operationId: updateRecoveryProfile
@@ -76,6 +142,8 @@ paths:
           description: Invalid preferences
         "401":
           description: Sign-in required
+        "403":
+          description: Clinician accounts cannot access patient recovery data
         "404":
           description: Complete onboarding first
   /recovery/logs:
@@ -99,6 +167,8 @@ paths:
           description: Invalid entry
         "401":
           description: Sign-in required
+        "403":
+          description: Clinician accounts cannot access patient recovery data
         "404":
           description: Complete onboarding first
   /recovery/logs/{date}:
@@ -119,6 +189,8 @@ paths:
           description: Invalid date
         "401":
           description: Sign-in required
+        "403":
+          description: Clinician accounts cannot access patient recovery data
   /healthz:
     get:
       operationId: healthCheck
@@ -174,6 +246,41 @@ paths:
           description: Invalid email address
 components:
   schemas:
+    AccountType:
+      type: string
+      enum: [patient, clinician]
+    AccountTypeResponse:
+      type: object
+      additionalProperties: false
+      required: [accountType]
+      properties:
+        accountType:
+          $ref: "#/components/schemas/AccountType"
+    AccountRegistrationIntentInput:
+      type: object
+      additionalProperties: false
+      required: [accountType]
+      properties:
+        accountType:
+          $ref: "#/components/schemas/AccountType"
+    AccountRegistrationIntent:
+      type: object
+      additionalProperties: false
+      required: [registrationToken]
+      properties:
+        registrationToken:
+          type: string
+          minLength: 1
+          maxLength: 4096
+    CompleteAccountRegistrationInput:
+      type: object
+      additionalProperties: false
+      required: [registrationToken]
+      properties:
+        registrationToken:
+          type: string
+          minLength: 1
+          maxLength: 4096
     RecoveryPreferences:
       type: object
       additionalProperties: false

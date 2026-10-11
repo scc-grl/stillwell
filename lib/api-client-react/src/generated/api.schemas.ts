@@ -5,6 +5,38 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+export type AccountType = typeof AccountType[keyof typeof AccountType];
+
+
+export const AccountType = {
+  patient: 'patient',
+  clinician: 'clinician',
+} as const;
+
+export interface AccountTypeResponse {
+  accountType: AccountType;
+}
+
+export interface AccountRegistrationIntentInput {
+  accountType: AccountType;
+}
+
+export interface AccountRegistrationIntent {
+  /**
+     * @minLength 1
+     * @maxLength 4096
+     */
+  registrationToken: string;
+}
+
+export interface CompleteAccountRegistrationInput {
+  /**
+     * @minLength 1
+     * @maxLength 4096
+     */
+  registrationToken: string;
+}
+
 export type RecoveryPreferencesSupportMode = typeof RecoveryPreferencesSupportMode[keyof typeof RecoveryPreferencesSupportMode];
 
 
