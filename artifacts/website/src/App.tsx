@@ -16,6 +16,7 @@ import PrivacyPage from "@/pages/PrivacyPage";
 import QuizPage from "@/pages/QuizPage";
 import PublicInfoPage from "@/pages/PublicInfoPage";
 import UnsubscribePage from "@/pages/UnsubscribePage";
+import { clearClinicianSetupDraft, ClinicianJoinPage, FindClinicianPage, PartnerAdminPage, PartnerRequestPage, PartnersLandingPage, PublicClinicianProfilePage } from "@/pages/PartnersPages";
 import { PublicLayout } from "@/components/PublicSite";
 import { clearDraft, readDraft } from "@/lib/recovery";
 import { clearAccountChoice, clearRegistrationIntent, readAccountChoice, readRegistrationIntent, storeRegistrationIntent } from "@/lib/account";
@@ -317,6 +318,8 @@ function ClerkCacheInvalidator() {
       cache.clear();
       const draft = readDraft();
       if (!(lastId.current === null && nextId && draft && !draft.ownerId)) clearDraft();
+      const startingClinicianSignup = lastId.current === null && Boolean(nextId) && Boolean(readRegistrationIntent());
+      if (!startingClinicianSignup) clearClinicianSetupDraft();
     }
     lastId.current = nextId;
     });
@@ -330,6 +333,12 @@ function Routes() {
       "/clinician/sign-in": { title: "Clinician sign in", description: "Sign in to your Stillwell clinician account. Clinician accounts are self-identified and not yet verified." },
       "/clinician/sign-up": { title: "Clinician account", description: "Create a separate Stillwell clinician account. Clinician accounts are self-identified and not yet verified." },
       "/clinician/portal": { title: "Clinician portal", description: "The Stillwell clinician portal is coming soon. Clinician accounts are self-identified and not yet verified." },
+      "/partners": { title: "For clinicians, programs & researchers", description: "Explore Stillwell for clinicians, athletic and university programs, and research teams. Patient reflections remain user-controlled." },
+      "/partners/join": { title: "Create a clinician account", description: "Create a separate Stillwell clinician account and professional profile. Verification is required before directory listing." },
+      "/partners/request": { title: "Partner with Stillwell", description: "Tell Stillwell about your organization, program, clinic, or research team." },
+      "/find-your-clinician": { title: "Find your clinician", description: "Browse verified clinicians who have opted into the Stillwell directory." },
+      "/clinicians": { title: "Clinician profile", description: "View a public verified Stillwell clinician profile." },
+      "/admin/partners": { title: "Partner administration", description: "Review organization requests and clinician licence verification." },
       "/sign-up/patient": { title: "Create a patient account", description: "Create a private Stillwell journal account for your own recovery notes and reflections." },
       "/sign-up": { title: "Choose your account", description: "Choose whether you are creating a Stillwell account as a patient or a clinician." },
       "/sign-in": { title: "Patient sign in", description: "Sign in to revisit your private Stillwell journal, routines, and reflections." },
@@ -361,11 +370,17 @@ function Routes() {
       <Route path="/clinician/sign-in/*?" component={ClinicianSignInPage}/>
       <Route path="/account/continue" component={AccountContinuation}/>
       <Route path="/sign-up/patient/*?" component={PatientSignUpPage}/>
-      <Route path="/clinician/sign-up/*?" component={ClinicianSignUpPage}/>
+      <Route path="/clinician/sign-up/*?"><Redirect to="/partners/join"/></Route>
       <Route path="/sign-up/*?" component={SignUpPage}/>
       <Route path="/clinician/portal" component={ClinicianPortalRoute}/>
       <Route path="/quiz" component={QuizRoute}/>
       <Route path="/dashboard" component={PrivateDashboard}/>
+      <Route path="/partners"><PartnersLandingPage/></Route>
+      <Route path="/partners/join"><ClinicianJoinPage/></Route>
+      <Route path="/partners/request"><PartnerRequestPage/></Route>
+      <Route path="/find-your-clinician"><FindClinicianPage/></Route>
+      <Route path="/clinicians/:connectCode"><PublicClinicianProfilePage/></Route>
+      <Route path="/admin/partners"><PartnerAdminPage/></Route>
       <Route path="/privacy"><PublicLayout><PrivacyPage/></PublicLayout></Route>
       <Route path="/unsubscribe"><PublicLayout><UnsubscribePage/></PublicLayout></Route>
       <Route path="/our-history"><PublicLayout><PublicInfoPage content={{ eyebrow: "About Stillwell", title: "Our history", description: "Stillwell is a private, self-guided recovery journal made for people who want a quiet place to record their own reflections.", placeholder: "This page is a placeholder. More about the people, ideas, and history behind Stillwell will be added here." }}/></PublicLayout></Route>

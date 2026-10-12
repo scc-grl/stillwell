@@ -29,6 +29,14 @@ The user wants an eventual way for a patient to connect their account with a cli
 
 **How to apply:** Keep matching and linking clearly marked as unavailable until implemented. Do not save or send details entered in the preview. Any future access to recovery records must be patient-controlled.
 
+## Clinician and partner onboarding boundaries
+
+The user later requested working clinician account creation, professional profiles, partnership requests, and an admin-only review path. Licence verification is manual, and clinician listings must remain hidden until verified and explicitly opted into the directory. No mail service is connected, so partnership requests are stored for manual follow-up without sending notifications. The current data model does not support patient-to-clinician invitations or journal sharing; an optional invite code may be stored on a clinician profile, but it does not connect accounts or reveal patient data.
+
+**Why:** The user explicitly approved implementing the onboarding and request flows while deferring email delivery and patient linking.
+
+**How to apply:** Keep clinician tools clearly planned where they are not implemented. Do not present invite codes as connections or expose recovery records to clinicians. Configure authorized Stillwell admins separately; never infer admin access from a notification email address.
+
 ## Whole-check-in voice direction
 
 The user chose a voice-led route for the whole check-in—symptoms, diet/exercise, and reflection—rather than voice only for the personal reflection.

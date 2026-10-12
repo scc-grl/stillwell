@@ -20,3 +20,4 @@
 export * from "./recovery";
 export * from "./newsletter";
 export * from "./account";
+export * from "./partners";

@@ -23,11 +23,22 @@ import type {
   AccountRegistrationIntent,
   AccountRegistrationIntentInput,
   AccountTypeResponse,
+  AdminClinicianList,
+  ClinicianProfile,
+  ClinicianProfileInput,
+  ClinicianProfileResponse,
+  ClinicianVerificationResponse,
+  ClinicianVerificationUpdate,
   CompleteAccountRegistrationInput,
   HealthStatus,
   NewsletterSubscriptionAccepted,
   NewsletterSubscriptionInput,
   NewsletterUnsubscriptionAccepted,
+  PartnerRequestAccepted,
+  PartnerRequestInput,
+  PartnerRequestList,
+  PublicClinician,
+  PublicClinicianList,
   RecoveryLog,
   RecoveryLogInput,
   RecoveryPreferences,
@@ -314,6 +325,655 @@ export const useCompleteAccountRegistration = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getCompleteAccountRegistrationMutationOptions(options));
+    }
+
+export const getCreatePartnershipRequestUrl = () => {
+
+
+
+
+  return `/api/partnership-requests`
+}
+
+/**
+ * @summary Save a partnership request for manual Stillwell team follow-up
+ */
+export const createPartnershipRequest = async (partnerRequestInput: PartnerRequestInput, options?: Parameters<typeof customFetch>[1]): Promise<PartnerRequestAccepted> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<PartnerRequestAccepted>(getCreatePartnershipRequestUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(partnerRequestInput)
+  }
+);}
+
+
+
+
+
+export const getCreatePartnershipRequestMutationKey = () => ['createPartnershipRequest'] as const;
+
+export const getCreatePartnershipRequestMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPartnershipRequest>>, TError,CreatePartnershipRequestMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createPartnershipRequest>>, TError,CreatePartnershipRequestMutationVariables, TContext> => {
+
+const mutationKey = getCreatePartnershipRequestMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createPartnershipRequest>>, CreatePartnershipRequestMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  createPartnershipRequest(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreatePartnershipRequestMutationResult = NonNullable<Awaited<ReturnType<typeof createPartnershipRequest>>>
+    export type CreatePartnershipRequestMutationBody = BodyType<PartnerRequestInput>
+    export type CreatePartnershipRequestMutationError = ErrorType<void>
+    export type CreatePartnershipRequestMutationVariables = {data: BodyType<PartnerRequestInput>}
+
+    /**
+ * @summary Save a partnership request for manual Stillwell team follow-up
+ */
+export const useCreatePartnershipRequest = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createPartnershipRequest>>, TError,CreatePartnershipRequestMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createPartnershipRequest>>,
+        TError,
+        CreatePartnershipRequestMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCreatePartnershipRequestMutationOptions(options));
+    }
+
+export const getListPartnershipRequestsUrl = () => {
+
+
+
+
+  return `/api/admin/partnership-requests`
+}
+
+/**
+ * @summary List partnership requests for an authorized Stillwell administrator
+ */
+export const listPartnershipRequests = async ( options?: Parameters<typeof customFetch>[1]): Promise<PartnerRequestList> => {
+
+  return customFetch<PartnerRequestList>(getListPartnershipRequestsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListPartnershipRequestsQueryKey = () => {
+    return [
+    `/api/admin/partnership-requests`
+    ] as const;
+    }
+
+
+export const getListPartnershipRequestsQueryOptions = <TData = Awaited<ReturnType<typeof listPartnershipRequests>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listPartnershipRequests>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListPartnershipRequestsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPartnershipRequests>>> = ({ signal }) => listPartnershipRequests({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listPartnershipRequests>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListPartnershipRequestsQueryResult = NonNullable<Awaited<ReturnType<typeof listPartnershipRequests>>>
+export type ListPartnershipRequestsQueryError = ErrorType<void>
+
+
+/**
+ * @summary List partnership requests for an authorized Stillwell administrator
+ */
+
+export function useListPartnershipRequests<TData = Awaited<ReturnType<typeof listPartnershipRequests>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listPartnershipRequests>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListPartnershipRequestsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetClinicianProfileUrl = () => {
+
+
+
+
+  return `/api/clinician/profile`
+}
+
+/**
+ * @summary Get the signed-in clinician's own profile
+ */
+export const getClinicianProfile = async ( options?: Parameters<typeof customFetch>[1]): Promise<ClinicianProfileResponse> => {
+
+  return customFetch<ClinicianProfileResponse>(getGetClinicianProfileUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetClinicianProfileQueryKey = () => {
+    return [
+    `/api/clinician/profile`
+    ] as const;
+    }
+
+
+export const getGetClinicianProfileQueryOptions = <TData = Awaited<ReturnType<typeof getClinicianProfile>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getClinicianProfile>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetClinicianProfileQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getClinicianProfile>>> = ({ signal }) => getClinicianProfile({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getClinicianProfile>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetClinicianProfileQueryResult = NonNullable<Awaited<ReturnType<typeof getClinicianProfile>>>
+export type GetClinicianProfileQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get the signed-in clinician's own profile
+ */
+
+export function useGetClinicianProfile<TData = Awaited<ReturnType<typeof getClinicianProfile>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getClinicianProfile>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetClinicianProfileQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSaveClinicianProfileUrl = () => {
+
+
+
+
+  return `/api/clinician/profile`
+}
+
+/**
+ * @summary Save the signed-in clinician's profile and manual verification request
+ */
+export const saveClinicianProfile = async (clinicianProfileInput: ClinicianProfileInput, options?: Parameters<typeof customFetch>[1]): Promise<ClinicianProfile> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<ClinicianProfile>(getSaveClinicianProfileUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(clinicianProfileInput)
+  }
+);}
+
+
+
+
+
+export const getSaveClinicianProfileMutationKey = () => ['saveClinicianProfile'] as const;
+
+export const getSaveClinicianProfileMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveClinicianProfile>>, TError,SaveClinicianProfileMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveClinicianProfile>>, TError,SaveClinicianProfileMutationVariables, TContext> => {
+
+const mutationKey = getSaveClinicianProfileMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveClinicianProfile>>, SaveClinicianProfileMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  saveClinicianProfile(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveClinicianProfileMutationResult = NonNullable<Awaited<ReturnType<typeof saveClinicianProfile>>>
+    export type SaveClinicianProfileMutationBody = BodyType<ClinicianProfileInput>
+    export type SaveClinicianProfileMutationError = ErrorType<void>
+    export type SaveClinicianProfileMutationVariables = {data: BodyType<ClinicianProfileInput>}
+
+    /**
+ * @summary Save the signed-in clinician's profile and manual verification request
+ */
+export const useSaveClinicianProfile = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveClinicianProfile>>, TError,SaveClinicianProfileMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof saveClinicianProfile>>,
+        TError,
+        SaveClinicianProfileMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSaveClinicianProfileMutationOptions(options));
+    }
+
+export const getListPublicCliniciansUrl = () => {
+
+
+
+
+  return `/api/clinicians`
+}
+
+/**
+ * @summary List clinician profiles approved for public directory display
+ */
+export const listPublicClinicians = async ( options?: Parameters<typeof customFetch>[1]): Promise<PublicClinicianList> => {
+
+  return customFetch<PublicClinicianList>(getListPublicCliniciansUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListPublicCliniciansQueryKey = () => {
+    return [
+    `/api/clinicians`
+    ] as const;
+    }
+
+
+export const getListPublicCliniciansQueryOptions = <TData = Awaited<ReturnType<typeof listPublicClinicians>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listPublicClinicians>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListPublicCliniciansQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPublicClinicians>>> = ({ signal }) => listPublicClinicians({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listPublicClinicians>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListPublicCliniciansQueryResult = NonNullable<Awaited<ReturnType<typeof listPublicClinicians>>>
+export type ListPublicCliniciansQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List clinician profiles approved for public directory display
+ */
+
+export function useListPublicClinicians<TData = Awaited<ReturnType<typeof listPublicClinicians>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listPublicClinicians>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListPublicCliniciansQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetPublicClinicianUrl = (connectCode: string,) => {
+
+
+
+
+  return `/api/clinicians/${connectCode}`
+}
+
+/**
+ * @summary Get a verified clinician directory profile by its shareable code
+ */
+export const getPublicClinician = async (connectCode: string, options?: Parameters<typeof customFetch>[1]): Promise<PublicClinician> => {
+
+  return customFetch<PublicClinician>(getGetPublicClinicianUrl(connectCode),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPublicClinicianQueryKey = (connectCode: string,) => {
+    return [
+    `/api/clinicians/${connectCode}`
+    ] as const;
+    }
+
+
+export const getGetPublicClinicianQueryOptions = <TData = Awaited<ReturnType<typeof getPublicClinician>>, TError = ErrorType<void>>(connectCode: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPublicClinician>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPublicClinicianQueryKey(connectCode);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPublicClinician>>> = ({ signal }) => getPublicClinician(connectCode, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: connectCode !== null && connectCode !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPublicClinician>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPublicClinicianQueryResult = NonNullable<Awaited<ReturnType<typeof getPublicClinician>>>
+export type GetPublicClinicianQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get a verified clinician directory profile by its shareable code
+ */
+
+export function useGetPublicClinician<TData = Awaited<ReturnType<typeof getPublicClinician>>, TError = ErrorType<void>>(
+ connectCode: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPublicClinician>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPublicClinicianQueryOptions(connectCode,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListClinicianProfilesForAdminUrl = () => {
+
+
+
+
+  return `/api/admin/clinicians`
+}
+
+/**
+ * @summary List clinician profiles for manual licence review
+ */
+export const listClinicianProfilesForAdmin = async ( options?: Parameters<typeof customFetch>[1]): Promise<AdminClinicianList> => {
+
+  return customFetch<AdminClinicianList>(getListClinicianProfilesForAdminUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListClinicianProfilesForAdminQueryKey = () => {
+    return [
+    `/api/admin/clinicians`
+    ] as const;
+    }
+
+
+export const getListClinicianProfilesForAdminQueryOptions = <TData = Awaited<ReturnType<typeof listClinicianProfilesForAdmin>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listClinicianProfilesForAdmin>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListClinicianProfilesForAdminQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listClinicianProfilesForAdmin>>> = ({ signal }) => listClinicianProfilesForAdmin({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listClinicianProfilesForAdmin>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListClinicianProfilesForAdminQueryResult = NonNullable<Awaited<ReturnType<typeof listClinicianProfilesForAdmin>>>
+export type ListClinicianProfilesForAdminQueryError = ErrorType<void>
+
+
+/**
+ * @summary List clinician profiles for manual licence review
+ */
+
+export function useListClinicianProfilesForAdmin<TData = Awaited<ReturnType<typeof listClinicianProfilesForAdmin>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listClinicianProfilesForAdmin>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListClinicianProfilesForAdminQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getUpdateClinicianVerificationUrl = () => {
+
+
+
+
+  return `/api/admin/clinicians/verification`
+}
+
+/**
+ * @summary Mark a clinician licence pending or verified
+ */
+export const updateClinicianVerification = async (clinicianVerificationUpdate: ClinicianVerificationUpdate, options?: Parameters<typeof customFetch>[1]): Promise<ClinicianVerificationResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<ClinicianVerificationResponse>(getUpdateClinicianVerificationUrl(),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(clinicianVerificationUpdate)
+  }
+);}
+
+
+
+
+
+export const getUpdateClinicianVerificationMutationKey = () => ['updateClinicianVerification'] as const;
+
+export const getUpdateClinicianVerificationMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateClinicianVerification>>, TError,UpdateClinicianVerificationMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateClinicianVerification>>, TError,UpdateClinicianVerificationMutationVariables, TContext> => {
+
+const mutationKey = getUpdateClinicianVerificationMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateClinicianVerification>>, UpdateClinicianVerificationMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateClinicianVerification(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateClinicianVerificationMutationResult = NonNullable<Awaited<ReturnType<typeof updateClinicianVerification>>>
+    export type UpdateClinicianVerificationMutationBody = BodyType<ClinicianVerificationUpdate>
+    export type UpdateClinicianVerificationMutationError = ErrorType<void>
+    export type UpdateClinicianVerificationMutationVariables = {data: BodyType<ClinicianVerificationUpdate>}
+
+    /**
+ * @summary Mark a clinician licence pending or verified
+ */
+export const useUpdateClinicianVerification = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateClinicianVerification>>, TError,UpdateClinicianVerificationMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateClinicianVerification>>,
+        TError,
+        UpdateClinicianVerificationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateClinicianVerificationMutationOptions(options));
     }
 
 export const getGetRecoveryUrl = () => {

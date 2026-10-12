@@ -158,3 +158,281 @@ export interface NewsletterUnsubscriptionAccepted {
   unsubscribed: true;
 }
 
+export type PartnerOrganizationType = typeof PartnerOrganizationType[keyof typeof PartnerOrganizationType];
+
+
+export const PartnerOrganizationType = {
+  sports_program_or_club: 'sports_program_or_club',
+  university_athletics: 'university_athletics',
+  university_research_team: 'university_research_team',
+  clinic_network: 'clinic_network',
+  community_or_advocacy_group: 'community_or_advocacy_group',
+  other: 'other',
+} as const;
+
+export type PeopleSupportedRange = typeof PeopleSupportedRange[keyof typeof PeopleSupportedRange];
+
+
+export const PeopleSupportedRange = {
+  '1-25': '1-25',
+  '26-100': '26-100',
+  '101-500': '101-500',
+  '501-2000': '501-2000',
+  '2000+': '2000+',
+} as const;
+
+export interface PartnerRequestInput {
+  /**
+     * @minLength 1
+     * @maxLength 180
+     */
+  organizationName: string;
+  organizationType: PartnerOrganizationType;
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  contactName: string;
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  contactRole: string;
+  /** @maxLength 254 */
+  workEmail: string;
+  /**
+     * @maxLength 40
+     * @nullable
+     */
+  phone?: string | null;
+  peopleSupported: PeopleSupportedRange;
+  /**
+     * @maxLength 2000
+     * @nullable
+     */
+  message?: string | null;
+}
+
+export type PartnerRequestAcceptedNotificationStatus = typeof PartnerRequestAcceptedNotificationStatus[keyof typeof PartnerRequestAcceptedNotificationStatus];
+
+
+export const PartnerRequestAcceptedNotificationStatus = {
+  not_configured: 'not_configured',
+  sent: 'sent',
+  failed: 'failed',
+} as const;
+
+export interface PartnerRequestAccepted {
+  saved: true;
+  notificationStatus: PartnerRequestAcceptedNotificationStatus;
+}
+
+export type PartnerRequestNotificationStatus = typeof PartnerRequestNotificationStatus[keyof typeof PartnerRequestNotificationStatus];
+
+
+export const PartnerRequestNotificationStatus = {
+  not_configured: 'not_configured',
+  sent: 'sent',
+  failed: 'failed',
+} as const;
+
+export interface PartnerRequest {
+  id: string;
+  organizationName: string;
+  organizationType: PartnerOrganizationType;
+  contactName: string;
+  contactRole: string;
+  workEmail: string;
+  /** @nullable */
+  phone: string | null;
+  peopleSupported: PeopleSupportedRange;
+  /** @nullable */
+  message: string | null;
+  notificationStatus: PartnerRequestNotificationStatus;
+  createdAt: string;
+}
+
+export interface PartnerRequestList {
+  items: PartnerRequest[];
+}
+
+export type ClinicianProfession = typeof ClinicianProfession[keyof typeof ClinicianProfession];
+
+
+export const ClinicianProfession = {
+  Physician: 'Physician',
+  Physiotherapist: 'Physiotherapist',
+  Occupational_therapist: 'Occupational therapist',
+  Neuropsychologist: 'Neuropsychologist',
+  Vestibular_therapist: 'Vestibular therapist',
+  Athletic_trainer: 'Athletic trainer',
+  'Speech-language_pathologist': 'Speech-language pathologist',
+  Other: 'Other',
+} as const;
+
+export type ClinicianArea = typeof ClinicianArea[keyof typeof ClinicianArea];
+
+
+export const ClinicianArea = {
+  Headaches: 'Headaches',
+  'Neck_&_headaches': 'Neck & headaches',
+  'Dizziness_&_balance': 'Dizziness & balance',
+  Vision: 'Vision',
+  Sleep: 'Sleep',
+  'Mood_&_anxiety': 'Mood & anxiety',
+  'Concentration_&_memory': 'Concentration & memory',
+  Return_to_sport: 'Return to sport',
+  Return_to_school: 'Return to school',
+  Return_to_work: 'Return to work',
+} as const;
+
+export interface ClinicianProfileInput {
+  /**
+     * @maxLength 40
+     * @nullable
+     */
+  phone: string | null;
+  /**
+     * @maxLength 100
+     * @nullable
+     */
+  inviteCode: string | null;
+  profession: ClinicianProfession;
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  licenseNumber: string;
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  licenseRegion: string;
+  /**
+     * @minLength 1
+     * @maxLength 180
+     */
+  practiceName: string;
+  /**
+     * @minLength 1
+     * @maxLength 180
+     */
+  location: string;
+  /**
+     * @minItems 1
+     * @maxItems 10
+     */
+  areas: ClinicianArea[];
+  listInDirectory: boolean;
+  openToNewPatients: boolean;
+  termsAccepted: true;
+}
+
+export type ClinicianProfileVerificationStatus = typeof ClinicianProfileVerificationStatus[keyof typeof ClinicianProfileVerificationStatus];
+
+
+export const ClinicianProfileVerificationStatus = {
+  pending: 'pending',
+  verified: 'verified',
+} as const;
+
+export interface ClinicianProfile {
+  userId: string;
+  displayName: string;
+  /** @nullable */
+  phone: string | null;
+  /** @nullable */
+  inviteCode: string | null;
+  profession: ClinicianProfession;
+  licenseNumber: string;
+  licenseRegion: string;
+  practiceName: string;
+  location: string;
+  areas: ClinicianArea[];
+  listInDirectory: boolean;
+  openToNewPatients: boolean;
+  verificationStatus: ClinicianProfileVerificationStatus;
+  connectCode: string;
+  termsAcceptedAt: string;
+  updatedAt: string;
+}
+
+export interface ClinicianProfileResponse {
+  profile: ClinicianProfile | null;
+}
+
+export interface PublicClinician {
+  connectCode: string;
+  displayName: string;
+  profession: ClinicianProfession;
+  practiceName: string;
+  location: string;
+  areas: ClinicianArea[];
+  openToNewPatients: boolean;
+}
+
+export type PublicClinicianList = PublicClinician[];
+
+export type AdminClinicianVerificationStatus = typeof AdminClinicianVerificationStatus[keyof typeof AdminClinicianVerificationStatus];
+
+
+export const AdminClinicianVerificationStatus = {
+  pending: 'pending',
+  verified: 'verified',
+} as const;
+
+export interface AdminClinician {
+  userId: string;
+  displayName: string;
+  /** @nullable */
+  email: string | null;
+  /** @nullable */
+  phone: string | null;
+  profession: ClinicianProfession;
+  licenseNumber: string;
+  licenseRegion: string;
+  practiceName: string;
+  location: string;
+  areas: ClinicianArea[];
+  listInDirectory: boolean;
+  openToNewPatients: boolean;
+  verificationStatus: AdminClinicianVerificationStatus;
+  connectCode: string;
+  termsAcceptedAt: string;
+  updatedAt: string;
+}
+
+export interface AdminClinicianList {
+  items: AdminClinician[];
+}
+
+export type ClinicianVerificationUpdateVerificationStatus = typeof ClinicianVerificationUpdateVerificationStatus[keyof typeof ClinicianVerificationUpdateVerificationStatus];
+
+
+export const ClinicianVerificationUpdateVerificationStatus = {
+  pending: 'pending',
+  verified: 'verified',
+} as const;
+
+export interface ClinicianVerificationUpdate {
+  /**
+     * @minLength 1
+     * @maxLength 255
+     */
+  userId: string;
+  verificationStatus: ClinicianVerificationUpdateVerificationStatus;
+}
+
+export type ClinicianVerificationResponseVerificationStatus = typeof ClinicianVerificationResponseVerificationStatus[keyof typeof ClinicianVerificationResponseVerificationStatus];
+
+
+export const ClinicianVerificationResponseVerificationStatus = {
+  pending: 'pending',
+  verified: 'verified',
+} as const;
+
+export interface ClinicianVerificationResponse {
+  userId: string;
+  verificationStatus: ClinicianVerificationResponseVerificationStatus;
+}
+

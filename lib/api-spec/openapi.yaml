@@ -14,6 +14,10 @@ tags:
     description: Public newsletter subscription
   - name: account
     description: Account type and sign-up registration
+  - name: partners
+    description: Public organization requests and clinician profiles
+  - name: admin
+    description: Stillwell team review tools
 paths:
   /account/registration-intent:
     post:
@@ -75,6 +79,157 @@ paths:
           description: Sign-in required
         "409":
           description: Registration intent already used by another account
+  /partnership-requests:
+    post:
+      operationId: createPartnershipRequest
+      tags: [partners]
+      summary: Save a partnership request for manual Stillwell team follow-up
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PartnerRequestInput"
+      responses:
+        "201":
+          description: Request saved; email notification may not be configured
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PartnerRequestAccepted"
+        "400":
+          description: Invalid request
+  /admin/partnership-requests:
+    get:
+      operationId: listPartnershipRequests
+      tags: [admin]
+      summary: List partnership requests for an authorized Stillwell administrator
+      responses:
+        "200":
+          description: Saved partnership requests, newest first
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PartnerRequestList"
+        "401":
+          description: Sign-in required
+        "403":
+          description: Administrator access required
+  /clinician/profile:
+    get:
+      operationId: getClinicianProfile
+      tags: [partners]
+      summary: Get the signed-in clinician's own profile
+      responses:
+        "200":
+          description: Clinician profile, if completed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClinicianProfileResponse"
+        "401":
+          description: Sign-in required
+        "403":
+          description: Clinician account required
+    put:
+      operationId: saveClinicianProfile
+      tags: [partners]
+      summary: Save the signed-in clinician's profile and manual verification request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClinicianProfileInput"
+      responses:
+        "200":
+          description: Profile saved with verification pending unless already verified
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClinicianProfile"
+        "400":
+          description: Invalid profile or terms not accepted
+        "401":
+          description: Sign-in required
+        "403":
+          description: Clinician account required
+  /clinicians:
+    get:
+      operationId: listPublicClinicians
+      tags: [partners]
+      summary: List clinician profiles approved for public directory display
+      responses:
+        "200":
+          description: Only verified clinicians who opted into the directory
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicClinicianList"
+  /clinicians/{connectCode}:
+    get:
+      operationId: getPublicClinician
+      tags: [partners]
+      summary: Get a verified clinician directory profile by its shareable code
+      parameters:
+        - name: connectCode
+          in: path
+          required: true
+          schema:
+            type: string
+            minLength: 12
+            maxLength: 80
+      responses:
+        "200":
+          description: Public clinician profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicClinician"
+        "404":
+          description: Profile is not listed or has not been verified
+  /admin/clinicians:
+    get:
+      operationId: listClinicianProfilesForAdmin
+      tags: [admin]
+      summary: List clinician profiles for manual licence review
+      responses:
+        "200":
+          description: Clinician profiles with contact and verification details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminClinicianList"
+        "401":
+          description: Sign-in required
+        "403":
+          description: Administrator access required
+  /admin/clinicians/verification:
+    patch:
+      operationId: updateClinicianVerification
+      tags: [admin]
+      summary: Mark a clinician licence pending or verified
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClinicianVerificationUpdate"
+      responses:
+        "200":
+          description: Verification status updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClinicianVerificationResponse"
+        "400":
+          description: Invalid verification status
+        "401":
+          description: Sign-in required
+        "403":
+          description: Administrator access required
+        "404":
+          description: Clinician profile not found
   /recovery:
     get:
       operationId: getRecovery
@@ -424,4 +579,382 @@ components:
         unsubscribed:
           type: boolean
           enum: [true]
+    PartnerOrganizationType:
+      type: string
+      enum:
+        - sports_program_or_club
+        - university_athletics
+        - university_research_team
+        - clinic_network
+        - community_or_advocacy_group
+        - other
+    PeopleSupportedRange:
+      type: string
+      enum: ["1-25", "26-100", "101-500", "501-2000", "2000+"]
+    PartnerRequestInput:
+      type: object
+      additionalProperties: false
+      required:
+        - organizationName
+        - organizationType
+        - contactName
+        - contactRole
+        - workEmail
+        - peopleSupported
+      properties:
+        organizationName:
+          type: string
+          minLength: 1
+          maxLength: 180
+        organizationType:
+          $ref: "#/components/schemas/PartnerOrganizationType"
+        contactName:
+          type: string
+          minLength: 1
+          maxLength: 120
+        contactRole:
+          type: string
+          minLength: 1
+          maxLength: 120
+        workEmail:
+          type: string
+          format: email
+          maxLength: 254
+        phone:
+          type: ["string", "null"]
+          maxLength: 40
+        peopleSupported:
+          $ref: "#/components/schemas/PeopleSupportedRange"
+        message:
+          type: ["string", "null"]
+          maxLength: 2000
+    PartnerRequestAccepted:
+      type: object
+      additionalProperties: false
+      required: [saved, notificationStatus]
+      properties:
+        saved:
+          type: boolean
+          enum: [true]
+        notificationStatus:
+          type: string
+          enum: [not_configured, sent, failed]
+    PartnerRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - organizationName
+        - organizationType
+        - contactName
+        - contactRole
+        - workEmail
+        - phone
+        - peopleSupported
+        - message
+        - notificationStatus
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        organizationName:
+          type: string
+        organizationType:
+          $ref: "#/components/schemas/PartnerOrganizationType"
+        contactName:
+          type: string
+        contactRole:
+          type: string
+        workEmail:
+          type: string
+          format: email
+        phone:
+          type: ["string", "null"]
+        peopleSupported:
+          $ref: "#/components/schemas/PeopleSupportedRange"
+        message:
+          type: ["string", "null"]
+        notificationStatus:
+          type: string
+          enum: [not_configured, sent, failed]
+        createdAt:
+          type: string
+          format: date-time
+    PartnerRequestList:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PartnerRequest"
+    ClinicianProfession:
+      type: string
+      enum:
+        - Physician
+        - Physiotherapist
+        - Occupational therapist
+        - Neuropsychologist
+        - Vestibular therapist
+        - Athletic trainer
+        - Speech-language pathologist
+        - Other
+    ClinicianArea:
+      type: string
+      enum:
+        - Headaches
+        - Neck & headaches
+        - Dizziness & balance
+        - Vision
+        - Sleep
+        - Mood & anxiety
+        - Concentration & memory
+        - Return to sport
+        - Return to school
+        - Return to work
+    ClinicianProfileInput:
+      type: object
+      additionalProperties: false
+      required:
+        - phone
+        - inviteCode
+        - profession
+        - licenseNumber
+        - licenseRegion
+        - practiceName
+        - location
+        - areas
+        - listInDirectory
+        - openToNewPatients
+        - termsAccepted
+      properties:
+        phone:
+          type: ["string", "null"]
+          maxLength: 40
+        inviteCode:
+          type: ["string", "null"]
+          maxLength: 100
+        profession:
+          $ref: "#/components/schemas/ClinicianProfession"
+        licenseNumber:
+          type: string
+          minLength: 1
+          maxLength: 100
+        licenseRegion:
+          type: string
+          minLength: 1
+          maxLength: 120
+        practiceName:
+          type: string
+          minLength: 1
+          maxLength: 180
+        location:
+          type: string
+          minLength: 1
+          maxLength: 180
+        areas:
+          type: array
+          minItems: 1
+          maxItems: 10
+          uniqueItems: true
+          items:
+            $ref: "#/components/schemas/ClinicianArea"
+        listInDirectory:
+          type: boolean
+        openToNewPatients:
+          type: boolean
+        termsAccepted:
+          type: boolean
+          enum: [true]
+    ClinicianProfile:
+      type: object
+      additionalProperties: false
+      required:
+        - userId
+        - displayName
+        - phone
+        - inviteCode
+        - profession
+        - licenseNumber
+        - licenseRegion
+        - practiceName
+        - location
+        - areas
+        - listInDirectory
+        - openToNewPatients
+        - verificationStatus
+        - connectCode
+        - termsAcceptedAt
+        - updatedAt
+      properties:
+        userId:
+          type: string
+        displayName:
+          type: string
+        phone:
+          type: ["string", "null"]
+        inviteCode:
+          type: ["string", "null"]
+        profession:
+          $ref: "#/components/schemas/ClinicianProfession"
+        licenseNumber:
+          type: string
+        licenseRegion:
+          type: string
+        practiceName:
+          type: string
+        location:
+          type: string
+        areas:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClinicianArea"
+        listInDirectory:
+          type: boolean
+        openToNewPatients:
+          type: boolean
+        verificationStatus:
+          type: string
+          enum: [pending, verified]
+        connectCode:
+          type: string
+        termsAcceptedAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    ClinicianProfileResponse:
+      type: object
+      additionalProperties: false
+      required: [profile]
+      properties:
+        profile:
+          anyOf:
+            - $ref: "#/components/schemas/ClinicianProfile"
+            - type: "null"
+    PublicClinician:
+      type: object
+      additionalProperties: false
+      required:
+        - connectCode
+        - displayName
+        - profession
+        - practiceName
+        - location
+        - areas
+        - openToNewPatients
+      properties:
+        connectCode:
+          type: string
+        displayName:
+          type: string
+        profession:
+          $ref: "#/components/schemas/ClinicianProfession"
+        practiceName:
+          type: string
+        location:
+          type: string
+        areas:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClinicianArea"
+        openToNewPatients:
+          type: boolean
+    PublicClinicianList:
+      type: array
+      items:
+        $ref: "#/components/schemas/PublicClinician"
+    AdminClinician:
+      type: object
+      additionalProperties: false
+      required:
+        - userId
+        - displayName
+        - email
+        - phone
+        - profession
+        - licenseNumber
+        - licenseRegion
+        - practiceName
+        - location
+        - areas
+        - listInDirectory
+        - openToNewPatients
+        - verificationStatus
+        - connectCode
+        - termsAcceptedAt
+        - updatedAt
+      properties:
+        userId:
+          type: string
+        displayName:
+          type: string
+        email:
+          type: ["string", "null"]
+          format: email
+        phone:
+          type: ["string", "null"]
+        profession:
+          $ref: "#/components/schemas/ClinicianProfession"
+        licenseNumber:
+          type: string
+        licenseRegion:
+          type: string
+        practiceName:
+          type: string
+        location:
+          type: string
+        areas:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClinicianArea"
+        listInDirectory:
+          type: boolean
+        openToNewPatients:
+          type: boolean
+        verificationStatus:
+          type: string
+          enum: [pending, verified]
+        connectCode:
+          type: string
+        termsAcceptedAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    AdminClinicianList:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminClinician"
+    ClinicianVerificationUpdate:
+      type: object
+      additionalProperties: false
+      required: [userId, verificationStatus]
+      properties:
+        userId:
+          type: string
+          minLength: 1
+          maxLength: 255
+        verificationStatus:
+          type: string
+          enum: [pending, verified]
+    ClinicianVerificationResponse:
+      type: object
+      additionalProperties: false
+      required: [userId, verificationStatus]
+      properties:
+        userId:
+          type: string
+        verificationStatus:
+          type: string
+          enum: [pending, verified]
 
