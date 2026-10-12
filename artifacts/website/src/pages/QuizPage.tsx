@@ -2,11 +2,14 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useUser } from "@clerk/react";
 import { ArrowLeft, ArrowRight, Check, CircleHelp, Leaf, ShieldCheck } from "lucide-react";
+import { Input } from "@workspace/stillwell-design-system/components/ui/input";
 import type { RecoveryLogInput, RecoveryPreferences, SymptomEntry } from "@workspace/api-client-react";
 import { emptyLog, localDate, priorityChoices, replaceSymptom, symptomChoices, writeDraft } from "@/lib/recovery";
 
 const button = "inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#315b49] px-6 text-sm font-semibold text-[#fbfaf4] transition hover:bg-[#274b3b] disabled:cursor-not-allowed disabled:opacity-45";
 const choiceCard = "rounded-[20px] border p-4 text-left transition";
+type ClinicianConnectionPath = "find" | "existing";
+type ClinicianMatchPreference = "area" | "remote";
 export default function QuizPage() {
   const { isLoaded, isSignedIn, user } = useUser();
   const [, setLocation] = useLocation();
@@ -16,7 +19,23 @@ export default function QuizPage() {
   const [log, setLog] = useState<RecoveryLogInput>(() => emptyLog());
   const [consent, setConsent] = useState(false);
   const [error, setError] = useState("");
+  const [clinicianConnectionPath, setClinicianConnectionPath] = useState<ClinicianConnectionPath | null>(null);
+  const [clinicianMatchPreference, setClinicianMatchPreference] = useState<ClinicianMatchPreference | null>(null);
+  const [clinicianEmail, setClinicianEmail] = useState("");
   const togglePriority = (value: RecoveryPreferences["priorities"][number]) => setPriorities(current => current.includes(value) ? current.filter(x => x !== value) : [...current, value]);
+  const chooseSupportMode = (mode: RecoveryPreferences["supportMode"]) => {
+    setSupportMode(mode);
+    if (mode === "self_guided") {
+      setClinicianConnectionPath(null);
+      setClinicianMatchPreference(null);
+      setClinicianEmail("");
+    }
+  };
+  const chooseClinicianPath = (path: ClinicianConnectionPath) => {
+    setClinicianConnectionPath(path);
+    if (path === "find") setClinicianEmail("");
+    else setClinicianMatchPreference(null);
+  };
   const next = () => { setError(""); setStep(s => Math.min(2, s + 1)); };
   const continueToAccount = () => {
     if (!consent) { setError("Please review and accept before creating your private journal."); return; }
@@ -39,9 +58,33 @@ export default function QuizPage() {
       <div className="mb-7 h-1 rounded-full bg-[#e1e6dc]"><div className="h-1 rounded-full bg-[#78917b] transition-all" style={{ width: `${((step + 1) / 3) * 100}%` }} /></div>
       <section className="rounded-[28px] border border-[#dde4d9] bg-[#fbfaf5] p-5 shadow-[0_20px_60px_rgba(45,67,51,.05)] sm:p-8">
         {step === 0 && <div className="space-y-8">
-          <fieldset><legend className="text-sm font-semibold text-[#334c3e]">How would you like Stillwell to fit alongside your recovery?</legend><div className="mt-4 grid gap-3 sm:grid-cols-2">
-            {([["self_guided", "Self-guided", "A personal place to notice patterns and shape gentle routines."], ["clinician_supported", "With clinician support", "Keep your own journal, with room to bring reflections to a clinician."]] as const).map(([id, title, text]) => <button type="button" key={id} onClick={() => setSupportMode(id)} aria-pressed={supportMode === id} className={`${choiceCard} ${supportMode === id ? "border-[#6c8b74] bg-[#edf2ea]" : "border-[#e1e5dc] bg-white/40 hover:border-[#aebeaa]"}`}><span className="flex items-center justify-between text-sm font-semibold text-[#385544]">{title}{supportMode === id && <Check size={16} />}</span><span className="mt-2 block text-xs leading-5 text-[#748075]">{text}</span></button>)}
-          </div></fieldset>
+          <fieldset>
+            <legend className="text-sm font-semibold text-[#334c3e]">How would you like Stillwell to fit alongside your recovery?</legend>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {([["self_guided", "Self-guided", "A personal place to notice patterns and shape gentle routines."], ["clinician_supported", "With clinician support", "Keep your own journal, with room to bring reflections to a clinician."]] as const).map(([id, title, text]) => <button type="button" key={id} onClick={() => chooseSupportMode(id)} aria-pressed={supportMode === id} className={`${choiceCard} ${supportMode === id ? "border-[#6c8b74] bg-[#edf2ea]" : "border-[#e1e5dc] bg-white/40 hover:border-[#aebeaa]"}`}><span className="flex items-center justify-between text-sm font-semibold text-[#385544]">{title}{supportMode === id && <Check size={16} />}</span><span className="mt-2 block text-xs leading-5 text-[#748075]">{text}</span></button>)}
+            </div>
+            <p className="mt-3 text-xs leading-5 text-muted-foreground">You can start on your own, even if you have not found the right clinician yet. You can add a clinician or another support person later.</p>
+          </fieldset>
+          {supportMode === "clinician_supported" && <section aria-labelledby="clinician-support-preview-heading" className="space-y-4 rounded-2xl border border-border bg-card p-4">
+            <div>
+              <h2 id="clinician-support-preview-heading" className="text-sm font-semibold text-card-foreground">Plan for clinician support</h2>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">Choose a future matching preference or note a clinician you already work with.</p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {([["find", "Help me find a clinician", "Future options may include someone in your area or remote support."], ["existing", "I already have a clinician", "Add their email in this preview."]] as const).map(([id, title, text]) => <button type="button" key={id} onClick={() => chooseClinicianPath(id)} aria-pressed={clinicianConnectionPath === id} className={`${choiceCard} ${clinicianConnectionPath === id ? "border-primary bg-secondary text-secondary-foreground" : "border-border bg-card text-card-foreground hover:border-primary"}`}><span className="flex items-center justify-between text-sm font-semibold">{title}{clinicianConnectionPath === id && <Check size={16} />}</span><span className="mt-2 block text-xs leading-5 text-muted-foreground">{text}</span></button>)}
+            </div>
+            {clinicianConnectionPath === "find" && <fieldset className="rounded-xl bg-secondary/50 p-3">
+              <legend className="px-1 text-sm font-semibold text-card-foreground">What kind of option would you prefer?</legend>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {([["area", "In my area"], ["remote", "Remote support"]] as const).map(([id, label]) => <button type="button" key={id} onClick={() => setClinicianMatchPreference(id)} aria-pressed={clinicianMatchPreference === id} className={`rounded-full border px-4 py-2 text-sm transition ${clinicianMatchPreference === id ? "border-primary bg-secondary text-secondary-foreground" : "border-border bg-card text-muted-foreground hover:border-primary"}`}>{label}</button>)}
+              </div>
+            </fieldset>}
+            {clinicianConnectionPath === "existing" && <div>
+              <label htmlFor="clinician-email" className="text-sm font-medium text-card-foreground">Clinician’s email <span className="font-normal text-muted-foreground">(optional)</span></label>
+              <Input id="clinician-email" data-testid="input-clinician-email-preview" type="email" autoComplete="off" value={clinicianEmail} onChange={event => setClinicianEmail(event.target.value)} aria-describedby="clinician-support-preview-note" placeholder="name@example.com" className="mt-2"/>
+            </div>}
+            <p id="clinician-support-preview-note" role="note" className="rounded-xl bg-secondary/50 p-3 text-xs leading-5 text-muted-foreground">Preview only: matching and account linking are not available yet. These choices and any email entered stay on this page and are not saved or sent.</p>
+          </section>}
           <fieldset><legend className="text-sm font-semibold text-[#334c3e]">Choose one or more areas you want to make room for.</legend><div className="mt-4 grid gap-2 sm:grid-cols-2">{priorityChoices.map(item => <button type="button" key={item.id} onClick={() => togglePriority(item.id)} aria-pressed={priorities.includes(item.id)} className={`${choiceCard} flex items-start gap-3 ${priorities.includes(item.id) ? "border-[#6c8b74] bg-[#edf2ea]" : "border-[#e1e5dc] bg-white/40 hover:border-[#aebeaa]"}`}><span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${priorities.includes(item.id) ? "border-[#54755f] bg-[#54755f] text-white" : "border-[#cbd5c9]"}`}>{priorities.includes(item.id) && <Check size={12}/>}</span><span><b className="block text-sm text-[#385544]">{item.title}</b><small className="mt-1 block text-xs leading-5 text-[#748075]">{item.detail}</small></span></button>)}</div><p className="mt-2 text-[11px] text-[#857f70]">These are your chosen areas, not a prescribed care plan.</p></fieldset>
         </div>}
         {step === 1 && <div className="space-y-7">
@@ -62,6 +105,11 @@ export default function QuizPage() {
         </div>}
         {step === 2 && <div className="space-y-6">
           <div className="rounded-2xl border border-[#dce5d9] p-4"><p className="text-sm font-semibold text-[#3d5948]">Your first summary · {localDate()}</p><p className="mt-2 text-xs leading-5 text-[#66776b]">{supportMode === "self_guided" ? "Self-guided" : "With clinician support"} · {priorityChoices.filter(item => priorities.includes(item.id)).map(item => item.title).join(", ")}</p><ul className="mt-3 space-y-1 text-xs text-[#66776b]">{log.symptoms.map(item => <li key={item.name}>{symptomChoices.find(choice => choice[0] === item.name)?.[1]}: {item.severity}/10</li>)}</ul><p className="mt-3 whitespace-pre-wrap text-xs leading-5 text-[#66776b]">{log.note || "No additional reflection entered."}</p><p className="mt-2 text-[11px] text-[#7e857a]">Use Back to review or change today's activity details before saving.</p></div>
+          {supportMode === "clinician_supported" && clinicianConnectionPath && <div className="rounded-2xl border border-border bg-card p-4">
+            <h2 className="text-sm font-semibold text-card-foreground">Clinician support · Preview only</h2>
+            <p className="mt-2 text-xs leading-5 text-muted-foreground">{clinicianConnectionPath === "find" ? `Future matching preference: ${clinicianMatchPreference === "area" ? "in my area" : clinicianMatchPreference === "remote" ? "remote support" : "not selected"}.` : clinicianEmail.trim() ? "A clinician email was entered in this preview." : "An existing clinician was selected; no email was entered."}</p>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">This information will not be saved or sent.</p>
+          </div>}
           <div className="flex gap-3 rounded-2xl border border-[#dce5d9] bg-[#edf2ea] p-4"><ShieldCheck size={19} className="mt-0.5 shrink-0 text-[#567b63]"/><div><p className="text-sm font-semibold text-[#3d5948]">You are in control of this journal.</p><p className="mt-1 text-xs leading-5 text-[#66776b]">Stillwell is an educational, user-chosen reflection tool. It does not diagnose, prescribe treatment, or replace clinical care. You can choose self-guided use or optional clinician support at any time.</p></div></div>
           <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-[#e1e5dc] bg-[#fffefa] p-4"><input type="checkbox" checked={consent} onChange={e => { setConsent(e.target.checked); setError(""); }} className="mt-1 h-4 w-4 accent-[#567b63]"/><span className="text-sm leading-6 text-[#4b6052]">I explicitly consent to Stillwell storing the preferences and journal entry I chose above in my account. I understand I can access and delete these recovery records from my account.</span></label>
           <div className="rounded-2xl border border-[#e7d6c7] bg-[#f5eee5] p-4"><p className="text-xs font-semibold text-[#775943]">Not for a new injury or an emergency</p><p className="mt-1 text-xs leading-5 text-[#7c6f62]">If symptoms are worsening, contact a clinician. Severe or urgent symptoms need emergency care now.</p></div>

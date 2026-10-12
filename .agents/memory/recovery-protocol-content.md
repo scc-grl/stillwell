@@ -21,6 +21,14 @@ The phone app visit centers on a patient check-in. The eventual clinician portal
 
 **How to apply:** Keep iteration on the canvas; do not propose backend integration until the user asks. Distinguish patient-reported changes alongside a routine from evidence that the routine caused those changes. Future research contribution is separate from ordinary journaling and clinician sharing, with separate informed consent rather than automatic reuse of health records.
 
+## Future clinician/supporter connections
+
+The user wants an eventual way for a patient to connect their account with a clinician or another person supporting post-concussion recovery. Future options may include finding someone nearby or remotely, or entering the email of an existing clinician.
+
+**Why:** The user described this as a future product need and chose to preview the workflow before adding backend capabilities.
+
+**How to apply:** Keep matching and linking clearly marked as unavailable until implemented. Do not save or send details entered in the preview. Any future access to recovery records must be patient-controlled.
+
 ## Whole-check-in voice direction
 
 The user chose a voice-led route for the whole check-in—symptoms, diet/exercise, and reflection—rather than voice only for the personal reflection.
