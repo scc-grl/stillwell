@@ -70,7 +70,6 @@ function NewsletterForm() {
         <Button type="submit" size="sm" disabled={subscribe.isPending} data-testid="button-newsletter-subscribe" className="bg-background text-primary hover:bg-secondary">{subscribe.isPending ? "Subscribing…" : "Subscribe"}</Button>
       </form>
     </Form>
-    <p className="mt-2 text-[11px] leading-5 text-primary-foreground/80">You can <Link data-testid="link-footer-unsubscribe" href="/unsubscribe" className="underline underline-offset-2 hover:text-primary-foreground">unsubscribe at any time</Link>.</p>
     {feedback && <p data-testid="status-newsletter-feedback" role={feedback.kind === "error" ? "alert" : "status"} aria-live={feedback.kind === "error" ? "assertive" : "polite"} className={`mt-3 rounded-xl px-3 py-2 text-xs ${feedback.kind === "success" ? "bg-secondary text-secondary-foreground" : "border border-primary-foreground/30 bg-primary/90 text-primary-foreground"}`}>{feedback.message}</p>}
   </div>;
 }
