@@ -14,11 +14,17 @@
       "resizeMode": "contain"
     },
     "ios": {
+      "icon": "./assets/images/icon.png",
       "supportsTablet": false
     },
-    "android": {},
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon-foreground.png",
+        "backgroundColor": "#f5f4ed"
+      }
+    },
     "web": {
-      "favicon": "./assets/images/icon.png"
+      "favicon": "./assets/images/favicon.png"
     },
     "plugins": ["expo-router", "expo-secure-store"],
     "experiments": {

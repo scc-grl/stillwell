@@ -16,6 +16,9 @@ on it and import its theme and components directly.
 - `docs/references/logos/logo.png` — primary mark captured from the rendered
   source header; served with the artifact base path. The unused source SVG has a
   different wordmark and is retained only as legacy evidence, not displayed.
+- `public/brand/stillwell-mark.svg` — reusable, exact 36-unit circle mark with
+  transparent background. Its brand colors are exported as `tokens.color.brand`
+  and `--brand-*` CSS variables; do not alter the mark or add the wordmark.
 - `scripts/retain-rendered-logo.mjs` — crop a source capture to retain an
   existing rendered mark; uses Sharp as an asset-processing development tool.
 
@@ -66,6 +69,7 @@ not add `.ts` files here.
 ".":              "./src/generated/tokens.tsx",
 "./tokens":       "./src/generated/tokens.tsx",
 "./styles.css":   "./src/index.css",
+"./brand/*":      "./public/brand/*",
 "./components/*": "./src/components/*.tsx",
 "./lib/*":        "./src/lib/*.tsx",
 "./hooks/*":      "./src/hooks/*.tsx"

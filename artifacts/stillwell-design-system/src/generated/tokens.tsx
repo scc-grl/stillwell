@@ -4,6 +4,12 @@
 // whole product shares one source of truth.
 export const tokens = {
   "color": {
+    "brand": {
+      "fill": "#e6eee7",
+      "ring": "#b7c9bd",
+      "core": "#537566",
+      "dot": "#bd705c"
+    },
     "light": {
       "background": "#f5f4ed",
       "foreground": "#253b34",

@@ -341,3 +341,10 @@
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }
+
+:root {
+  --brand-fill: #e6eee7;
+  --brand-ring: #b7c9bd;
+  --brand-core: #537566;
+  --brand-dot: #bd705c;
+}

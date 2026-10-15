@@ -7,6 +7,7 @@
     ".": "./src/generated/tokens.tsx",
     "./tokens": "./src/generated/tokens.tsx",
     "./styles.css": "./src/index.css",
+    "./brand/*": "./public/brand/*",
     "./components/*": "./src/components/*.tsx",
     "./lib/*": "./src/lib/*.tsx",
     "./hooks/*": "./src/hooks/*.tsx"

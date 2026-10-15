@@ -172,12 +172,16 @@ function buildCss(tokens) {
       `tokens.json is missing values for: ${[...new Set(leftover)].join(", ")}`,
     );
   }
-  return css;
+  const brandVariables = Object.entries(colorEntries("brand", tokens))
+    .map(([name, hex]) => `  --brand-${name}: ${normalizeHex(hex)};`)
+    .join("\n");
+  return `${css}\n:root {\n${brandVariables}\n}\n`;
 }
 
 function buildTs(tokens) {
   const portable = {
     color: {
+      brand: colorEntries("brand", tokens),
       light: colorEntries("light", tokens),
       dark: colorEntries("dark", tokens),
     },
