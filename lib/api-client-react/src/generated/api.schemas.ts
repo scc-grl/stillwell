@@ -86,6 +86,64 @@ export interface SymptomEntry {
   severity: number;
 }
 
+export type DailyCheckInSymptomAnswerName = typeof DailyCheckInSymptomAnswerName[keyof typeof DailyCheckInSymptomAnswerName];
+
+
+export const DailyCheckInSymptomAnswerName = {
+  headache: 'headache',
+  fatigue: 'fatigue',
+  fog: 'fog',
+  sleep: 'sleep',
+  mood: 'mood',
+  light: 'light',
+} as const;
+
+export type DailyCheckInSymptomAnswerStatus = typeof DailyCheckInSymptomAnswerStatus[keyof typeof DailyCheckInSymptomAnswerStatus];
+
+
+export const DailyCheckInSymptomAnswerStatus = {
+  recorded: 'recorded',
+  not_recorded: 'not_recorded',
+} as const;
+
+export type DailyCheckInSymptomAnswerRating = typeof DailyCheckInSymptomAnswerRating[keyof typeof DailyCheckInSymptomAnswerRating] | null;
+
+
+export const DailyCheckInSymptomAnswerRating = {
+  NUMBER_0: 0,
+  NUMBER_1: 1,
+  NUMBER_2: 2,
+  NUMBER_3: 3,
+} as const;
+
+export interface DailyCheckInSymptomAnswer {
+  name: DailyCheckInSymptomAnswerName;
+  status: DailyCheckInSymptomAnswerStatus;
+  rating: DailyCheckInSymptomAnswerRating;
+}
+
+export type DailyCheckInOverallFeeling = typeof DailyCheckInOverallFeeling[keyof typeof DailyCheckInOverallFeeling] | null;
+
+
+export const DailyCheckInOverallFeeling = {
+  rough: 'rough',
+  low: 'low',
+  okay: 'okay',
+  good: 'good',
+  great: 'great',
+} as const;
+
+export interface DailyCheckIn {
+  overallFeeling: DailyCheckInOverallFeeling;
+  /**
+     * @minItems 6
+     * @maxItems 6
+     */
+  symptoms: DailyCheckInSymptomAnswer[];
+  /** @maxLength 500 */
+  summary: string;
+}
+
 export type ActivityStatus = typeof ActivityStatus[keyof typeof ActivityStatus];
 
 
@@ -116,6 +174,7 @@ export interface RecoveryLogInput {
   meditationNote: string;
   /** @maxLength 2000 */
   note: string;
+  dailyCheckIn?: DailyCheckIn;
 }
 
 export interface RecoveryStartInput {
@@ -239,6 +298,7 @@ export interface SharedRecoveryLog {
   meditationMinutes?: number;
   meditationNote?: string;
   note?: string;
+  dailyCheckIn?: DailyCheckIn;
 }
 
 export interface SharedPatientJournal {

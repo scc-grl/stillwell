@@ -2,20 +2,18 @@ import { useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  getGetRecoveryQueryKey,
   useSaveRecoveryLog,
 } from "@workspace/api-client-react";
 import { Button } from "@workspace/stillwell-design-system/components/native/button";
 import { Card } from "@workspace/stillwell-design-system/components/native/card";
 import { Text } from "@workspace/stillwell-design-system/components/native/text";
 import { useColors } from "@workspace/stillwell-design-system/hooks/use-colors";
+import { DailyCheckInFlow } from "@/components/DailyCheckInFlow";
 import { RecoveryLogEditor } from "@/components/RecoveryLogEditor";
-import { RecoveryLogSummary } from "@/components/RecoveryLogSummary";
 import { SafetyNotice } from "@/components/SafetyNotice";
 import { Screen } from "@/components/Screen";
 import { usePatientData } from "@/contexts/PatientDataContext";
-import { spacing } from "@/lib/layout";
-import { emptyLog, formatDate, localDate, recoveryQueryKey, upsertLog } from "@/lib/journal";
+import { emptyLog, localDate, recoveryQueryKey, upsertLog } from "@/lib/journal";
 
 export default function TodayScreen() {
   const colors = useColors();
@@ -23,7 +21,7 @@ export default function TodayScreen() {
   const { userId, recovery, recoveryLoading, recoveryError, refreshRecovery } =
     usePatientData();
   const saveLog = useSaveRecoveryLog();
-  const [editing, setEditing] = useState(false);
+  const [editingDetails, setEditingDetails] = useState(false);
   const today = localDate();
   const currentLog = recovery?.logs.find((log) => log.date === today);
 
@@ -34,7 +32,8 @@ export default function TodayScreen() {
       recoveryQueryKey(userId),
       (current: typeof recovery) => upsertLog(current, saved),
     );
-    setEditing(false);
+    setEditingDetails(false);
+    return saved;
   }
 
   if (recoveryLoading) {
@@ -58,14 +57,16 @@ export default function TodayScreen() {
       </Screen>
     );
   }
-  if (editing || !currentLog) {
+  if (editingDetails) {
     return (
       <Screen bottomTabs>
         <RecoveryLogEditor
-          key={`${today}-${editing ? "edit" : "new"}`}
+          key={`${today}-details`}
           initial={currentLog ?? emptyLog(today)}
-          onSave={saveToday}
-          onCancel={currentLog ? () => setEditing(false) : undefined}
+          onSave={async (log) => {
+            await saveToday(log);
+          }}
+          onCancel={() => setEditingDetails(false)}
         />
         <SafetyNotice />
       </Screen>
@@ -74,35 +75,20 @@ export default function TodayScreen() {
 
   return (
     <Screen bottomTabs>
-      <View style={styles.heading}>
-        <Text variant="label">TODAY</Text>
-        <Text variant="display">Your journal</Text>
-        <Text variant="body">{formatDate(today)}</Text>
-      </View>
-      <Card tone="sage">
-        <Text variant="heading">A record, not a score</Text>
-        <Text variant="caption">
-          Notice changes over time without treating any single day as a result
-          or a promise.
-        </Text>
-      </Card>
-      <RecoveryLogSummary log={currentLog} />
-      <Button
-        onPress={() => setEditing(true)}
-        testID="edit-today-entry"
-      >
-        Edit today’s check-in
-      </Button>
-      <SafetyNotice />
+      <DailyCheckInFlow
+        key={today}
+        initial={currentLog ?? emptyLog(today)}
+        logs={recovery.logs}
+        today={today}
+        startAt={currentLog?.dailyCheckIn ? "saved" : "home"}
+        onPersist={saveToday}
+        onEditJournal={() => setEditingDetails(true)}
+      />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  heading: {
-    gap: spacing * 2,
-    paddingVertical: spacing,
-  },
   loading: {
     flex: 1,
     justifyContent: "center",

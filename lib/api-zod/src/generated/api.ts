@@ -389,6 +389,11 @@ export const getSharedPatientJournalResponseLogsItemDateRegExp = new RegExp('^\\
 export const getSharedPatientJournalResponseLogsItemSymptomsItemSeverityMin = 0;
 export const getSharedPatientJournalResponseLogsItemSymptomsItemSeverityMax = 10;
 
+export const getSharedPatientJournalResponseLogsItemDailyCheckInSymptomsMin = 6;
+export const getSharedPatientJournalResponseLogsItemDailyCheckInSymptomsMax = 6;
+
+export const getSharedPatientJournalResponseLogsItemDailyCheckInSummaryMax = 500;
+
 
 
 export const GetSharedPatientJournalResponse = zod.object({
@@ -407,7 +412,16 @@ export const GetSharedPatientJournalResponse = zod.object({
   "meditationStatus": zod.enum(['done', 'not_done', 'not_planned']).optional(),
   "meditationMinutes": zod.number().int().optional(),
   "meditationNote": zod.string().optional(),
-  "note": zod.string().optional()
+  "note": zod.string().optional(),
+  "dailyCheckIn": zod.object({
+  "overallFeeling": zod.enum(['rough', 'low', 'okay', 'good', 'great']).nullable(),
+  "symptoms": zod.array(zod.object({
+  "name": zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light']),
+  "status": zod.enum(['recorded', 'not_recorded']),
+  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3)]).nullable()
+})).min(getSharedPatientJournalResponseLogsItemDailyCheckInSymptomsMin).max(getSharedPatientJournalResponseLogsItemDailyCheckInSymptomsMax),
+  "summary": zod.string().max(getSharedPatientJournalResponseLogsItemDailyCheckInSummaryMax)
+}).optional()
 }))
 })
 
@@ -477,6 +491,11 @@ export const getRecoveryResponseLogsItemOneMeditationNoteMax = 2000;
 
 export const getRecoveryResponseLogsItemOneNoteMax = 2000;
 
+export const getRecoveryResponseLogsItemOneDailyCheckInSymptomsMin = 6;
+export const getRecoveryResponseLogsItemOneDailyCheckInSymptomsMax = 6;
+
+export const getRecoveryResponseLogsItemOneDailyCheckInSummaryMax = 500;
+
 
 
 export const GetRecoveryResponse = zod.object({
@@ -500,7 +519,16 @@ export const GetRecoveryResponse = zod.object({
   "meditationStatus": zod.enum(['done', 'not_done', 'not_planned']),
   "meditationMinutes": zod.number().int().min(getRecoveryResponseLogsItemOneMeditationMinutesMin).max(getRecoveryResponseLogsItemOneMeditationMinutesMax),
   "meditationNote": zod.string().max(getRecoveryResponseLogsItemOneMeditationNoteMax),
-  "note": zod.string().max(getRecoveryResponseLogsItemOneNoteMax)
+  "note": zod.string().max(getRecoveryResponseLogsItemOneNoteMax),
+  "dailyCheckIn": zod.object({
+  "overallFeeling": zod.enum(['rough', 'low', 'okay', 'good', 'great']).nullable(),
+  "symptoms": zod.array(zod.object({
+  "name": zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light']),
+  "status": zod.enum(['recorded', 'not_recorded']),
+  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3)]).nullable()
+})).min(getRecoveryResponseLogsItemOneDailyCheckInSymptomsMin).max(getRecoveryResponseLogsItemOneDailyCheckInSymptomsMax),
+  "summary": zod.string().max(getRecoveryResponseLogsItemOneDailyCheckInSummaryMax)
+}).optional()
 }).and(zod.object({
   "updatedAt": zod.coerce.date()
 })))
@@ -535,6 +563,11 @@ export const startRecoveryBodyFirstLogMeditationNoteMax = 2000;
 
 export const startRecoveryBodyFirstLogNoteMax = 2000;
 
+export const startRecoveryBodyFirstLogDailyCheckInSymptomsMin = 6;
+export const startRecoveryBodyFirstLogDailyCheckInSymptomsMax = 6;
+
+export const startRecoveryBodyFirstLogDailyCheckInSummaryMax = 500;
+
 
 
 export const StartRecoveryBody = zod.object({
@@ -556,7 +589,16 @@ export const StartRecoveryBody = zod.object({
   "meditationStatus": zod.enum(['done', 'not_done', 'not_planned']),
   "meditationMinutes": zod.number().int().min(startRecoveryBodyFirstLogMeditationMinutesMin).max(startRecoveryBodyFirstLogMeditationMinutesMax),
   "meditationNote": zod.string().max(startRecoveryBodyFirstLogMeditationNoteMax),
-  "note": zod.string().max(startRecoveryBodyFirstLogNoteMax)
+  "note": zod.string().max(startRecoveryBodyFirstLogNoteMax),
+  "dailyCheckIn": zod.object({
+  "overallFeeling": zod.enum(['rough', 'low', 'okay', 'good', 'great']).nullable(),
+  "symptoms": zod.array(zod.object({
+  "name": zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light']),
+  "status": zod.enum(['recorded', 'not_recorded']),
+  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3)]).nullable()
+})).min(startRecoveryBodyFirstLogDailyCheckInSymptomsMin).max(startRecoveryBodyFirstLogDailyCheckInSymptomsMax),
+  "summary": zod.string().max(startRecoveryBodyFirstLogDailyCheckInSummaryMax)
+}).optional()
 })
 })
 
@@ -578,6 +620,11 @@ export const startRecoveryResponseLogsItemOneMeditationMinutesMax = 240;
 export const startRecoveryResponseLogsItemOneMeditationNoteMax = 2000;
 
 export const startRecoveryResponseLogsItemOneNoteMax = 2000;
+
+export const startRecoveryResponseLogsItemOneDailyCheckInSymptomsMin = 6;
+export const startRecoveryResponseLogsItemOneDailyCheckInSymptomsMax = 6;
+
+export const startRecoveryResponseLogsItemOneDailyCheckInSummaryMax = 500;
 
 
 
@@ -602,7 +649,16 @@ export const StartRecoveryResponse = zod.object({
   "meditationStatus": zod.enum(['done', 'not_done', 'not_planned']),
   "meditationMinutes": zod.number().int().min(startRecoveryResponseLogsItemOneMeditationMinutesMin).max(startRecoveryResponseLogsItemOneMeditationMinutesMax),
   "meditationNote": zod.string().max(startRecoveryResponseLogsItemOneMeditationNoteMax),
-  "note": zod.string().max(startRecoveryResponseLogsItemOneNoteMax)
+  "note": zod.string().max(startRecoveryResponseLogsItemOneNoteMax),
+  "dailyCheckIn": zod.object({
+  "overallFeeling": zod.enum(['rough', 'low', 'okay', 'good', 'great']).nullable(),
+  "symptoms": zod.array(zod.object({
+  "name": zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light']),
+  "status": zod.enum(['recorded', 'not_recorded']),
+  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3)]).nullable()
+})).min(startRecoveryResponseLogsItemOneDailyCheckInSymptomsMin).max(startRecoveryResponseLogsItemOneDailyCheckInSymptomsMax),
+  "summary": zod.string().max(startRecoveryResponseLogsItemOneDailyCheckInSummaryMax)
+}).optional()
 }).and(zod.object({
   "updatedAt": zod.coerce.date()
 })))
@@ -654,6 +710,11 @@ export const saveRecoveryLogBodyMeditationNoteMax = 2000;
 
 export const saveRecoveryLogBodyNoteMax = 2000;
 
+export const saveRecoveryLogBodyDailyCheckInSymptomsMin = 6;
+export const saveRecoveryLogBodyDailyCheckInSymptomsMax = 6;
+
+export const saveRecoveryLogBodyDailyCheckInSummaryMax = 500;
+
 
 
 export const SaveRecoveryLogBody = zod.object({
@@ -669,7 +730,16 @@ export const SaveRecoveryLogBody = zod.object({
   "meditationStatus": zod.enum(['done', 'not_done', 'not_planned']),
   "meditationMinutes": zod.number().int().min(saveRecoveryLogBodyMeditationMinutesMin).max(saveRecoveryLogBodyMeditationMinutesMax),
   "meditationNote": zod.string().max(saveRecoveryLogBodyMeditationNoteMax),
-  "note": zod.string().max(saveRecoveryLogBodyNoteMax)
+  "note": zod.string().max(saveRecoveryLogBodyNoteMax),
+  "dailyCheckIn": zod.object({
+  "overallFeeling": zod.enum(['rough', 'low', 'okay', 'good', 'great']).nullable(),
+  "symptoms": zod.array(zod.object({
+  "name": zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light']),
+  "status": zod.enum(['recorded', 'not_recorded']),
+  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3)]).nullable()
+})).min(saveRecoveryLogBodyDailyCheckInSymptomsMin).max(saveRecoveryLogBodyDailyCheckInSymptomsMax),
+  "summary": zod.string().max(saveRecoveryLogBodyDailyCheckInSummaryMax)
+}).optional()
 })
 
 export const saveRecoveryLogResponseOneDateRegExp = new RegExp('^\\d{4}-\\d{2}-\\d{2}$');
@@ -689,6 +759,11 @@ export const saveRecoveryLogResponseOneMeditationNoteMax = 2000;
 
 export const saveRecoveryLogResponseOneNoteMax = 2000;
 
+export const saveRecoveryLogResponseOneDailyCheckInSymptomsMin = 6;
+export const saveRecoveryLogResponseOneDailyCheckInSymptomsMax = 6;
+
+export const saveRecoveryLogResponseOneDailyCheckInSummaryMax = 500;
+
 
 
 export const SaveRecoveryLogResponse = zod.object({
@@ -704,7 +779,16 @@ export const SaveRecoveryLogResponse = zod.object({
   "meditationStatus": zod.enum(['done', 'not_done', 'not_planned']),
   "meditationMinutes": zod.number().int().min(saveRecoveryLogResponseOneMeditationMinutesMin).max(saveRecoveryLogResponseOneMeditationMinutesMax),
   "meditationNote": zod.string().max(saveRecoveryLogResponseOneMeditationNoteMax),
-  "note": zod.string().max(saveRecoveryLogResponseOneNoteMax)
+  "note": zod.string().max(saveRecoveryLogResponseOneNoteMax),
+  "dailyCheckIn": zod.object({
+  "overallFeeling": zod.enum(['rough', 'low', 'okay', 'good', 'great']).nullable(),
+  "symptoms": zod.array(zod.object({
+  "name": zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light']),
+  "status": zod.enum(['recorded', 'not_recorded']),
+  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3)]).nullable()
+})).min(saveRecoveryLogResponseOneDailyCheckInSymptomsMin).max(saveRecoveryLogResponseOneDailyCheckInSymptomsMax),
+  "summary": zod.string().max(saveRecoveryLogResponseOneDailyCheckInSummaryMax)
+}).optional()
 }).and(zod.object({
   "updatedAt": zod.coerce.date()
 }))

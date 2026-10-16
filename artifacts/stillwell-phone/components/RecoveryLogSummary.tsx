@@ -3,6 +3,7 @@ import type { RecoveryLog } from "@workspace/api-client-react";
 import { Card } from "@workspace/stillwell-design-system/components/native/card";
 import { Text } from "@workspace/stillwell-design-system/components/native/text";
 import { spacing } from "@/lib/layout";
+import { checkInSymptoms, overallChoices, ratingChoices } from "@/lib/daily-check-in";
 import { formatDate, symptomChoices } from "@/lib/journal";
 
 function statusText(value: string) {
@@ -21,6 +22,7 @@ function Detail({ title, value }: { title: string; value: string }) {
 }
 
 export function RecoveryLogSummary({ log }: { log: RecoveryLog }) {
+  const dailyCheckIn = log.dailyCheckIn;
   const symptomText =
     log.symptoms.length === 0
       ? "No symptoms were rated."
@@ -36,8 +38,33 @@ export function RecoveryLogSummary({ log }: { log: RecoveryLog }) {
   return (
     <View style={styles.container}>
       <Card tone="sage" inset="compact">
-        <Text variant="label">Symptoms</Text>
-        <Text variant="caption">{symptomText}</Text>
+        {dailyCheckIn ? (
+          <>
+            <Text variant="label">Daily symptom check-in</Text>
+            <Text variant="caption">
+              Overall: {overallChoices.find((choice) => choice.value === dailyCheckIn.overallFeeling)?.label ?? "Not recorded"}
+            </Text>
+            {dailyCheckIn.symptoms.map((answer) => {
+              const label = checkInSymptoms.find((symptom) => symptom.name === answer.name)?.label ?? answer.name;
+              const value = answer.status === "recorded"
+                ? ratingChoices.find((choice) => choice.value === answer.rating)?.label
+                : "Not recorded";
+              return (
+                <Text key={answer.name} variant="caption">
+                  {label}: {value}
+                </Text>
+              );
+            })}
+            <Text variant="caption">
+              {dailyCheckIn.summary || "No summary added."}
+            </Text>
+          </>
+        ) : (
+          <>
+            <Text variant="label">Symptoms</Text>
+            <Text variant="caption">{symptomText}</Text>
+          </>
+        )}
       </Card>
       <Card inset="compact">
         <Detail

@@ -11,6 +11,7 @@ import { Button } from "@workspace/stillwell-design-system/components/native/but
 import { Card } from "@workspace/stillwell-design-system/components/native/card";
 import { Text } from "@workspace/stillwell-design-system/components/native/text";
 import { useColors } from "@workspace/stillwell-design-system/hooks/use-colors";
+import { DailyCheckInFlow } from "@/components/DailyCheckInFlow";
 import { RecoveryLogEditor } from "@/components/RecoveryLogEditor";
 import { RecoveryLogSummary } from "@/components/RecoveryLogSummary";
 import { SafetyNotice } from "@/components/SafetyNotice";
@@ -28,11 +29,12 @@ export default function HistoryScreen() {
   const saveLog = useSaveRecoveryLog();
   const [selected, setSelected] = useState<RecoveryLog | null>(null);
   const [editing, setEditing] = useState(false);
+  const [editingDetails, setEditingDetails] = useState(false);
   const [actionError, setActionError] = useState("");
   const entries =
     recovery?.logs.filter((log) => log.date < localDate()) ?? [];
 
-  async function savePastDay(log: Parameters<typeof saveLog.mutateAsync>[0]["data"]) {
+  async function persistPastDay(log: Parameters<typeof saveLog.mutateAsync>[0]["data"]) {
     if (!userId) throw new Error("A signed-in patient account is required.");
     const saved = await saveLog.mutateAsync({ data: log });
     queryClient.setQueryData(
@@ -40,7 +42,13 @@ export default function HistoryScreen() {
       (current: typeof recovery) => upsertLog(current, saved),
     );
     setSelected(saved);
+    return saved;
+  }
+
+  async function savePastDay(log: Parameters<typeof saveLog.mutateAsync>[0]["data"]) {
+    const saved = await persistPastDay(log);
     setEditing(false);
+    return saved;
   }
 
   function confirmDelete(log: RecoveryLog) {
@@ -62,6 +70,7 @@ export default function HistoryScreen() {
                 });
                 setSelected(null);
                 setEditing(false);
+                setEditingDetails(false);
               })
               .catch(() => {
                 setActionError("That entry could not be deleted. Try again.");
@@ -96,14 +105,35 @@ export default function HistoryScreen() {
   if (selected && editing) {
     return (
       <Screen bottomTabs>
-        <RecoveryLogEditor
-          key={selected.date}
-          initial={selected}
-          onSave={savePastDay}
-          onCancel={() => setEditing(false)}
-          saveLabel="Save changes"
-        />
-        <SafetyNotice />
+        {editingDetails ? (
+          <RecoveryLogEditor
+            key={`${selected.date}-details`}
+            initial={selected}
+            onSave={async (log) => {
+              await savePastDay(log);
+            }}
+            onCancel={() => {
+              setEditingDetails(false);
+              setEditing(false);
+            }}
+            saveLabel="Save changes"
+          />
+        ) : (
+          <DailyCheckInFlow
+            key={selected.date}
+            initial={selected}
+            logs={recovery.logs}
+            today={localDate()}
+            startAt="edit"
+            onPersist={persistPastDay}
+            onEditJournal={() => setEditingDetails(true)}
+            onExit={() => {
+              setEditingDetails(false);
+              setEditing(false);
+            }}
+          />
+        )}
+        {editingDetails ? <SafetyNotice /> : null}
       </Screen>
     );
   }
@@ -120,7 +150,23 @@ export default function HistoryScreen() {
             {actionError}
           </Text>
         ) : null}
-        <Button onPress={() => setEditing(true)}>Edit this day</Button>
+        <Button
+          onPress={() => {
+            setEditingDetails(false);
+            setEditing(true);
+          }}
+        >
+          Edit this day
+        </Button>
+        <Button
+          tone="outline"
+          onPress={() => {
+            setEditingDetails(true);
+            setEditing(true);
+          }}
+        >
+          Edit food, movement and pacing
+        </Button>
         <Button
           tone="destructive"
           onPress={() => confirmDelete(selected)}
@@ -168,6 +214,8 @@ export default function HistoryScreen() {
                   tone="outline"
                   onPress={() => {
                     setActionError("");
+                    setEditing(false);
+                    setEditingDetails(false);
                     setSelected(log);
                   }}
                   accessibilityLabel={`View entry for ${formatDate(log.date)}`}

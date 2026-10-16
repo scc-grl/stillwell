@@ -39,7 +39,7 @@ export function canPatientManageConnection(
 type JournalLog = Record<string, unknown> & { date: string };
 
 const AREA_FIELDS: Record<JournalShareArea, readonly string[]> = {
-  symptoms: ["symptoms"],
+  symptoms: ["symptoms", "dailyCheckIn"],
   food_hydration: ["dietStatus", "dietNote"],
   movement: ["exerciseStatus", "exerciseNote"],
   quiet_pause: ["meditationStatus", "meditationMinutes", "meditationNote"],

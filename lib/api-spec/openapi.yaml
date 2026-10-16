@@ -650,6 +650,39 @@ components:
           type: integer
           minimum: 0
           maximum: 10
+    DailyCheckInSymptomAnswer:
+      type: object
+      additionalProperties: false
+      required: [name, status, rating]
+      properties:
+        name:
+          type: string
+          enum: [headache, fatigue, fog, sleep, mood, light]
+        status:
+          type: string
+          enum: [recorded, not_recorded]
+        rating:
+          type: integer
+          enum: [0, 1, 2, 3]
+          nullable: true
+    DailyCheckIn:
+      type: object
+      additionalProperties: false
+      required: [overallFeeling, symptoms, summary]
+      properties:
+        overallFeeling:
+          type: string
+          enum: [rough, low, okay, good, great]
+          nullable: true
+        symptoms:
+          type: array
+          minItems: 6
+          maxItems: 6
+          items:
+            $ref: "#/components/schemas/DailyCheckInSymptomAnswer"
+        summary:
+          type: string
+          maxLength: 500
     ActivityStatus:
       type: string
       enum: [done, not_done, not_planned]
@@ -688,6 +721,8 @@ components:
         note:
           type: string
           maxLength: 2000
+        dailyCheckIn:
+          $ref: "#/components/schemas/DailyCheckIn"
     RecoveryStartInput:
       type: object
       additionalProperties: false
@@ -868,6 +903,8 @@ components:
           type: string
         note:
           type: string
+        dailyCheckIn:
+          $ref: "#/components/schemas/DailyCheckIn"
     SharedPatientJournal:
       type: object
       additionalProperties: false

@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { ActivityStatus } from './activityStatus';
+import type { DailyCheckIn } from './dailyCheckIn';
 import type { SymptomEntry } from './symptomEntry';
 
 export interface RecoveryLogInput {
@@ -29,4 +30,5 @@ export interface RecoveryLogInput {
   meditationNote: string;
   /** @maxLength 2000 */
   note: string;
+  dailyCheckIn?: DailyCheckIn;
 }

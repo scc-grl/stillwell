@@ -40,6 +40,18 @@ test("shared journal responses contain only the areas the patient selected", () 
   const privateLog = {
     date: "2026-10-16",
     symptoms: [{ name: "fatigue", severity: 4 }],
+    dailyCheckIn: {
+      overallFeeling: "okay",
+      symptoms: [
+        { name: "headache", status: "recorded", rating: 1 },
+        { name: "fatigue", status: "not_recorded", rating: null },
+        { name: "fog", status: "not_recorded", rating: null },
+        { name: "sleep", status: "not_recorded", rating: null },
+        { name: "mood", status: "not_recorded", rating: null },
+        { name: "light", status: "not_recorded", rating: null },
+      ],
+      summary: "A short reflection",
+    },
     dietStatus: "done",
     dietNote: "Had lunch",
     exerciseStatus: "not_done",
@@ -60,6 +72,18 @@ test("shared journal responses contain only the areas the patient selected", () 
     {
       date: "2026-10-16",
       symptoms: [{ name: "fatigue", severity: 4 }],
+      dailyCheckIn: {
+        overallFeeling: "okay",
+        symptoms: [
+          { name: "headache", status: "recorded", rating: 1 },
+          { name: "fatigue", status: "not_recorded", rating: null },
+          { name: "fog", status: "not_recorded", rating: null },
+          { name: "sleep", status: "not_recorded", rating: null },
+          { name: "mood", status: "not_recorded", rating: null },
+          { name: "light", status: "not_recorded", rating: null },
+        ],
+        summary: "A short reflection",
+      },
       meditationStatus: "done",
       meditationMinutes: 5,
       meditationNote: "Quiet pause",

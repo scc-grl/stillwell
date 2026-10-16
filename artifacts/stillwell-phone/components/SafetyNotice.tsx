@@ -9,8 +9,9 @@ export function SafetyNotice() {
       <View style={styles.copy}>
         <Text variant="label">A note on care</Text>
         <Text variant="caption">
-          Stillwell is an educational journal, not medical advice or emergency
-          care. For a new injury or an emergency, seek urgent medical attention.
+          Not for a new injury or an emergency. If symptoms are worsening,
+          contact a clinician. Severe or urgent symptoms need emergency care
+          now.
         </Text>
       </View>
     </Card>
