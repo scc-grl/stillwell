@@ -2,14 +2,17 @@ import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import {
   boolean,
+  index,
   pgEnum,
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 import { z } from "zod/v4";
 import { accountRoles } from "./account";
+import { recoveryProfiles } from "./recovery";
 
 export const clinicianVerificationStatus = pgEnum(
   "clinician_verification_status",
@@ -66,3 +69,36 @@ export const insertPartnershipRequestSchema = createInsertSchema(partnershipRequ
   .omit({ id: true, createdAt: true, notificationStatus: true });
 export type InsertPartnershipRequest = z.infer<typeof insertPartnershipRequestSchema>;
 export type PartnershipRequest = typeof partnershipRequests.$inferSelect;
+
+export const patientClinicianConnectionStatus = pgEnum(
+  "patient_clinician_connection_status",
+  ["pending", "accepted", "revoked"],
+);
+
+export const patientClinicianConnections = pgTable("patient_clinician_connections", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  patientId: text("patient_id")
+    .notNull()
+    .references(() => recoveryProfiles.ownerId, { onDelete: "cascade" }),
+  clinicianId: text("clinician_id")
+    .notNull()
+    .references(() => clinicianProfiles.userId, { onDelete: "cascade" }),
+  status: patientClinicianConnectionStatus("status").notNull().default("pending"),
+  shareAreas: text("share_areas").array().notNull().default(sql`ARRAY[]::text[]`),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  acceptedAt: timestamp("accepted_at", { withTimezone: true }),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+}, (table) => [
+  index("patient_clinician_connections_clinician_status_idx").on(table.clinicianId, table.status),
+  // A patient has one durable relationship row per clinician. Re-inviting a
+  // revoked clinician reuses that row rather than creating ambiguous grants.
+  uniqueIndex("patient_clinician_connections_patient_clinician_idx").on(table.patientId, table.clinicianId),
+]);
+
+export const insertPatientClinicianConnectionSchema = createInsertSchema(patientClinicianConnections)
+  .omit({ id: true, createdAt: true, updatedAt: true, acceptedAt: true });
+export type InsertPatientClinicianConnection = z.infer<typeof insertPatientClinicianConnectionSchema>;
+export type PatientClinicianConnection = typeof patientClinicianConnections.$inferSelect;

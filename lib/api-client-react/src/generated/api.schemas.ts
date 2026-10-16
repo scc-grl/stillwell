@@ -138,6 +138,115 @@ export interface RecoveryState {
   logs: RecoveryLog[];
 }
 
+export type JournalShareArea = typeof JournalShareArea[keyof typeof JournalShareArea];
+
+
+export const JournalShareArea = {
+  symptoms: 'symptoms',
+  food_hydration: 'food_hydration',
+  movement: 'movement',
+  quiet_pause: 'quiet_pause',
+  pacing: 'pacing',
+} as const;
+
+/**
+ * @minItems 0
+ * @maxItems 5
+ */
+export type JournalShareAreas = JournalShareArea[];
+
+export interface JournalShareAreasInput {
+  shareAreas: JournalShareAreas;
+}
+
+export interface ClinicianJournalInvitationInput {
+  /**
+     * @minLength 12
+     * @maxLength 80
+     */
+  connectCode: string;
+  shareAreas: JournalShareAreas;
+}
+
+export type PatientClinicianConnectionStatus = typeof PatientClinicianConnectionStatus[keyof typeof PatientClinicianConnectionStatus];
+
+
+export const PatientClinicianConnectionStatus = {
+  pending: 'pending',
+  accepted: 'accepted',
+} as const;
+
+export type ClinicianProfession = typeof ClinicianProfession[keyof typeof ClinicianProfession];
+
+
+export const ClinicianProfession = {
+  Physician: 'Physician',
+  Physiotherapist: 'Physiotherapist',
+  Occupational_therapist: 'Occupational therapist',
+  Neuropsychologist: 'Neuropsychologist',
+  Vestibular_therapist: 'Vestibular therapist',
+  Athletic_trainer: 'Athletic trainer',
+  'Speech-language_pathologist': 'Speech-language pathologist',
+  Other: 'Other',
+} as const;
+
+export interface PatientClinicianConnection {
+  id: string;
+  status: PatientClinicianConnectionStatus;
+  shareAreas: JournalShareAreas;
+  clinicianDisplayName: string;
+  clinicianProfession: ClinicianProfession;
+  clinicianPracticeName: string;
+  createdAt: string;
+  /** @nullable */
+  acceptedAt: string | null;
+}
+
+export interface PatientClinicianConnectionList {
+  items: PatientClinicianConnection[];
+}
+
+export interface ClinicianInvitation {
+  id: string;
+  shareAreas: JournalShareAreas;
+  createdAt: string;
+}
+
+export interface ClinicianInvitationList {
+  items: ClinicianInvitation[];
+}
+
+export interface ConnectedPatient {
+  id: string;
+  patientLabel: string;
+  shareAreas: JournalShareAreas;
+  acceptedAt: string;
+}
+
+export interface ConnectedPatientList {
+  items: ConnectedPatient[];
+}
+
+export interface SharedRecoveryLog {
+  /** @pattern ^\d{4}-\d{2}-\d{2}$ */
+  date: string;
+  symptoms?: SymptomEntry[];
+  dietStatus?: ActivityStatus;
+  dietNote?: string;
+  exerciseStatus?: ActivityStatus;
+  exerciseNote?: string;
+  meditationStatus?: ActivityStatus;
+  meditationMinutes?: number;
+  meditationNote?: string;
+  note?: string;
+}
+
+export interface SharedPatientJournal {
+  patientLabel: string;
+  shareAreas: JournalShareAreas;
+  logs: SharedRecoveryLog[];
+}
+
 export interface HealthStatus {
   status: string;
 }
@@ -255,20 +364,6 @@ export interface PartnerRequest {
 export interface PartnerRequestList {
   items: PartnerRequest[];
 }
-
-export type ClinicianProfession = typeof ClinicianProfession[keyof typeof ClinicianProfession];
-
-
-export const ClinicianProfession = {
-  Physician: 'Physician',
-  Physiotherapist: 'Physiotherapist',
-  Occupational_therapist: 'Occupational therapist',
-  Neuropsychologist: 'Neuropsychologist',
-  Vestibular_therapist: 'Vestibular therapist',
-  Athletic_trainer: 'Athletic trainer',
-  'Speech-language_pathologist': 'Speech-language pathologist',
-  Other: 'Other',
-} as const;
 
 export type ClinicianArea = typeof ClinicianArea[keyof typeof ClinicianArea];
 

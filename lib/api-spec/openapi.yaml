@@ -16,6 +16,8 @@ tags:
     description: Account type and sign-up registration
   - name: partners
     description: Public organization requests and clinician profiles
+  - name: journal-sharing
+    description: Patient-controlled clinician invitations and journal access
   - name: admin
     description: Stillwell team review tools
 paths:
@@ -188,6 +190,190 @@ paths:
                 $ref: "#/components/schemas/PublicClinician"
         "404":
           description: Profile is not listed or has not been verified
+  /patient/clinician-connections:
+    get:
+      operationId: listPatientClinicianConnections
+      tags: [journal-sharing]
+      summary: List the signed-in patient's active clinician invitations and connections
+      responses:
+        "200":
+          description: Pending and accepted relationships owned by the patient
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientClinicianConnectionList"
+        "401":
+          description: Sign-in required
+        "403":
+          description: Patient account required
+    post:
+      operationId: inviteClinicianToJournal
+      tags: [journal-sharing]
+      summary: Invite a clinician by their connection code and choose shareable journal areas
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClinicianJournalInvitationInput"
+      responses:
+        "201":
+          description: Invitation created or current permissions updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientClinicianConnection"
+        "400":
+          description: Invalid code or share areas
+        "401":
+          description: Sign-in required
+        "403":
+          description: Patient account required
+        "404":
+          description: Journal or clinician profile not found
+        "409":
+          description: Patient cannot invite their own clinician account
+  /patient/clinician-connections/{connectionId}:
+    patch:
+      operationId: updateClinicianJournalSharing
+      tags: [journal-sharing]
+      summary: Change the journal areas shared with a clinician
+      parameters:
+        - name: connectionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JournalShareAreasInput"
+      responses:
+        "200":
+          description: Updated permissions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientClinicianConnection"
+        "400":
+          description: Invalid connection ID or share areas
+        "401":
+          description: Sign-in required
+        "403":
+          description: Patient account required
+        "404":
+          description: Patient-owned invitation or connection not found
+    delete:
+      operationId: revokeClinicianJournalAccess
+      tags: [journal-sharing]
+      summary: Revoke a clinician's access to the patient's journal
+      parameters:
+        - name: connectionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Access revoked
+        "400":
+          description: Invalid connection ID
+        "401":
+          description: Sign-in required
+        "403":
+          description: Patient account required
+        "404":
+          description: Patient-owned invitation or connection not found
+  /clinician/invitations:
+    get:
+      operationId: listClinicianJournalInvitations
+      tags: [journal-sharing]
+      summary: List pending patient invitations for the signed-in clinician
+      responses:
+        "200":
+          description: Invitations awaiting clinician acceptance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClinicianInvitationList"
+        "401":
+          description: Sign-in required
+        "403":
+          description: Clinician account required
+  /clinician/invitations/{connectionId}/accept:
+    post:
+      operationId: acceptClinicianJournalInvitation
+      tags: [journal-sharing]
+      summary: Accept a patient invitation using the clinician's authenticated account
+      parameters:
+        - name: connectionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Invitation accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientClinicianConnection"
+        "400":
+          description: Invalid connection ID
+        "401":
+          description: Sign-in required
+        "403":
+          description: Clinician account required
+        "404":
+          description: Invitation not found or already revoked
+  /clinician/patients:
+    get:
+      operationId: listConnectedPatients
+      tags: [journal-sharing]
+      summary: List patients who granted journal access to the signed-in clinician
+      responses:
+        "200":
+          description: Active patient relationships and currently allowed areas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConnectedPatientList"
+        "401":
+          description: Sign-in required
+        "403":
+          description: Clinician account required
+  /clinician/patients/{connectionId}:
+    get:
+      operationId: getSharedPatientJournal
+      tags: [journal-sharing]
+      summary: Read only the journal fields currently permitted by the patient
+      parameters:
+        - name: connectionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Patient journal filtered to the currently shared areas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SharedPatientJournal"
+        "400":
+          description: Invalid connection ID
+        "401":
+          description: Sign-in required
+        "403":
+          description: Clinician account required
+        "404":
+          description: Active patient connection not found
   /admin/clinicians:
     get:
       operationId: listClinicianProfilesForAdmin
@@ -546,6 +732,155 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/RecoveryLog"
+    JournalShareArea:
+      type: string
+      enum: [symptoms, food_hydration, movement, quiet_pause, pacing]
+    JournalShareAreas:
+      type: array
+      minItems: 0
+      maxItems: 5
+      uniqueItems: true
+      items:
+        $ref: "#/components/schemas/JournalShareArea"
+    JournalShareAreasInput:
+      type: object
+      additionalProperties: false
+      required: [shareAreas]
+      properties:
+        shareAreas:
+          $ref: "#/components/schemas/JournalShareAreas"
+    ClinicianJournalInvitationInput:
+      type: object
+      additionalProperties: false
+      required: [connectCode, shareAreas]
+      properties:
+        connectCode:
+          type: string
+          minLength: 12
+          maxLength: 80
+        shareAreas:
+          $ref: "#/components/schemas/JournalShareAreas"
+    PatientClinicianConnection:
+      type: object
+      additionalProperties: false
+      required: [id, status, shareAreas, clinicianDisplayName, clinicianProfession, clinicianPracticeName, createdAt, acceptedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, accepted]
+        shareAreas:
+          $ref: "#/components/schemas/JournalShareAreas"
+        clinicianDisplayName:
+          type: string
+        clinicianProfession:
+          $ref: "#/components/schemas/ClinicianProfession"
+        clinicianPracticeName:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        acceptedAt:
+          type: ["string", "null"]
+          format: date-time
+    PatientClinicianConnectionList:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PatientClinicianConnection"
+    ClinicianInvitation:
+      type: object
+      additionalProperties: false
+      required: [id, shareAreas, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        shareAreas:
+          $ref: "#/components/schemas/JournalShareAreas"
+        createdAt:
+          type: string
+          format: date-time
+    ClinicianInvitationList:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClinicianInvitation"
+    ConnectedPatient:
+      type: object
+      additionalProperties: false
+      required: [id, patientLabel, shareAreas, acceptedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        patientLabel:
+          type: string
+        shareAreas:
+          $ref: "#/components/schemas/JournalShareAreas"
+        acceptedAt:
+          type: string
+          format: date-time
+    ConnectedPatientList:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConnectedPatient"
+    SharedRecoveryLog:
+      type: object
+      additionalProperties: false
+      required: [date]
+      properties:
+        date:
+          type: string
+          pattern: '^\d{4}-\d{2}-\d{2}$'
+        symptoms:
+          type: array
+          items:
+            $ref: "#/components/schemas/SymptomEntry"
+        dietStatus:
+          $ref: "#/components/schemas/ActivityStatus"
+        dietNote:
+          type: string
+        exerciseStatus:
+          $ref: "#/components/schemas/ActivityStatus"
+        exerciseNote:
+          type: string
+        meditationStatus:
+          $ref: "#/components/schemas/ActivityStatus"
+        meditationMinutes:
+          type: integer
+        meditationNote:
+          type: string
+        note:
+          type: string
+    SharedPatientJournal:
+      type: object
+      additionalProperties: false
+      required: [patientLabel, shareAreas, logs]
+      properties:
+        patientLabel:
+          type: string
+        shareAreas:
+          $ref: "#/components/schemas/JournalShareAreas"
+        logs:
+          type: array
+          items:
+            $ref: "#/components/schemas/SharedRecoveryLog"
     HealthStatus:
       type: object
       properties:

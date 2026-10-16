@@ -24,19 +24,25 @@ import type {
   AccountRegistrationIntentInput,
   AccountTypeResponse,
   AdminClinicianList,
+  ClinicianInvitationList,
+  ClinicianJournalInvitationInput,
   ClinicianProfile,
   ClinicianProfileInput,
   ClinicianProfileResponse,
   ClinicianVerificationResponse,
   ClinicianVerificationUpdate,
   CompleteAccountRegistrationInput,
+  ConnectedPatientList,
   HealthStatus,
+  JournalShareAreasInput,
   NewsletterSubscriptionAccepted,
   NewsletterSubscriptionInput,
   NewsletterUnsubscriptionAccepted,
   PartnerRequestAccepted,
   PartnerRequestInput,
   PartnerRequestList,
+  PatientClinicianConnection,
+  PatientClinicianConnectionList,
   PublicClinician,
   PublicClinicianList,
   RecoveryLog,
@@ -44,7 +50,8 @@ import type {
   RecoveryPreferences,
   RecoveryProfile,
   RecoveryStartInput,
-  RecoveryState
+  RecoveryState,
+  SharedPatientJournal
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -799,6 +806,639 @@ export function useGetPublicClinician<TData = Awaited<ReturnType<typeof getPubli
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetPublicClinicianQueryOptions(connectCode,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListPatientClinicianConnectionsUrl = () => {
+
+
+
+
+  return `/api/patient/clinician-connections`
+}
+
+/**
+ * @summary List the signed-in patient's active clinician invitations and connections
+ */
+export const listPatientClinicianConnections = async ( options?: Parameters<typeof customFetch>[1]): Promise<PatientClinicianConnectionList> => {
+
+  return customFetch<PatientClinicianConnectionList>(getListPatientClinicianConnectionsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListPatientClinicianConnectionsQueryKey = () => {
+    return [
+    `/api/patient/clinician-connections`
+    ] as const;
+    }
+
+
+export const getListPatientClinicianConnectionsQueryOptions = <TData = Awaited<ReturnType<typeof listPatientClinicianConnections>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listPatientClinicianConnections>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListPatientClinicianConnectionsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPatientClinicianConnections>>> = ({ signal }) => listPatientClinicianConnections({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listPatientClinicianConnections>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListPatientClinicianConnectionsQueryResult = NonNullable<Awaited<ReturnType<typeof listPatientClinicianConnections>>>
+export type ListPatientClinicianConnectionsQueryError = ErrorType<void>
+
+
+/**
+ * @summary List the signed-in patient's active clinician invitations and connections
+ */
+
+export function useListPatientClinicianConnections<TData = Awaited<ReturnType<typeof listPatientClinicianConnections>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listPatientClinicianConnections>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListPatientClinicianConnectionsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getInviteClinicianToJournalUrl = () => {
+
+
+
+
+  return `/api/patient/clinician-connections`
+}
+
+/**
+ * @summary Invite a clinician by their connection code and choose shareable journal areas
+ */
+export const inviteClinicianToJournal = async (clinicianJournalInvitationInput: ClinicianJournalInvitationInput, options?: Parameters<typeof customFetch>[1]): Promise<PatientClinicianConnection> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<PatientClinicianConnection>(getInviteClinicianToJournalUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(clinicianJournalInvitationInput)
+  }
+);}
+
+
+
+
+
+export const getInviteClinicianToJournalMutationKey = () => ['inviteClinicianToJournal'] as const;
+
+export const getInviteClinicianToJournalMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof inviteClinicianToJournal>>, TError,InviteClinicianToJournalMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof inviteClinicianToJournal>>, TError,InviteClinicianToJournalMutationVariables, TContext> => {
+
+const mutationKey = getInviteClinicianToJournalMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof inviteClinicianToJournal>>, InviteClinicianToJournalMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  inviteClinicianToJournal(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type InviteClinicianToJournalMutationResult = NonNullable<Awaited<ReturnType<typeof inviteClinicianToJournal>>>
+    export type InviteClinicianToJournalMutationBody = BodyType<ClinicianJournalInvitationInput>
+    export type InviteClinicianToJournalMutationError = ErrorType<void>
+    export type InviteClinicianToJournalMutationVariables = {data: BodyType<ClinicianJournalInvitationInput>}
+
+    /**
+ * @summary Invite a clinician by their connection code and choose shareable journal areas
+ */
+export const useInviteClinicianToJournal = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof inviteClinicianToJournal>>, TError,InviteClinicianToJournalMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof inviteClinicianToJournal>>,
+        TError,
+        InviteClinicianToJournalMutationVariables,
+        TContext
+      > => {
+      return useMutation(getInviteClinicianToJournalMutationOptions(options));
+    }
+
+export const getUpdateClinicianJournalSharingUrl = (connectionId: string,) => {
+
+
+
+
+  return `/api/patient/clinician-connections/${connectionId}`
+}
+
+/**
+ * @summary Change the journal areas shared with a clinician
+ */
+export const updateClinicianJournalSharing = async (connectionId: string,
+    journalShareAreasInput: JournalShareAreasInput, options?: Parameters<typeof customFetch>[1]): Promise<PatientClinicianConnection> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<PatientClinicianConnection>(getUpdateClinicianJournalSharingUrl(connectionId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(journalShareAreasInput)
+  }
+);}
+
+
+
+
+
+export const getUpdateClinicianJournalSharingMutationKey = () => ['updateClinicianJournalSharing'] as const;
+
+export const getUpdateClinicianJournalSharingMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateClinicianJournalSharing>>, TError,UpdateClinicianJournalSharingMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateClinicianJournalSharing>>, TError,UpdateClinicianJournalSharingMutationVariables, TContext> => {
+
+const mutationKey = getUpdateClinicianJournalSharingMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateClinicianJournalSharing>>, UpdateClinicianJournalSharingMutationVariables> = (props) => {
+          const {connectionId,data} = props ?? {};
+
+          return  updateClinicianJournalSharing(connectionId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateClinicianJournalSharingMutationResult = NonNullable<Awaited<ReturnType<typeof updateClinicianJournalSharing>>>
+    export type UpdateClinicianJournalSharingMutationBody = BodyType<JournalShareAreasInput>
+    export type UpdateClinicianJournalSharingMutationError = ErrorType<void>
+    export type UpdateClinicianJournalSharingMutationVariables = {connectionId: string;data: BodyType<JournalShareAreasInput>}
+
+    /**
+ * @summary Change the journal areas shared with a clinician
+ */
+export const useUpdateClinicianJournalSharing = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateClinicianJournalSharing>>, TError,UpdateClinicianJournalSharingMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateClinicianJournalSharing>>,
+        TError,
+        UpdateClinicianJournalSharingMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUpdateClinicianJournalSharingMutationOptions(options));
+    }
+
+export const getRevokeClinicianJournalAccessUrl = (connectionId: string,) => {
+
+
+
+
+  return `/api/patient/clinician-connections/${connectionId}`
+}
+
+/**
+ * @summary Revoke a clinician's access to the patient's journal
+ */
+export const revokeClinicianJournalAccess = async (connectionId: string, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+  return customFetch<void>(getRevokeClinicianJournalAccessUrl(connectionId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getRevokeClinicianJournalAccessMutationKey = () => ['revokeClinicianJournalAccess'] as const;
+
+export const getRevokeClinicianJournalAccessMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeClinicianJournalAccess>>, TError,RevokeClinicianJournalAccessMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof revokeClinicianJournalAccess>>, TError,RevokeClinicianJournalAccessMutationVariables, TContext> => {
+
+const mutationKey = getRevokeClinicianJournalAccessMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof revokeClinicianJournalAccess>>, RevokeClinicianJournalAccessMutationVariables> = (props) => {
+          const {connectionId} = props ?? {};
+
+          return  revokeClinicianJournalAccess(connectionId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RevokeClinicianJournalAccessMutationResult = NonNullable<Awaited<ReturnType<typeof revokeClinicianJournalAccess>>>
+
+    export type RevokeClinicianJournalAccessMutationError = ErrorType<void>
+    export type RevokeClinicianJournalAccessMutationVariables = {connectionId: string}
+
+    /**
+ * @summary Revoke a clinician's access to the patient's journal
+ */
+export const useRevokeClinicianJournalAccess = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof revokeClinicianJournalAccess>>, TError,RevokeClinicianJournalAccessMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof revokeClinicianJournalAccess>>,
+        TError,
+        RevokeClinicianJournalAccessMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRevokeClinicianJournalAccessMutationOptions(options));
+    }
+
+export const getListClinicianJournalInvitationsUrl = () => {
+
+
+
+
+  return `/api/clinician/invitations`
+}
+
+/**
+ * @summary List pending patient invitations for the signed-in clinician
+ */
+export const listClinicianJournalInvitations = async ( options?: Parameters<typeof customFetch>[1]): Promise<ClinicianInvitationList> => {
+
+  return customFetch<ClinicianInvitationList>(getListClinicianJournalInvitationsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListClinicianJournalInvitationsQueryKey = () => {
+    return [
+    `/api/clinician/invitations`
+    ] as const;
+    }
+
+
+export const getListClinicianJournalInvitationsQueryOptions = <TData = Awaited<ReturnType<typeof listClinicianJournalInvitations>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listClinicianJournalInvitations>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListClinicianJournalInvitationsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listClinicianJournalInvitations>>> = ({ signal }) => listClinicianJournalInvitations({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listClinicianJournalInvitations>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListClinicianJournalInvitationsQueryResult = NonNullable<Awaited<ReturnType<typeof listClinicianJournalInvitations>>>
+export type ListClinicianJournalInvitationsQueryError = ErrorType<void>
+
+
+/**
+ * @summary List pending patient invitations for the signed-in clinician
+ */
+
+export function useListClinicianJournalInvitations<TData = Awaited<ReturnType<typeof listClinicianJournalInvitations>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listClinicianJournalInvitations>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListClinicianJournalInvitationsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getAcceptClinicianJournalInvitationUrl = (connectionId: string,) => {
+
+
+
+
+  return `/api/clinician/invitations/${connectionId}/accept`
+}
+
+/**
+ * @summary Accept a patient invitation using the clinician's authenticated account
+ */
+export const acceptClinicianJournalInvitation = async (connectionId: string, options?: Parameters<typeof customFetch>[1]): Promise<PatientClinicianConnection> => {
+
+  return customFetch<PatientClinicianConnection>(getAcceptClinicianJournalInvitationUrl(connectionId),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getAcceptClinicianJournalInvitationMutationKey = () => ['acceptClinicianJournalInvitation'] as const;
+
+export const getAcceptClinicianJournalInvitationMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptClinicianJournalInvitation>>, TError,AcceptClinicianJournalInvitationMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof acceptClinicianJournalInvitation>>, TError,AcceptClinicianJournalInvitationMutationVariables, TContext> => {
+
+const mutationKey = getAcceptClinicianJournalInvitationMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof acceptClinicianJournalInvitation>>, AcceptClinicianJournalInvitationMutationVariables> = (props) => {
+          const {connectionId} = props ?? {};
+
+          return  acceptClinicianJournalInvitation(connectionId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AcceptClinicianJournalInvitationMutationResult = NonNullable<Awaited<ReturnType<typeof acceptClinicianJournalInvitation>>>
+
+    export type AcceptClinicianJournalInvitationMutationError = ErrorType<void>
+    export type AcceptClinicianJournalInvitationMutationVariables = {connectionId: string}
+
+    /**
+ * @summary Accept a patient invitation using the clinician's authenticated account
+ */
+export const useAcceptClinicianJournalInvitation = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acceptClinicianJournalInvitation>>, TError,AcceptClinicianJournalInvitationMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof acceptClinicianJournalInvitation>>,
+        TError,
+        AcceptClinicianJournalInvitationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getAcceptClinicianJournalInvitationMutationOptions(options));
+    }
+
+export const getListConnectedPatientsUrl = () => {
+
+
+
+
+  return `/api/clinician/patients`
+}
+
+/**
+ * @summary List patients who granted journal access to the signed-in clinician
+ */
+export const listConnectedPatients = async ( options?: Parameters<typeof customFetch>[1]): Promise<ConnectedPatientList> => {
+
+  return customFetch<ConnectedPatientList>(getListConnectedPatientsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListConnectedPatientsQueryKey = () => {
+    return [
+    `/api/clinician/patients`
+    ] as const;
+    }
+
+
+export const getListConnectedPatientsQueryOptions = <TData = Awaited<ReturnType<typeof listConnectedPatients>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listConnectedPatients>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListConnectedPatientsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listConnectedPatients>>> = ({ signal }) => listConnectedPatients({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listConnectedPatients>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListConnectedPatientsQueryResult = NonNullable<Awaited<ReturnType<typeof listConnectedPatients>>>
+export type ListConnectedPatientsQueryError = ErrorType<void>
+
+
+/**
+ * @summary List patients who granted journal access to the signed-in clinician
+ */
+
+export function useListConnectedPatients<TData = Awaited<ReturnType<typeof listConnectedPatients>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listConnectedPatients>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListConnectedPatientsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetSharedPatientJournalUrl = (connectionId: string,) => {
+
+
+
+
+  return `/api/clinician/patients/${connectionId}`
+}
+
+/**
+ * @summary Read only the journal fields currently permitted by the patient
+ */
+export const getSharedPatientJournal = async (connectionId: string, options?: Parameters<typeof customFetch>[1]): Promise<SharedPatientJournal> => {
+
+  return customFetch<SharedPatientJournal>(getGetSharedPatientJournalUrl(connectionId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSharedPatientJournalQueryKey = (connectionId: string,) => {
+    return [
+    `/api/clinician/patients/${connectionId}`
+    ] as const;
+    }
+
+
+export const getGetSharedPatientJournalQueryOptions = <TData = Awaited<ReturnType<typeof getSharedPatientJournal>>, TError = ErrorType<void>>(connectionId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSharedPatientJournal>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSharedPatientJournalQueryKey(connectionId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSharedPatientJournal>>> = ({ signal }) => getSharedPatientJournal(connectionId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: connectionId !== null && connectionId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSharedPatientJournal>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetSharedPatientJournalQueryResult = NonNullable<Awaited<ReturnType<typeof getSharedPatientJournal>>>
+export type GetSharedPatientJournalQueryError = ErrorType<void>
+
+
+/**
+ * @summary Read only the journal fields currently permitted by the patient
+ */
+
+export function useGetSharedPatientJournal<TData = Awaited<ReturnType<typeof getSharedPatientJournal>>, TError = ErrorType<void>>(
+ connectionId: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSharedPatientJournal>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetSharedPatientJournalQueryOptions(connectionId,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

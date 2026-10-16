@@ -12,6 +12,21 @@ test("auth proxy resources do not expose identifiers", () => {
   assert.equal(requestLogPath("/api/__clerk/v1/client/sessions/private"), "/api/__clerk/:resource");
 });
 
+test("journal-sharing connection identifiers never appear in access-log paths", () => {
+  assert.equal(
+    requestLogPath("/api/patient/clinician-connections/11614d9a-726d-4f8c-9a45-753ef123b832"),
+    "/api/patient/clinician-connections/:id",
+  );
+  assert.equal(
+    requestLogPath("/api/clinician/invitations/11614d9a-726d-4f8c-9a45-753ef123b832/accept"),
+    "/api/clinician/invitations/:id/accept",
+  );
+  assert.equal(
+    requestLogPath("/api/clinician/patients/11614d9a-726d-4f8c-9a45-753ef123b832"),
+    "/api/clinician/patients/:connectionId",
+  );
+});
+
 test("safe route names remain useful and absent URLs remain absent", () => {
   assert.equal(requestLogPath("/api/healthz"), "/api/healthz");
   assert.equal(requestLogPath("/api/recovery/start"), "/api/recovery/start");

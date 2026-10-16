@@ -219,6 +219,200 @@ export const GetPublicClinicianResponse = zod.object({
 
 
 /**
+ * @summary List the signed-in patient's active clinician invitations and connections
+ */
+export const listPatientClinicianConnectionsResponseItemsItemShareAreasMin = 0;
+export const listPatientClinicianConnectionsResponseItemsItemShareAreasMax = 5;
+
+
+
+export const ListPatientClinicianConnectionsResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "status": zod.enum(['pending', 'accepted']),
+  "shareAreas": zod.array(zod.enum(['symptoms', 'food_hydration', 'movement', 'quiet_pause', 'pacing'])).min(listPatientClinicianConnectionsResponseItemsItemShareAreasMin).max(listPatientClinicianConnectionsResponseItemsItemShareAreasMax),
+  "clinicianDisplayName": zod.string(),
+  "clinicianProfession": zod.enum(['Physician', 'Physiotherapist', 'Occupational therapist', 'Neuropsychologist', 'Vestibular therapist', 'Athletic trainer', 'Speech-language pathologist', 'Other']),
+  "clinicianPracticeName": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "acceptedAt": zod.coerce.date().nullable()
+}))
+})
+
+
+/**
+ * @summary Invite a clinician by their connection code and choose shareable journal areas
+ */
+export const inviteClinicianToJournalBodyConnectCodeMin = 12;
+export const inviteClinicianToJournalBodyConnectCodeMax = 80;
+
+export const inviteClinicianToJournalBodyShareAreasMin = 0;
+export const inviteClinicianToJournalBodyShareAreasMax = 5;
+
+
+
+export const InviteClinicianToJournalBody = zod.object({
+  "connectCode": zod.string().min(inviteClinicianToJournalBodyConnectCodeMin).max(inviteClinicianToJournalBodyConnectCodeMax),
+  "shareAreas": zod.array(zod.enum(['symptoms', 'food_hydration', 'movement', 'quiet_pause', 'pacing'])).min(inviteClinicianToJournalBodyShareAreasMin).max(inviteClinicianToJournalBodyShareAreasMax)
+})
+
+export const inviteClinicianToJournalResponseShareAreasMin = 0;
+export const inviteClinicianToJournalResponseShareAreasMax = 5;
+
+
+
+export const InviteClinicianToJournalResponse = zod.object({
+  "id": zod.string().uuid(),
+  "status": zod.enum(['pending', 'accepted']),
+  "shareAreas": zod.array(zod.enum(['symptoms', 'food_hydration', 'movement', 'quiet_pause', 'pacing'])).min(inviteClinicianToJournalResponseShareAreasMin).max(inviteClinicianToJournalResponseShareAreasMax),
+  "clinicianDisplayName": zod.string(),
+  "clinicianProfession": zod.enum(['Physician', 'Physiotherapist', 'Occupational therapist', 'Neuropsychologist', 'Vestibular therapist', 'Athletic trainer', 'Speech-language pathologist', 'Other']),
+  "clinicianPracticeName": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "acceptedAt": zod.coerce.date().nullable()
+})
+
+
+/**
+ * @summary Change the journal areas shared with a clinician
+ */
+export const UpdateClinicianJournalSharingParams = zod.object({
+  "connectionId": zod.coerce.string().uuid()
+})
+
+export const updateClinicianJournalSharingBodyShareAreasMin = 0;
+export const updateClinicianJournalSharingBodyShareAreasMax = 5;
+
+
+
+export const UpdateClinicianJournalSharingBody = zod.object({
+  "shareAreas": zod.array(zod.enum(['symptoms', 'food_hydration', 'movement', 'quiet_pause', 'pacing'])).min(updateClinicianJournalSharingBodyShareAreasMin).max(updateClinicianJournalSharingBodyShareAreasMax)
+})
+
+export const updateClinicianJournalSharingResponseShareAreasMin = 0;
+export const updateClinicianJournalSharingResponseShareAreasMax = 5;
+
+
+
+export const UpdateClinicianJournalSharingResponse = zod.object({
+  "id": zod.string().uuid(),
+  "status": zod.enum(['pending', 'accepted']),
+  "shareAreas": zod.array(zod.enum(['symptoms', 'food_hydration', 'movement', 'quiet_pause', 'pacing'])).min(updateClinicianJournalSharingResponseShareAreasMin).max(updateClinicianJournalSharingResponseShareAreasMax),
+  "clinicianDisplayName": zod.string(),
+  "clinicianProfession": zod.enum(['Physician', 'Physiotherapist', 'Occupational therapist', 'Neuropsychologist', 'Vestibular therapist', 'Athletic trainer', 'Speech-language pathologist', 'Other']),
+  "clinicianPracticeName": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "acceptedAt": zod.coerce.date().nullable()
+})
+
+
+/**
+ * @summary Revoke a clinician's access to the patient's journal
+ */
+export const RevokeClinicianJournalAccessParams = zod.object({
+  "connectionId": zod.coerce.string().uuid()
+})
+
+export const RevokeClinicianJournalAccessResponse = zod.void()
+
+
+/**
+ * @summary List pending patient invitations for the signed-in clinician
+ */
+export const listClinicianJournalInvitationsResponseItemsItemShareAreasMin = 0;
+export const listClinicianJournalInvitationsResponseItemsItemShareAreasMax = 5;
+
+
+
+export const ListClinicianJournalInvitationsResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "shareAreas": zod.array(zod.enum(['symptoms', 'food_hydration', 'movement', 'quiet_pause', 'pacing'])).min(listClinicianJournalInvitationsResponseItemsItemShareAreasMin).max(listClinicianJournalInvitationsResponseItemsItemShareAreasMax),
+  "createdAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * @summary Accept a patient invitation using the clinician's authenticated account
+ */
+export const AcceptClinicianJournalInvitationParams = zod.object({
+  "connectionId": zod.coerce.string().uuid()
+})
+
+export const acceptClinicianJournalInvitationResponseShareAreasMin = 0;
+export const acceptClinicianJournalInvitationResponseShareAreasMax = 5;
+
+
+
+export const AcceptClinicianJournalInvitationResponse = zod.object({
+  "id": zod.string().uuid(),
+  "status": zod.enum(['pending', 'accepted']),
+  "shareAreas": zod.array(zod.enum(['symptoms', 'food_hydration', 'movement', 'quiet_pause', 'pacing'])).min(acceptClinicianJournalInvitationResponseShareAreasMin).max(acceptClinicianJournalInvitationResponseShareAreasMax),
+  "clinicianDisplayName": zod.string(),
+  "clinicianProfession": zod.enum(['Physician', 'Physiotherapist', 'Occupational therapist', 'Neuropsychologist', 'Vestibular therapist', 'Athletic trainer', 'Speech-language pathologist', 'Other']),
+  "clinicianPracticeName": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "acceptedAt": zod.coerce.date().nullable()
+})
+
+
+/**
+ * @summary List patients who granted journal access to the signed-in clinician
+ */
+export const listConnectedPatientsResponseItemsItemShareAreasMin = 0;
+export const listConnectedPatientsResponseItemsItemShareAreasMax = 5;
+
+
+
+export const ListConnectedPatientsResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "patientLabel": zod.string(),
+  "shareAreas": zod.array(zod.enum(['symptoms', 'food_hydration', 'movement', 'quiet_pause', 'pacing'])).min(listConnectedPatientsResponseItemsItemShareAreasMin).max(listConnectedPatientsResponseItemsItemShareAreasMax),
+  "acceptedAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * @summary Read only the journal fields currently permitted by the patient
+ */
+export const GetSharedPatientJournalParams = zod.object({
+  "connectionId": zod.coerce.string().uuid()
+})
+
+export const getSharedPatientJournalResponseShareAreasMin = 0;
+export const getSharedPatientJournalResponseShareAreasMax = 5;
+
+export const getSharedPatientJournalResponseLogsItemDateRegExp = new RegExp('^\\d{4}-\\d{2}-\\d{2}$');
+export const getSharedPatientJournalResponseLogsItemSymptomsItemSeverityMin = 0;
+export const getSharedPatientJournalResponseLogsItemSymptomsItemSeverityMax = 10;
+
+
+
+export const GetSharedPatientJournalResponse = zod.object({
+  "patientLabel": zod.string(),
+  "shareAreas": zod.array(zod.enum(['symptoms', 'food_hydration', 'movement', 'quiet_pause', 'pacing'])).min(getSharedPatientJournalResponseShareAreasMin).max(getSharedPatientJournalResponseShareAreasMax),
+  "logs": zod.array(zod.object({
+  "date": zod.string().regex(getSharedPatientJournalResponseLogsItemDateRegExp),
+  "symptoms": zod.array(zod.object({
+  "name": zod.enum(['headache', 'dizziness', 'focus', 'fatigue', 'sleep', 'light_sound', 'mood']),
+  "severity": zod.number().int().min(getSharedPatientJournalResponseLogsItemSymptomsItemSeverityMin).max(getSharedPatientJournalResponseLogsItemSymptomsItemSeverityMax)
+})).optional(),
+  "dietStatus": zod.enum(['done', 'not_done', 'not_planned']).optional(),
+  "dietNote": zod.string().optional(),
+  "exerciseStatus": zod.enum(['done', 'not_done', 'not_planned']).optional(),
+  "exerciseNote": zod.string().optional(),
+  "meditationStatus": zod.enum(['done', 'not_done', 'not_planned']).optional(),
+  "meditationMinutes": zod.number().int().optional(),
+  "meditationNote": zod.string().optional(),
+  "note": zod.string().optional()
+}))
+})
+
+
+/**
  * @summary List clinician profiles for manual licence review
  */
 export const ListClinicianProfilesForAdminResponse = zod.object({
