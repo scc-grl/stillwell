@@ -1,8 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
-  Linking,
-  Platform,
   StyleSheet,
   View,
 } from "react-native";
@@ -12,8 +10,6 @@ import type {
   RecoveryLog,
   RecoveryLogInput,
 } from "@workspace/api-client-react";
-import { AudioModule, RecordingPresets, setAudioModeAsync, useAudioRecorder } from "expo-audio";
-import { File } from "expo-file-system";
 import { Button } from "@workspace/stillwell-design-system/components/native/button";
 import { Card } from "@workspace/stillwell-design-system/components/native/card";
 import { Text } from "@workspace/stillwell-design-system/components/native/text";
@@ -56,15 +52,6 @@ function responseFor(
     ({ name, status: "not_recorded", rating: null } satisfies DailyCheckInSymptomAnswer);
 }
 
-async function removeTemporaryAudio(uri: string | null) {
-  if (!uri || Platform.OS === "web") return;
-  try {
-    await new File(uri).delete();
-  } catch {
-    // Cache cleanup is best effort; audio is never uploaded or added to a log.
-  }
-}
-
 export function DailyCheckInFlow({
   initial,
   logs,
@@ -75,7 +62,6 @@ export function DailyCheckInFlow({
   onExit,
 }: Props) {
   const colors = useColors();
-  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const [page, setPage] = useState<Page>(startAt);
   const [log, setLog] = useState<RecoveryLogInput>(initial);
   const [checkIn, setCheckIn] = useState<DailyCheckIn>(() =>
@@ -87,15 +73,7 @@ export function DailyCheckInFlow({
   const [symptomIndex, setSymptomIndex] = useState(0);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [recording, setRecording] = useState(false);
-  const [paused, setPaused] = useState(false);
-  const [elapsed, setElapsed] = useState(0);
-  const [audioUri, setAudioUri] = useState<string | null>(null);
-  const [permissionDenied, setPermissionDenied] = useState(false);
-  const isRecordingRef = useRef(false);
-  const stopInProgressRef = useRef(false);
-  const audioUriRef = useRef<string | null>(null);
-  const stopRecordingRef = useRef<(() => Promise<void>) | null>(null);
+  const [voiceDraft, setVoiceDraft] = useState(initial.dailyCheckIn?.summary ?? "");
 
   const persistCheckIn = useCallback(
     async (next: DailyCheckIn) => {
@@ -122,121 +100,8 @@ export function DailyCheckInFlow({
     [log, onPersist],
   );
 
-  const stopRecording = useCallback(async () => {
-    if (stopInProgressRef.current) return;
-    stopInProgressRef.current = true;
-    setRecording(false);
-    setPaused(false);
-    try {
-      await recorder.stop();
-      const uri = recorder.uri ?? null;
-      setAudioUri(uri);
-      audioUriRef.current = uri;
-      await setAudioModeAsync({ allowsRecording: false, playsInSilentMode: true });
-    } catch {
-      setError("The recording could not be finished. You can still tap to log symptoms.");
-    } finally {
-      isRecordingRef.current = false;
-      stopInProgressRef.current = false;
-    }
-  }, [recorder]);
-  stopRecordingRef.current = stopRecording;
-
-  useEffect(() => {
-    if (!recording || paused) return;
-    const timer = setInterval(() => {
-      setElapsed((current) => {
-        if (current + 1 >= 180) {
-          void stopRecordingRef.current?.();
-          return 180;
-        }
-        return current + 1;
-      });
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [recording, paused]);
-
-  useEffect(() => {
-    const activeRecorder = recorder;
-    return () => {
-      void (async () => {
-        let uri = audioUriRef.current;
-        if (isRecordingRef.current) {
-          try {
-            await activeRecorder.stop();
-            uri = activeRecorder.uri ?? uri;
-          } catch {
-            // The temporary cache file is removed when available below.
-          }
-        }
-        await removeTemporaryAudio(uri);
-      })();
-    };
-  }, [recorder]);
-
-  async function clearAudio() {
-    const uri = audioUriRef.current ?? audioUri;
-    audioUriRef.current = null;
-    setAudioUri(null);
-    isRecordingRef.current = false;
-    if (recording || paused) {
-      try {
-        await recorder.stop();
-      } catch {
-        // Continue to clear the temporary file and leave the voice step.
-      }
-      setRecording(false);
-      setPaused(false);
-    }
-    await removeTemporaryAudio(uri ?? recorder.uri ?? null);
-  }
-
-  async function beginRecording() {
-    setError("");
-    try {
-      const permission = await AudioModule.requestRecordingPermissionsAsync();
-      if (!permission.granted) {
-        setPermissionDenied(true);
-        setError("Microphone access is off. You can allow it in your device settings, or tap instead.");
-        return;
-      }
-      setPermissionDenied(false);
-      await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
-      await recorder.prepareToRecordAsync();
-      recorder.record();
-      isRecordingRef.current = true;
-      setElapsed(0);
-      setRecording(true);
-      setPaused(false);
-    } catch {
-      setError("Recording is not available right now. You can tap instead to enter your check-in.");
-    }
-  }
-
-  async function pauseRecording() {
-    try {
-      recorder.pause();
-      setRecording(false);
-      setPaused(true);
-    } catch {
-      setError("The recording could not be paused. You can stop it or tap instead.");
-    }
-  }
-
-  async function resumeRecording() {
-    try {
-      await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
-      recorder.record();
-      setRecording(true);
-      setPaused(false);
-      isRecordingRef.current = true;
-    } catch {
-      setError("The recording could not be resumed. You can continue by tapping instead.");
-    }
-  }
-
   async function leaveFlow() {
-    await clearAudio();
+    setVoiceDraft("");
     if (onExit) onExit();
     else setPage("home");
   }
@@ -264,13 +129,13 @@ export function DailyCheckInFlow({
 
   async function saveReview() {
     if (await persistCheckIn(checkIn)) {
-      await clearAudio();
+      setVoiceDraft("");
       setPage("saved");
     }
   }
 
-  async function finishVoiceStep() {
-    if (recording || paused) await stopRecording();
+  function finishVoiceStep() {
+    setCheckIn((current) => ({ ...current, summary: voiceDraft }));
     setPage("review");
   }
 
@@ -288,8 +153,8 @@ export function DailyCheckInFlow({
     ? "How is today, overall?"
     : page === "symptoms"
       ? "Add symptoms"
-      : page === "voice"
-        ? "Say it instead"
+            : page === "voice"
+              ? "Voice to text"
         : page === "edit"
           ? "Edit your check-in"
           : page === "review"
@@ -358,7 +223,7 @@ export function DailyCheckInFlow({
             Add symptoms
           </Button>
           <Button tone="secondary" onPress={() => setPage("voice")}>
-            Say it instead
+            Use voice-to-text
           </Button>
           {onEditJournal ? (
             <Button tone="outline" onPress={onEditJournal}>
@@ -442,51 +307,31 @@ export function DailyCheckInFlow({
 
       {page === "voice" ? (
         <Card tone="sage">
-          <Text variant="heading">A private voice note</Text>
+          <Text variant="heading">Speak your check-in</Text>
           <Text variant="body">
-            Record up to three minutes. You can pause and resume. The audio stays on this device temporarily and is never added to your journal or shared.
+            Tap the text field, then use the microphone on your phone’s keyboard to dictate. Your words appear here as editable text. Stillwell does not create or upload an audio recording.
           </Text>
-          <Text variant="label">
-            {`${String(Math.floor(elapsed / 60)).padStart(2, "0")}:${String(elapsed % 60).padStart(2, "0")} / 03:00`}
+          <Textarea
+            label="Your words"
+            value={voiceDraft}
+            onChangeText={setVoiceDraft}
+            placeholder="Tap here to type, or use your keyboard’s microphone to dictate."
+            maxLength={500}
+            accessibilityLabel="Voice-to-text check-in"
+          />
+          <Text variant="caption">
+            Keyboard dictation depends on your device settings. Review each symptom before saving; only the ratings you confirm will be recorded.
           </Text>
-          {!recording && !paused && !audioUri ? (
-            <Button onPress={() => void beginRecording()}>Start recording</Button>
-          ) : null}
-          {recording ? (
-            <Button tone="secondary" onPress={() => void pauseRecording()}>
-              Pause recording
-            </Button>
-          ) : null}
-          {paused ? (
-            <Button onPress={() => void resumeRecording()}>Resume recording</Button>
-          ) : null}
-          {recording || paused ? (
-            <Button tone="outline" onPress={() => void finishVoiceStep()}>
-              Stop and review
-            </Button>
-          ) : null}
-          {audioUri && !recording && !paused ? (
-            <>
-              <Text variant="caption">
-                Transcription is not connected yet. The audio has not been sent anywhere. Please enter scores and a summary yourself; unconfirmed symptoms stay “Not mentioned · please check”.
-              </Text>
-              <Button onPress={() => void finishVoiceStep()}>Continue to review</Button>
-            </>
-          ) : null}
-          {permissionDenied ? (
-            <Button tone="outline" onPress={() => void Linking.openSettings()}>
-              Open device settings
-            </Button>
-          ) : null}
+          <Button onPress={finishVoiceStep}>Review my check-in</Button>
           <Button
             tone="outline"
-            onPress={async () => {
-              await clearAudio();
+            onPress={() => {
+              setCheckIn((current) => ({ ...current, summary: voiceDraft }));
               setPage("symptoms");
               setSymptomIndex(0);
             }}
           >
-            Tap instead
+            Tap to rate symptoms instead
           </Button>
         </Card>
       ) : null}
@@ -496,17 +341,9 @@ export function DailyCheckInFlow({
           <Card tone="sage">
             <Text variant="heading">What you’d share is always your choice</Text>
             <Text variant="caption">
-              This is the information a clinician could see only if you choose to share your symptoms. Audio is never shared.
+              This is the information a clinician could see only if you choose to share your symptoms. Your dictated words are editable text; Stillwell does not create or share an audio recording.
             </Text>
           </Card>
-          {audioUri ? (
-            <Card>
-              <Text variant="label">VOICE TRANSCRIPTION PLACEHOLDER</Text>
-              <Text variant="caption">
-                Transcription is not connected. Nothing has been guessed from your recording; please check each symptom and enter any summary below.
-              </Text>
-            </Card>
-          ) : null}
           <Card inset="compact">
             <Text variant="label">Overall, how did today feel?</Text>
             {page === "edit" ? (
@@ -601,7 +438,7 @@ export function DailyCheckInFlow({
             label="Short summary (optional)"
             value={checkIn.summary}
             onChangeText={(summary) => setCheckIn((current) => ({ ...current, summary }))}
-            placeholder="Add a few words about how today felt."
+            placeholder="Add a few words about how today felt, or edit what you dictated."
             maxLength={500}
             accessibilityLabel="Short summary"
           />
@@ -621,7 +458,7 @@ export function DailyCheckInFlow({
                   setPage("symptoms");
                 }}
               >
-                Tap to answer
+                Rate symptoms
               </Button>
             ) : null}
             <Button fullWidth={false} style={styles.rowButton} onPress={() => void saveReview()} disabled={saving}>

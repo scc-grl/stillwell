@@ -28,14 +28,7 @@
     },
     "plugins": [
       "expo-router",
-      "expo-secure-store",
-      [
-        "expo-audio",
-        {
-          "microphonePermission": "Allow Stillwell to record a private voice check-in on this device.",
-          "enableBackgroundRecording": false
-        }
-      ]
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,
