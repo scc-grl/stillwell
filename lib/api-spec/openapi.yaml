@@ -82,6 +82,7 @@ paths:
         "409":
           description: Registration intent already used by another account
   /partnership-requests:
+    description: "Planned only. The API currently returns HTTP 410 for this path; partnership intake is not active."
     post:
       operationId: createPartnershipRequest
       tags: [partners]
@@ -102,6 +103,7 @@ paths:
         "400":
           description: Invalid request
   /admin/partnership-requests:
+    description: "Planned only. The API currently returns HTTP 410 for this path; no partnership-request inbox is active."
     get:
       operationId: listPartnershipRequests
       tags: [admin]
@@ -157,6 +159,7 @@ paths:
         "403":
           description: Clinician account required
   /clinicians:
+    description: "Planned only. The API currently returns HTTP 410 for this path; there is no public clinician directory."
     get:
       operationId: listPublicClinicians
       tags: [partners]
@@ -169,6 +172,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/PublicClinicianList"
   /clinicians/{connectCode}:
+    description: "Planned only. The API currently returns HTTP 410 for this path; clinician public profiles are not available."
     get:
       operationId: getPublicClinician
       tags: [partners]
@@ -191,6 +195,7 @@ paths:
         "404":
           description: Profile is not listed or has not been verified
   /patient/clinician-connections:
+    description: "Planned only. The API currently returns HTTP 410 for this path; patient-to-clinician journal sharing is not active."
     get:
       operationId: listPatientClinicianConnections
       tags: [journal-sharing]
@@ -234,6 +239,7 @@ paths:
         "409":
           description: Patient cannot invite their own clinician account
   /patient/clinician-connections/{connectionId}:
+    description: "Planned only. The API currently returns HTTP 410 for this path; patient-to-clinician journal sharing is not active."
     patch:
       operationId: updateClinicianJournalSharing
       tags: [journal-sharing]
@@ -289,6 +295,7 @@ paths:
         "404":
           description: Patient-owned invitation or connection not found
   /clinician/invitations:
+    description: "Planned only. The API currently returns HTTP 410 for this path; patient invitations are not active."
     get:
       operationId: listClinicianJournalInvitations
       tags: [journal-sharing]
@@ -305,6 +312,7 @@ paths:
         "403":
           description: Clinician account required
   /clinician/invitations/{connectionId}/accept:
+    description: "Planned only. The API currently returns HTTP 410 for this path; patient invitations are not active."
     post:
       operationId: acceptClinicianJournalInvitation
       tags: [journal-sharing]
@@ -332,6 +340,7 @@ paths:
         "404":
           description: Invitation not found or already revoked
   /clinician/patients:
+    description: "Planned only. The API currently returns HTTP 410 for this path; clinician access to patient journals is not active."
     get:
       operationId: listConnectedPatients
       tags: [journal-sharing]
@@ -348,6 +357,7 @@ paths:
         "403":
           description: Clinician account required
   /clinician/patients/{connectionId}:
+    description: "Planned only. The API currently returns HTTP 410 for this path; clinician access to patient journals is not active."
     get:
       operationId: getSharedPatientJournal
       tags: [journal-sharing]
@@ -375,6 +385,7 @@ paths:
         "404":
           description: Active patient connection not found
   /admin/clinicians:
+    description: "Planned only. The API currently returns HTTP 410 for this path; clinician verification and directory administration are not active."
     get:
       operationId: listClinicianProfilesForAdmin
       tags: [admin]
@@ -391,6 +402,7 @@ paths:
         "403":
           description: Administrator access required
   /admin/clinicians/verification:
+    description: "Planned only. The API currently returns HTTP 410 for this path; clinician verification is not active."
     patch:
       operationId: updateClinicianVerification
       tags: [admin]
@@ -1067,12 +1079,17 @@ components:
       enum:
         - Physician
         - Physiotherapist
+        - Psychologist
         - Occupational therapist
+        - Nurse
         - Neuropsychologist
         - Vestibular therapist
         - Athletic trainer
         - Speech-language pathologist
         - Other
+    ClinicianPracticeType:
+      type: string
+      enum: [individual, clinic]
     ClinicianArea:
       type: string
       enum:
@@ -1102,6 +1119,18 @@ components:
         - openToNewPatients
         - termsAccepted
       properties:
+        firstName:
+          type: string
+          maxLength: 80
+        lastName:
+          type: string
+          maxLength: 80
+        practiceType:
+          $ref: "#/components/schemas/ClinicianPracticeType"
+        website:
+          type: ["string", "null"]
+          format: uri
+          maxLength: 2048
         phone:
           type: ["string", "null"]
           maxLength: 40
@@ -1109,26 +1138,24 @@ components:
           type: ["string", "null"]
           maxLength: 100
         profession:
-          $ref: "#/components/schemas/ClinicianProfession"
+          anyOf:
+            - $ref: "#/components/schemas/ClinicianProfession"
+            - type: "null"
         licenseNumber:
-          type: string
-          minLength: 1
+          type: ["string", "null"]
           maxLength: 100
         licenseRegion:
-          type: string
-          minLength: 1
+          type: ["string", "null"]
           maxLength: 120
         practiceName:
-          type: string
-          minLength: 1
+          type: ["string", "null"]
           maxLength: 180
         location:
-          type: string
-          minLength: 1
+          type: ["string", "null"]
           maxLength: 180
         areas:
           type: array
-          minItems: 1
+          minItems: 0
           maxItems: 10
           uniqueItems: true
           items:
@@ -1146,6 +1173,10 @@ components:
       required:
         - userId
         - displayName
+        - firstName
+        - lastName
+        - practiceType
+        - website
         - phone
         - inviteCode
         - profession
@@ -1165,20 +1196,31 @@ components:
           type: string
         displayName:
           type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        practiceType:
+          $ref: "#/components/schemas/ClinicianPracticeType"
+        website:
+          type: ["string", "null"]
+          format: uri
         phone:
           type: ["string", "null"]
         inviteCode:
           type: ["string", "null"]
         profession:
-          $ref: "#/components/schemas/ClinicianProfession"
+          anyOf:
+            - $ref: "#/components/schemas/ClinicianProfession"
+            - type: "null"
         licenseNumber:
-          type: string
+          type: ["string", "null"]
         licenseRegion:
-          type: string
+          type: ["string", "null"]
         practiceName:
-          type: string
+          type: ["string", "null"]
         location:
-          type: string
+          type: ["string", "null"]
         areas:
           type: array
           items:

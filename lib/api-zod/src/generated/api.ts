@@ -109,13 +109,17 @@ export const GetClinicianProfileResponse = zod.object({
   "profile": zod.union([zod.object({
   "userId": zod.string(),
   "displayName": zod.string(),
+  "firstName": zod.string(),
+  "lastName": zod.string(),
+  "practiceType": zod.enum(['individual', 'clinic']),
+  "website": zod.string().url().nullable(),
   "phone": zod.string().nullable(),
   "inviteCode": zod.string().nullable(),
-  "profession": zod.enum(['Physician', 'Physiotherapist', 'Occupational therapist', 'Neuropsychologist', 'Vestibular therapist', 'Athletic trainer', 'Speech-language pathologist', 'Other']),
-  "licenseNumber": zod.string(),
-  "licenseRegion": zod.string(),
-  "practiceName": zod.string(),
-  "location": zod.string(),
+  "profession": zod.union([zod.enum(['Physician', 'Physiotherapist', 'Psychologist', 'Occupational therapist', 'Nurse', 'Neuropsychologist', 'Vestibular therapist', 'Athletic trainer', 'Speech-language pathologist', 'Other']),zod.null()]),
+  "licenseNumber": zod.string().nullable(),
+  "licenseRegion": zod.string().nullable(),
+  "practiceName": zod.string().nullable(),
+  "location": zod.string().nullable(),
   "areas": zod.array(zod.enum(['Headaches', 'Neck & headaches', 'Dizziness & balance', 'Vision', 'Sleep', 'Mood & anxiety', 'Concentration & memory', 'Return to sport', 'Return to school', 'Return to work'])),
   "listInDirectory": zod.boolean(),
   "openToNewPatients": zod.boolean(),
@@ -130,6 +134,12 @@ export const GetClinicianProfileResponse = zod.object({
 /**
  * @summary Save the signed-in clinician's profile and manual verification request
  */
+export const saveClinicianProfileBodyFirstNameMax = 80;
+
+export const saveClinicianProfileBodyLastNameMax = 80;
+
+export const saveClinicianProfileBodyWebsiteMax = 2048;
+
 export const saveClinicianProfileBodyPhoneMax = 40;
 
 export const saveClinicianProfileBodyInviteCodeMax = 100;
@@ -142,19 +152,24 @@ export const saveClinicianProfileBodyPracticeNameMax = 180;
 
 export const saveClinicianProfileBodyLocationMax = 180;
 
+export const saveClinicianProfileBodyAreasMin = 0;
 export const saveClinicianProfileBodyAreasMax = 10;
 
 
 
 export const SaveClinicianProfileBody = zod.object({
+  "firstName": zod.string().max(saveClinicianProfileBodyFirstNameMax).optional(),
+  "lastName": zod.string().max(saveClinicianProfileBodyLastNameMax).optional(),
+  "practiceType": zod.enum(['individual', 'clinic']).optional(),
+  "website": zod.string().url().max(saveClinicianProfileBodyWebsiteMax).nullish(),
   "phone": zod.string().max(saveClinicianProfileBodyPhoneMax).nullable(),
   "inviteCode": zod.string().max(saveClinicianProfileBodyInviteCodeMax).nullable(),
-  "profession": zod.enum(['Physician', 'Physiotherapist', 'Occupational therapist', 'Neuropsychologist', 'Vestibular therapist', 'Athletic trainer', 'Speech-language pathologist', 'Other']),
-  "licenseNumber": zod.string().min(1).max(saveClinicianProfileBodyLicenseNumberMax),
-  "licenseRegion": zod.string().min(1).max(saveClinicianProfileBodyLicenseRegionMax),
-  "practiceName": zod.string().min(1).max(saveClinicianProfileBodyPracticeNameMax),
-  "location": zod.string().min(1).max(saveClinicianProfileBodyLocationMax),
-  "areas": zod.array(zod.enum(['Headaches', 'Neck & headaches', 'Dizziness & balance', 'Vision', 'Sleep', 'Mood & anxiety', 'Concentration & memory', 'Return to sport', 'Return to school', 'Return to work'])).min(1).max(saveClinicianProfileBodyAreasMax),
+  "profession": zod.union([zod.enum(['Physician', 'Physiotherapist', 'Psychologist', 'Occupational therapist', 'Nurse', 'Neuropsychologist', 'Vestibular therapist', 'Athletic trainer', 'Speech-language pathologist', 'Other']),zod.null()]),
+  "licenseNumber": zod.string().max(saveClinicianProfileBodyLicenseNumberMax).nullable(),
+  "licenseRegion": zod.string().max(saveClinicianProfileBodyLicenseRegionMax).nullable(),
+  "practiceName": zod.string().max(saveClinicianProfileBodyPracticeNameMax).nullable(),
+  "location": zod.string().max(saveClinicianProfileBodyLocationMax).nullable(),
+  "areas": zod.array(zod.enum(['Headaches', 'Neck & headaches', 'Dizziness & balance', 'Vision', 'Sleep', 'Mood & anxiety', 'Concentration & memory', 'Return to sport', 'Return to school', 'Return to work'])).min(saveClinicianProfileBodyAreasMin).max(saveClinicianProfileBodyAreasMax),
   "listInDirectory": zod.boolean(),
   "openToNewPatients": zod.boolean(),
   "termsAccepted": zod.literal(true)
@@ -163,13 +178,17 @@ export const SaveClinicianProfileBody = zod.object({
 export const SaveClinicianProfileResponse = zod.object({
   "userId": zod.string(),
   "displayName": zod.string(),
+  "firstName": zod.string(),
+  "lastName": zod.string(),
+  "practiceType": zod.enum(['individual', 'clinic']),
+  "website": zod.string().url().nullable(),
   "phone": zod.string().nullable(),
   "inviteCode": zod.string().nullable(),
-  "profession": zod.enum(['Physician', 'Physiotherapist', 'Occupational therapist', 'Neuropsychologist', 'Vestibular therapist', 'Athletic trainer', 'Speech-language pathologist', 'Other']),
-  "licenseNumber": zod.string(),
-  "licenseRegion": zod.string(),
-  "practiceName": zod.string(),
-  "location": zod.string(),
+  "profession": zod.union([zod.enum(['Physician', 'Physiotherapist', 'Psychologist', 'Occupational therapist', 'Nurse', 'Neuropsychologist', 'Vestibular therapist', 'Athletic trainer', 'Speech-language pathologist', 'Other']),zod.null()]),
+  "licenseNumber": zod.string().nullable(),
+  "licenseRegion": zod.string().nullable(),
+  "practiceName": zod.string().nullable(),
+  "location": zod.string().nullable(),
   "areas": zod.array(zod.enum(['Headaches', 'Neck & headaches', 'Dizziness & balance', 'Vision', 'Sleep', 'Mood & anxiety', 'Concentration & memory', 'Return to sport', 'Return to school', 'Return to work'])),
   "listInDirectory": zod.boolean(),
   "openToNewPatients": zod.boolean(),
@@ -186,7 +205,7 @@ export const SaveClinicianProfileResponse = zod.object({
 export const ListPublicCliniciansResponseItem = zod.object({
   "connectCode": zod.string(),
   "displayName": zod.string(),
-  "profession": zod.enum(['Physician', 'Physiotherapist', 'Occupational therapist', 'Neuropsychologist', 'Vestibular therapist', 'Athletic trainer', 'Speech-language pathologist', 'Other']),
+  "profession": zod.enum(['Physician', 'Physiotherapist', 'Psychologist', 'Occupational therapist', 'Nurse', 'Neuropsychologist', 'Vestibular therapist', 'Athletic trainer', 'Speech-language pathologist', 'Other']),
   "practiceName": zod.string(),
   "location": zod.string(),
   "areas": zod.array(zod.enum(['Headaches', 'Neck & headaches', 'Dizziness & balance', 'Vision', 'Sleep', 'Mood & anxiety', 'Concentration & memory', 'Return to sport', 'Return to school', 'Return to work'])),
@@ -210,7 +229,7 @@ export const GetPublicClinicianParams = zod.object({
 export const GetPublicClinicianResponse = zod.object({
   "connectCode": zod.string(),
   "displayName": zod.string(),
-  "profession": zod.enum(['Physician', 'Physiotherapist', 'Occupational therapist', 'Neuropsychologist', 'Vestibular therapist', 'Athletic trainer', 'Speech-language pathologist', 'Other']),
+  "profession": zod.enum(['Physician', 'Physiotherapist', 'Psychologist', 'Occupational therapist', 'Nurse', 'Neuropsychologist', 'Vestibular therapist', 'Athletic trainer', 'Speech-language pathologist', 'Other']),
   "practiceName": zod.string(),
   "location": zod.string(),
   "areas": zod.array(zod.enum(['Headaches', 'Neck & headaches', 'Dizziness & balance', 'Vision', 'Sleep', 'Mood & anxiety', 'Concentration & memory', 'Return to sport', 'Return to school', 'Return to work'])),
@@ -232,7 +251,7 @@ export const ListPatientClinicianConnectionsResponse = zod.object({
   "status": zod.enum(['pending', 'accepted']),
   "shareAreas": zod.array(zod.enum(['symptoms', 'food_hydration', 'movement', 'quiet_pause', 'pacing'])).min(listPatientClinicianConnectionsResponseItemsItemShareAreasMin).max(listPatientClinicianConnectionsResponseItemsItemShareAreasMax),
   "clinicianDisplayName": zod.string(),
-  "clinicianProfession": zod.enum(['Physician', 'Physiotherapist', 'Occupational therapist', 'Neuropsychologist', 'Vestibular therapist', 'Athletic trainer', 'Speech-language pathologist', 'Other']),
+  "clinicianProfession": zod.enum(['Physician', 'Physiotherapist', 'Psychologist', 'Occupational therapist', 'Nurse', 'Neuropsychologist', 'Vestibular therapist', 'Athletic trainer', 'Speech-language pathologist', 'Other']),
   "clinicianPracticeName": zod.string(),
   "createdAt": zod.coerce.date(),
   "acceptedAt": zod.coerce.date().nullable()
@@ -266,7 +285,7 @@ export const InviteClinicianToJournalResponse = zod.object({
   "status": zod.enum(['pending', 'accepted']),
   "shareAreas": zod.array(zod.enum(['symptoms', 'food_hydration', 'movement', 'quiet_pause', 'pacing'])).min(inviteClinicianToJournalResponseShareAreasMin).max(inviteClinicianToJournalResponseShareAreasMax),
   "clinicianDisplayName": zod.string(),
-  "clinicianProfession": zod.enum(['Physician', 'Physiotherapist', 'Occupational therapist', 'Neuropsychologist', 'Vestibular therapist', 'Athletic trainer', 'Speech-language pathologist', 'Other']),
+  "clinicianProfession": zod.enum(['Physician', 'Physiotherapist', 'Psychologist', 'Occupational therapist', 'Nurse', 'Neuropsychologist', 'Vestibular therapist', 'Athletic trainer', 'Speech-language pathologist', 'Other']),
   "clinicianPracticeName": zod.string(),
   "createdAt": zod.coerce.date(),
   "acceptedAt": zod.coerce.date().nullable()
@@ -299,7 +318,7 @@ export const UpdateClinicianJournalSharingResponse = zod.object({
   "status": zod.enum(['pending', 'accepted']),
   "shareAreas": zod.array(zod.enum(['symptoms', 'food_hydration', 'movement', 'quiet_pause', 'pacing'])).min(updateClinicianJournalSharingResponseShareAreasMin).max(updateClinicianJournalSharingResponseShareAreasMax),
   "clinicianDisplayName": zod.string(),
-  "clinicianProfession": zod.enum(['Physician', 'Physiotherapist', 'Occupational therapist', 'Neuropsychologist', 'Vestibular therapist', 'Athletic trainer', 'Speech-language pathologist', 'Other']),
+  "clinicianProfession": zod.enum(['Physician', 'Physiotherapist', 'Psychologist', 'Occupational therapist', 'Nurse', 'Neuropsychologist', 'Vestibular therapist', 'Athletic trainer', 'Speech-language pathologist', 'Other']),
   "clinicianPracticeName": zod.string(),
   "createdAt": zod.coerce.date(),
   "acceptedAt": zod.coerce.date().nullable()
@@ -350,7 +369,7 @@ export const AcceptClinicianJournalInvitationResponse = zod.object({
   "status": zod.enum(['pending', 'accepted']),
   "shareAreas": zod.array(zod.enum(['symptoms', 'food_hydration', 'movement', 'quiet_pause', 'pacing'])).min(acceptClinicianJournalInvitationResponseShareAreasMin).max(acceptClinicianJournalInvitationResponseShareAreasMax),
   "clinicianDisplayName": zod.string(),
-  "clinicianProfession": zod.enum(['Physician', 'Physiotherapist', 'Occupational therapist', 'Neuropsychologist', 'Vestibular therapist', 'Athletic trainer', 'Speech-language pathologist', 'Other']),
+  "clinicianProfession": zod.enum(['Physician', 'Physiotherapist', 'Psychologist', 'Occupational therapist', 'Nurse', 'Neuropsychologist', 'Vestibular therapist', 'Athletic trainer', 'Speech-language pathologist', 'Other']),
   "clinicianPracticeName": zod.string(),
   "createdAt": zod.coerce.date(),
   "acceptedAt": zod.coerce.date().nullable()
@@ -435,7 +454,7 @@ export const ListClinicianProfilesForAdminResponse = zod.object({
   "displayName": zod.string(),
   "email": zod.string().email().nullable(),
   "phone": zod.string().nullable(),
-  "profession": zod.enum(['Physician', 'Physiotherapist', 'Occupational therapist', 'Neuropsychologist', 'Vestibular therapist', 'Athletic trainer', 'Speech-language pathologist', 'Other']),
+  "profession": zod.enum(['Physician', 'Physiotherapist', 'Psychologist', 'Occupational therapist', 'Nurse', 'Neuropsychologist', 'Vestibular therapist', 'Athletic trainer', 'Speech-language pathologist', 'Other']),
   "licenseNumber": zod.string(),
   "licenseRegion": zod.string(),
   "practiceName": zod.string(),

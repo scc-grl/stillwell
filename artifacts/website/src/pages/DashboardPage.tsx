@@ -9,7 +9,6 @@ import {
 import type { RecoveryLog, RecoveryLogInput, RecoveryPreferences, RecoveryState, SymptomEntry } from "@workspace/api-client-react";
 import { ArrowRight, CalendarDays, Check, ChevronDown, CircleAlert, Clock3, Leaf, LogOut, PencilLine, Plus, ShieldCheck, Trash2 } from "lucide-react";
 import { clearDraft, emptyLog, localDate, priorityChoices, readDraft, replaceSymptom, routinePrompts, symptomChoices, type DraftEnvelope } from "@/lib/recovery";
-import ClinicianSharingPanel from "@/components/ClinicianSharingPanel";
 
 const panel = "rounded-[24px] border border-[#dfe5db] bg-[#fbfaf5] shadow-[0_12px_38px_rgba(46,67,52,.04)]";
 const tinyButton = "inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-[#d8e1d6] px-4 text-xs font-semibold text-[#526c5c] transition hover:bg-[#edf2ea]";
@@ -142,7 +141,12 @@ export default function DashboardPage() {
       {recoveryQuery.isError && <section className={`${panel} mt-6 p-7`}><p className="eyebrow">We couldn’t open your journal</p><h2 className="display mt-2 text-3xl text-[#355345]">Your notes haven’t gone anywhere.</h2><p className="mt-3 text-sm leading-6 text-[#748075]">Check your connection, then try loading the private journal again.</p><button type="button" className={`${cta} mt-5`} onClick={() => recoveryQuery.refetch()}>Try again <ArrowRight size={15}/></button></section>}
       {!recoveryQuery.isLoading && !recoveryQuery.isError && !profile && !readDraft() && <section className={`${panel} mt-6 p-7 sm:p-9`}><div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#e8eee5] text-[#68816e]"><Leaf size={19}/></div><p className="eyebrow mt-5">A beginning, not a blank template</p><h2 className="display mt-2 max-w-[540px] text-[clamp(2rem,5vw,3.3rem)] leading-tight text-[#355345]">Choose what you want this space to hold.</h2><p className="mt-4 max-w-[550px] text-sm leading-7 text-[#748075]">Start with a few optional preferences and a first daily reflection. You decide what belongs here, and your setup is not sent until you consent and sign in.</p><button type="button" className={`${cta} mt-6`} onClick={openQuiz}>Set up my journal <ArrowRight size={15}/></button><p className="mt-4 text-xs text-[#8a8c80]">No profile or recovery history is displayed until you create it.</p></section>}
       {!recoveryQuery.isLoading && !recoveryQuery.isError && !profile && !!readDraft() && <section className={`${panel} mt-6 p-7`}><p className="eyebrow">Saved setup, ready to retry</p><h2 className="display mt-2 text-3xl text-[#355345]">Your first summary is waiting.</h2><p className="mt-3 text-sm leading-6 text-[#748075]">We couldn’t finish saving the setup yet. It remains in this tab temporarily, and your existing preferences have not been replaced.</p><button type="button" disabled={start.isPending} onClick={() => { const draft = readDraft(); if (draft) persistDraft(draft); else setMessage("This setup has expired. Start a new quiz to continue."); }} className={`${cta} mt-5`}>{start.isPending ? "Trying…" : "Try again"} <ArrowRight size={15}/></button></section>}
-       <ClinicianSharingPanel userId={userId}/>
+        <section aria-labelledby="clinician-support-note" className="mt-6 rounded-[28px] border border-border bg-card p-5 text-card-foreground shadow-sm sm:p-6">
+          <p className="eyebrow">Clinician support</p>
+          <h2 id="clinician-support-note" className="display mt-2 text-2xl">Your journal stays yours.</h2>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">Patient invitations and in-app journal sharing are planned, but not available yet. You can bring your own reflections to a clinician outside Stillwell if you choose.</p>
+          <p className="mt-2 text-xs text-muted-foreground">Nothing is shared with a clinician through Stillwell today.</p>
+        </section>
       {!recoveryQuery.isLoading && profile && <>
         <div className="mt-7 grid gap-5 lg:grid-cols-[.88fr_1.12fr]">
           <section className={`${panel} p-5 sm:p-6`}>

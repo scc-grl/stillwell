@@ -18,6 +18,7 @@ export * from './clinicianArea';
 export * from './clinicianInvitation';
 export * from './clinicianInvitationList';
 export * from './clinicianJournalInvitationInput';
+export * from './clinicianPracticeType';
 export * from './clinicianProfession';
 export * from './clinicianProfile';
 export * from './clinicianProfileInput';

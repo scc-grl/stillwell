@@ -150,8 +150,13 @@ async function requireAdmin(req: Request, res: Response): Promise<string | null>
 }
 
 function serializedProfile(profile: typeof clinicianProfiles.$inferSelect) {
+  const nameParts = profile.displayName.trim().split(/\s+/).filter(Boolean);
   return {
     ...profile,
+    firstName: profile.firstName ?? nameParts[0] ?? "",
+    lastName: profile.lastName ?? nameParts.slice(1).join(" "),
+    practiceType: profile.practiceType === "clinic" ? "clinic" : "individual",
+    website: profile.website ?? null,
     termsAcceptedAt: profile.termsAcceptedAt.toISOString(),
     updatedAt: profile.updatedAt.toISOString(),
   };
@@ -162,13 +167,15 @@ function patientConnectionPayload(connection: {
   status: "pending" | "accepted" | "revoked";
   shareAreas: string[];
   clinicianDisplayName: string;
-  clinicianProfession: string;
-  clinicianPracticeName: string;
+  clinicianProfession: string | null;
+  clinicianPracticeName: string | null;
   createdAt: Date;
   acceptedAt: Date | null;
 }) {
   return {
     ...connection,
+    clinicianProfession: connection.clinicianProfession ?? "Other",
+    clinicianPracticeName: connection.clinicianPracticeName ?? "",
     createdAt: connection.createdAt.toISOString(),
     acceptedAt: connection.acceptedAt?.toISOString() ?? null,
   };
@@ -277,12 +284,25 @@ router.put("/clinician/profile", async (req, res): Promise<void> => {
     res.status(503).json({ error: "We could not confirm your account just now. Please try again." });
     return;
   }
-  const displayName = clerkUser.fullName?.trim() || "Clinician";
   const input = parsed.data;
+  const firstName = input.firstName?.trim() || clerkUser.firstName?.trim() || "";
+  const lastName = input.lastName?.trim() || clerkUser.lastName?.trim() || "";
+  if (!firstName || !lastName) {
+    res.status(400).json({ error: "First and last name are required to save your profile." });
+    return;
+  }
+  const displayName = `${firstName} ${lastName}`.trim();
+  const practiceType = input.practiceType ?? "individual";
+  const profession = input.profession ?? null;
+  const licenseNumber = input.licenseNumber?.trim() || null;
+  const licenseRegion = input.licenseRegion?.trim() || null;
+  const practiceName = input.practiceName?.trim() || null;
+  const location = input.location?.trim() || null;
+  const website = input.website?.trim() || null;
   const [existing] = await db.select().from(clinicianProfiles)
     .where(eq(clinicianProfiles.userId, userId));
-  const licenseUnchanged = existing?.licenseNumber === input.licenseNumber.trim() &&
-    existing.licenseRegion === input.licenseRegion.trim();
+  const licenseUnchanged = existing?.licenseNumber === licenseNumber &&
+    existing.licenseRegion === licenseRegion;
   const verificationStatus = licenseUnchanged
     ? existing.verificationStatus
     : "pending";
@@ -291,13 +311,17 @@ router.put("/clinician/profile", async (req, res): Promise<void> => {
   const [saved] = await db.insert(clinicianProfiles).values({
     userId,
     displayName,
+    firstName,
+    lastName,
+    practiceType,
     phone: input.phone?.trim() || null,
+    website,
     inviteCode: input.inviteCode?.trim() || null,
-    profession: input.profession,
-    licenseNumber: input.licenseNumber.trim(),
-    licenseRegion: input.licenseRegion.trim(),
-    practiceName: input.practiceName.trim(),
-    location: input.location.trim(),
+    profession,
+    licenseNumber,
+    licenseRegion,
+    practiceName,
+    location,
     areas: input.areas,
     listInDirectory: input.listInDirectory,
     openToNewPatients: input.openToNewPatients,
@@ -309,13 +333,17 @@ router.put("/clinician/profile", async (req, res): Promise<void> => {
     target: clinicianProfiles.userId,
     set: {
       displayName,
+      firstName,
+      lastName,
+      practiceType,
       phone: input.phone?.trim() || null,
+      website,
       inviteCode: input.inviteCode?.trim() || null,
-      profession: input.profession,
-      licenseNumber: input.licenseNumber.trim(),
-      licenseRegion: input.licenseRegion.trim(),
-      practiceName: input.practiceName.trim(),
-      location: input.location.trim(),
+      profession,
+      licenseNumber,
+      licenseRegion,
+      practiceName,
+      location,
       areas: input.areas,
       listInDirectory: input.listInDirectory,
       openToNewPatients: input.openToNewPatients,

@@ -11,12 +11,11 @@ import { Button } from "@workspace/stillwell-design-system/components/ui/button"
 import AccountTypeChoicePage from "@/components/AccountTypeChoicePage";
 import AuthPageShell from "@/components/AuthPageShell";
 import DashboardPage from "@/pages/DashboardPage";
-import ClinicianPortalPage from "@/pages/ClinicianPortalPage";
 import PrivacyPage from "@/pages/PrivacyPage";
 import QuizPage from "@/pages/QuizPage";
 import PublicInfoPage from "@/pages/PublicInfoPage";
 import UnsubscribePage from "@/pages/UnsubscribePage";
-import { clearClinicianSetupDraft, ClinicianJoinPage, FindClinicianPage, PartnerAdminPage, PartnerRequestPage, PartnersLandingPage, PublicClinicianProfilePage } from "@/pages/PartnersPages";
+import { clearClinicianSetupDraft } from "@/pages/PartnersPages";
 import { PublicLayout } from "@/components/PublicSite";
 import { clearDraft, readDraft } from "@/lib/recovery";
 import { clearAccountChoice, clearRegistrationIntent, readAccountChoice, readRegistrationIntent, storeRegistrationIntent } from "@/lib/account";
@@ -87,7 +86,7 @@ function Landing() {
         <div className="reveal-late relative mx-auto w-full max-w-[580px] lg:ml-auto"><div className="hero-art relative aspect-[1.07/1] overflow-hidden rounded-[47%_47%_43%_43%/42%_42%_51%_51%] sm:aspect-[1.12/1]"><div className="grain pointer-events-none absolute inset-0"/><div className="absolute left-[13%] top-[13%] h-[74%] w-[74%] rounded-full border border-white/45"/><div className="absolute left-[22%] top-[21%] h-[58%] w-[58%] rounded-full border border-white/55"/><div className="absolute left-[34%] top-[33%] h-[34%] w-[34%] rounded-full bg-[#f2e9d8]/80 shadow-[0_20px_60px_rgba(70,91,72,.12)]"/><div className="absolute left-[42%] top-[39%] h-[24%] w-[24%] rounded-full border border-[#738b78]/70"/><span className="absolute left-[43%] top-[18%] h-3 w-3 rounded-full bg-[#bf765f]"/><span className="absolute right-[20%] top-[44%] h-2 w-2 rounded-full bg-[#557568]"/><span className="absolute bottom-[25%] left-[21%] h-2.5 w-2.5 rounded-full bg-[#c89965]"/><div className="absolute left-[17%] top-[10%] flex items-center gap-2 rounded-full border border-white/80 bg-[#fbfaf4]/85 px-3.5 py-2 text-[11px] font-medium text-[#486457] shadow-lg backdrop-blur-sm"><span className="h-1.5 w-1.5 rounded-full bg-[#78917c]"/> Care, at your pace</div><div className="absolute bottom-[10%] right-[11%] max-w-[205px] rounded-[20px] border border-white/70 bg-[#fbfaf4]/90 p-4 shadow-xl backdrop-blur-sm"><p className="text-[10px] font-semibold uppercase tracking-[.16em] text-[#829083]">A steadier next step</p><p className="display mt-1.5 text-[21px] leading-[1.15] tracking-[-.035em] text-[#355345]">Built around what matters to you.</p></div><span className="absolute bottom-[13%] left-[8%] text-[10px] uppercase tracking-[.17em] text-[#61786b]">One day at a time</span></div><div className="absolute -bottom-7 left-[13%] hidden h-12 w-12 items-center justify-center rounded-full border border-[#d8ded2] bg-[#f5f4ed] text-[#6b8674] sm:flex"><Leaf size={19}/></div></div>
       </section>
       <section className="border-y border-[#e0e4db] bg-[#edeFE7]"><div className="mx-auto grid max-w-[1240px] gap-8 px-5 py-7 sm:grid-cols-3 sm:gap-5 sm:px-8 lg:px-12">{[[ShieldCheck,"Your pace","No streaks, targets, or pressure to fill every day."],[Leaf,"Your choices","Track only the routines and symptoms you choose."],[Menu,"Your record","Edit or delete entries whenever you need."]].map(([Icon,title,text])=>{const I=Icon as typeof ShieldCheck;return <div key={title as string} className="flex items-start gap-3"><span className="mt-0.5 text-[#6e8877]"><I size={19}/></span><div><p className="text-[13px] font-semibold text-[#354c40]">{title as string}</p><p className="mt-1 text-[12px] leading-5 text-[#718077]">{text as string}</p></div></div>})}</div></section>
-      <section id="journal" className="mx-auto grid max-w-[1240px] gap-12 px-5 py-20 sm:px-8 lg:grid-cols-[.8fr_1.2fr] lg:gap-20 lg:px-12 lg:py-24"><div><p className="eyebrow">The journal</p><h2 className="display mt-3 text-[clamp(2.4rem,5vw,3.8rem)] leading-[1.04] tracking-[-.05em] text-[#29453a]">Some days don’t fit in a straight line.</h2><p className="mt-5 max-w-[420px] text-sm leading-7 text-[#68766d]">A concussion can leave changes that linger. A simple day-by-day record can make it easier to notice what feels different without turning recovery into another task to complete.</p></div><div className="grid gap-4 sm:grid-cols-2"><article className="rounded-[24px] border border-[#dce3d8] bg-[#fbfaf5] p-6"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#e6ede4] text-[#68816e]"><Activity size={18}/></span><h3 className="display mt-5 text-[24px] text-[#355345]">Notice what changes</h3><p className="mt-2 text-xs leading-6 text-[#758077]">Optional symptom ratings and a few lines in your own words. Leave any category blank, any day.</p></article><article className="rounded-[24px] border border-[#dce3d8] bg-[#fbfaf5] p-6"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#e6ede4] text-[#68816e]"><CalendarDays size={18}/></span><h3 className="display mt-5 text-[24px] text-[#355345]">Keep a useful history</h3><p className="mt-2 text-xs leading-6 text-[#758077]">One entry per day. Revisit or remove it whenever you choose. There are no missed days to make up.</p></article><article className="rounded-[24px] border border-[#dce3d8] bg-[#fbfaf5] p-6 sm:col-span-2"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#e6ede4] text-[#68816e]"><ShieldCheck size={18}/></span><h3 className="display mt-5 text-[24px] text-[#355345]">Useful with or without a clinician</h3><p className="mt-2 max-w-[720px] text-xs leading-6 text-[#758077]">Choose self-guided use or optional clinician support. If you work with a clinician, your notes can help you explain what you’ve noticed; Stillwell does not share them automatically.</p></article></div></section>
+      <section id="journal" className="mx-auto grid max-w-[1240px] gap-12 px-5 py-20 sm:px-8 lg:grid-cols-[.8fr_1.2fr] lg:gap-20 lg:px-12 lg:py-24"><div><p className="eyebrow">The journal</p><h2 className="display mt-3 text-[clamp(2.4rem,5vw,3.8rem)] leading-[1.04] tracking-[-.05em] text-[#29453a]">Some days don’t fit in a straight line.</h2><p className="mt-5 max-w-[420px] text-sm leading-7 text-[#68766d]">A concussion can leave changes that linger. A simple day-by-day record can make it easier to notice what feels different without turning recovery into another task to complete.</p></div><div className="grid gap-4 sm:grid-cols-2"><article className="rounded-[24px] border border-[#dce3d8] bg-[#fbfaf5] p-6"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#e6ede4] text-[#68816e]"><Activity size={18}/></span><h3 className="display mt-5 text-[24px] text-[#355345]">Notice what changes</h3><p className="mt-2 text-xs leading-6 text-[#758077]">Optional symptom ratings and a few lines in your own words. Leave any category blank, any day.</p></article><article className="rounded-[24px] border border-[#dce3d8] bg-[#fbfaf5] p-6"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#e6ede4] text-[#68816e]"><CalendarDays size={18}/></span><h3 className="display mt-5 text-[24px] text-[#355345]">Keep a useful history</h3><p className="mt-2 text-xs leading-6 text-[#758077]">One entry per day. Revisit or remove it whenever you choose. There are no missed days to make up.</p></article><article className="rounded-[24px] border border-[#dce3d8] bg-[#fbfaf5] p-6 sm:col-span-2"><span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#e6ede4] text-[#68816e]"><ShieldCheck size={18}/></span><h3 className="display mt-5 text-[24px] text-[#355345]">Useful with or without a clinician</h3><p className="mt-2 max-w-[720px] text-xs leading-6 text-[#758077]">Use Stillwell independently or bring your own reflections to a clinician. In-app invitations and journal sharing are planned and not available yet.</p></article></div></section>
       <section id="how" className="bg-[#e7ede5]"><div className="mx-auto grid max-w-[1240px] gap-10 px-5 py-20 sm:px-8 lg:grid-cols-[.75fr_1.25fr] lg:gap-16 lg:px-12 lg:py-24"><div><p className="eyebrow">A clear, considered start</p><h2 className="display mt-3 max-w-[430px] text-[clamp(2.4rem,5vw,3.7rem)] leading-[1.04] tracking-[-.05em] text-[#29453a]">A little more room to find your own rhythm.</h2><p className="mt-5 text-sm leading-7 text-[#64736a]">Nothing here tells you what your recovery should look like. The journal follows what you choose to notice.</p></div><div className="grid gap-0 sm:grid-cols-3">{[{num:"01",title:"Choose what matters",body:"Pick a support style and personal routine areas. Change them later."},{num:"02",title:"Start with today",body:"Reflect on symptoms and daily activities only if it feels useful."},{num:"03",title:"Return when you want",body:"Your private history stays editable, with simple controls to delete."}].map((item,i)=><article key={item.num} className={`border-t border-[#cbd7cb] py-6 sm:border-l sm:border-t-0 sm:px-5 sm:py-2 ${i===0?"sm:border-l-0 sm:pl-0":""}`}><span className="display text-[30px] text-[#a4b4a4]">{item.num}</span><h3 className="mt-4 text-sm font-semibold leading-6 text-[#344d40]">{item.title}</h3><p className="mt-2 text-xs leading-6 text-[#758078]">{item.body}</p></article>)}</div></div></section>
       <section className="mx-auto grid max-w-[1240px] gap-12 px-5 py-20 sm:px-8 lg:grid-cols-[.9fr_1.1fr] lg:items-center lg:px-12 lg:py-24"><div className="relative overflow-hidden rounded-[28px] bg-[#d4e0d5] p-6 sm:p-8"><div className="absolute -left-16 -top-20 h-64 w-64 rounded-full border border-white/70"/><div className="absolute bottom-[-90px] right-[-50px] h-[290px] w-[290px] rounded-full bg-[#f1ead8]/70"/><div className="relative rounded-[21px] border border-white/80 bg-[#fbfaf5]/95 p-6 shadow-lg"><p className="eyebrow">A sample, not an instruction</p><h3 className="display mt-2 text-[27px] text-[#355345]">The day, with room to adjust</h3><div className="mt-6 space-y-4">{[["Morning","Choose what feels possible; leave space around it."],["Midday","Pause before your energy runs low."],["Later","Notice what helped. Decide what to keep."]].map(([time,text],i)=><div key={time} className="flex gap-3"><div className="flex w-5 shrink-0 flex-col items-center"><span className={`mt-1 h-2 w-2 rounded-full ${i===1?"bg-[#c18a68]":"bg-[#78917b]"}`}/>{i<2&&<span className="mt-1 h-8 w-px bg-[#dce4d8]"/>}</div><div><p className="text-xs font-semibold text-[#435c4e]">{time}</p><p className="mt-1 text-[11px] leading-5 text-[#7b867c]">{text}</p></div></div>)}</div></div><p className="relative mt-4 text-right text-[10px] text-[#6d8071]">A reflection, not a prescribed routine.</p></div><div><p className="eyebrow">Everyday support, shaped around you</p><h2 className="display mt-3 max-w-[500px] text-[clamp(2.4rem,5vw,3.8rem)] leading-[1.03] tracking-[-.05em] text-[#29453a]">Support your routines, not a checklist.</h2><p className="mt-5 max-w-[470px] text-sm leading-7 text-[#65746a]">Keep track of the routines that matter to you: food and hydration, clinician-cleared low-risk movement, an optional quiet pause, or pacing reflections. No supplement recommendations, activity prescriptions, or per-person medical algorithms.</p><div className="mt-7 space-y-4">{[["Food & hydration","Notice practical routines that work for your day."],["Movement","Track only activity cleared as appropriate by your clinician."],["Pacing","Leave room to pause, change plans, or do nothing today."]].map(([title,copy])=><div key={title} className="flex gap-3"><span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#d5e2d5] text-[#577662]"><Check size={13}/></span><div><h3 className="text-xs font-semibold text-[#3d5548]">{title}</h3><p className="mt-1 text-xs leading-5 text-[#768078]">{copy}</p></div></div>)}</div></div></section>
       <section id="boundaries" className="mx-auto max-w-[1240px] px-5 pb-10 sm:px-8 lg:px-12"><div className="rounded-[28px] border border-[#e2d5c6] bg-[#f3eee4] p-6 sm:p-9"><div className="flex gap-4"><span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#d9c9b7] text-[#a2715c]"><CircleAlert size={18}/></span><div><p className="text-sm font-semibold text-[#554b42]">Clear boundaries are part of good care.</p><p className="mt-2 max-w-[900px] text-xs leading-6 text-[#777066]">Stillwell is an educational recovery journal for adults, not a diagnostic tool, treatment prescription, or substitute for medical advice. It is not for a new head injury, urgent symptoms, or emergency care. If symptoms are worsening, contact a clinician. For severe or rapidly worsening symptoms, seek emergency care now or call your local emergency number. If you work with a clinician, bring your reflections to discussions at any stage of recovery. This app does not provide clinical consultations.</p></div></div></div></section>
@@ -130,7 +129,7 @@ function AccountTypeGate({
   </RoleCheckStatus>;
   if (accountTypeQuery.isPending || !accountTypeQuery.data) return <RoleCheckStatus><div className="mx-auto h-8 w-40 animate-pulse rounded-xl bg-secondary"/></RoleCheckStatus>;
   if (accountTypeQuery.data.accountType !== required) {
-    return <Redirect to={accountTypeQuery.data.accountType === "clinician" ? "/clinician/portal" : "/dashboard"}/>;
+    return <Redirect to={accountTypeQuery.data.accountType === "clinician" ? "/clinicians/dashboard" : "/dashboard"}/>;
   }
   return children;
 }
@@ -141,13 +140,6 @@ function PrivateDashboard() {
 
 function QuizRoute() {
   return <AccountTypeGate required="patient" allowSignedOut><QuizPage/></AccountTypeGate>;
-}
-
-function ClinicianPortalRoute() {
-  const { signOut } = useClerk();
-  return <AccountTypeGate required="clinician" signedOutTo="/clinician/sign-in">
-    <ClinicianPortalPage onSignOut={() => void signOut()}/>
-  </AccountTypeGate>;
 }
 
 function AccountContinuation() {
@@ -176,7 +168,7 @@ function AccountContinuation() {
           clearRegistrationIntent();
           clearAccountChoice();
           setRegistrationToken(null);
-          setLocation(accountType === "clinician" ? "/clinician/portal" : "/dashboard", { replace: true });
+          setLocation(accountType === "clinician" ? "/clinicians/dashboard" : "/dashboard", { replace: true });
         },
         onError: () => setRegistrationError(true),
       });
@@ -184,7 +176,7 @@ function AccountContinuation() {
     }
     if (accountTypeQuery.data) {
       clearAccountChoice();
-      setLocation(accountTypeQuery.data.accountType === "clinician" ? "/clinician/portal" : "/dashboard", { replace: true });
+      setLocation(accountTypeQuery.data.accountType === "clinician" ? "/clinicians/dashboard" : "/dashboard", { replace: true });
     }
   }, [isLoaded, isSignedIn, registrationToken, retryVersion, completion.mutate, accountTypeQuery.data, setLocation]);
 
@@ -207,17 +199,8 @@ function AccountContinuation() {
 function SignInPage() {
   return <AuthPageShell eyebrow="Your notes, when you need them" title="A softer place to return to."
     description="Sign in to revisit your Stillwell journal, routines, and reflections."
-    crossLinkLabel="Are you a clinician? Sign in to the clinician portal" crossLinkHref="/clinician/sign-in">
+    crossLinkLabel="Are you a clinician? Sign in to the clinician portal" crossLinkHref="/clinicians/sign-in">
     <SignIn routing="path" path={`${basePath}/sign-in`} signUpUrl={`${basePath}/sign-up`}
-      forceRedirectUrl={`${basePath}/account/continue`}/>
-  </AuthPageShell>;
-}
-
-function ClinicianSignInPage() {
-  return <AuthPageShell eyebrow="Stillwell for clinicians" title="Welcome back."
-    description="Sign in to your separate clinician account. Clinician accounts are self-identified and not yet verified."
-    crossLinkLabel="Are you a patient? Sign in to your journal" crossLinkHref="/sign-in">
-    <SignIn routing="path" path={`${basePath}/clinician/sign-in`} signUpUrl={`${basePath}/clinician/sign-up`}
       forceRedirectUrl={`${basePath}/account/continue`}/>
   </AuthPageShell>;
 }
@@ -249,14 +232,14 @@ function AccountCreationPage({ accountType, path }: { accountType: AccountType; 
   }, [accountType, attempt]);
 
   const isClinician = accountType === "clinician";
-  const signInUrl = isClinician ? `${basePath}/clinician/sign-in` : `${basePath}/sign-in`;
+  const signInUrl = isClinician ? "/clinicians/sign-in" : `${basePath}/sign-in`;
   const signUpUrl = `${basePath}${path}`;
   const shellProps = isClinician ? {
     eyebrow: "Stillwell for clinicians",
     title: "A separate account for clinicians.",
     description: "Create a clinician account for the Stillwell portal. Clinician accounts are self-identified and not yet verified.",
     crossLinkLabel: "Already have a clinician account? Sign in",
-    crossLinkHref: "/clinician/sign-in",
+    crossLinkHref: "/clinicians/sign-in",
   } : {
     eyebrow: "Begin with your own words",
     title: "Your recovery. Your record.",
@@ -299,13 +282,6 @@ function PatientSignUpPage() {
   return <AccountCreationPage accountType="patient" path="/sign-up/patient"/>;
 }
 
-function ClinicianSignUpPage() {
-  const { isLoaded, isSignedIn } = useUser();
-  if (!isLoaded) return <RoleCheckStatus><div className="mx-auto h-8 w-40 animate-pulse rounded-xl bg-secondary"/></RoleCheckStatus>;
-  if (isSignedIn) return <Redirect to="/account/continue"/>;
-  if (readDraft()) return <Redirect to="/sign-up"/>;
-  return <AccountCreationPage accountType="clinician" path="/clinician/sign-up"/>;
-}
 function ClerkCacheInvalidator() {
   const { addListener } = useClerk();
   const cache = useQueryClient();
@@ -330,15 +306,15 @@ function Routes() {
   const [location, setLocation] = useLocation();
   useEffect(() => {
     const metadata: Record<string, { title: string; description: string }> = {
-      "/clinician/sign-in": { title: "Clinician sign in", description: "Sign in to your Stillwell clinician account. Clinician accounts are self-identified and not yet verified." },
-      "/clinician/sign-up": { title: "Clinician account", description: "Create a separate Stillwell clinician account. Clinician accounts are self-identified and not yet verified." },
-      "/clinician/portal": { title: "Clinician portal", description: "The Stillwell clinician portal is coming soon. Clinician accounts are self-identified and not yet verified." },
-      "/partners": { title: "For clinicians, programs & researchers", description: "Explore Stillwell for clinicians, athletic and university programs, and research teams. Patient reflections remain user-controlled." },
-      "/partners/join": { title: "Create a clinician account", description: "Create a separate Stillwell clinician account and professional profile. Verification is required before directory listing." },
-      "/partners/request": { title: "Partner with Stillwell", description: "Tell Stillwell about your organization, program, clinic, or research team." },
-      "/find-your-clinician": { title: "Find your clinician", description: "Browse verified clinicians who have opted into the Stillwell directory." },
-      "/clinicians": { title: "Clinician profile", description: "View a public verified Stillwell clinician profile." },
-      "/admin/partners": { title: "Partner administration", description: "Review organization requests and clinician licence verification." },
+      "/clinician/sign-in": { title: "Clinician sign in", description: "Sign in to the Stillwell clinician portal. Patient journal data is not available to clinician accounts." },
+      "/clinician/sign-up": { title: "Clinician account", description: "Continue to the Stillwell clinician portal to create an account and private professional profile." },
+      "/clinician/portal": { title: "Clinician portal", description: "Sign in to the Stillwell clinician portal. Patient journal data is not available to clinician accounts." },
+      "/partners": { title: "For clinicians, programs & researchers", description: "Explore the Stillwell clinician portal. Program, research, directory, and patient-connection features are planned." },
+      "/partners/join": { title: "Create a clinician account", description: "Create an account and private professional profile in the Stillwell clinician portal." },
+      "/partners/request": { title: "Programs and research", description: "Program and research partnership intake is planned and not available yet." },
+      "/find-your-clinician": { title: "Find your clinician", description: "A public Stillwell clinician directory is planned and not available yet." },
+      "/clinicians": { title: "Stillwell clinician portal", description: "Sign in to your private clinician portal. Patient journal data is not available to clinician accounts." },
+      "/admin/partners": { title: "Clinician and partner tools", description: "Partnership intake and licence verification are planned and not available yet." },
       "/sign-up/patient": { title: "Create a patient account", description: "Create a private Stillwell journal account for your own recovery notes and reflections." },
       "/sign-up": { title: "Choose your account", description: "Choose whether you are creating a Stillwell account as a patient or a clinician." },
       "/sign-in": { title: "Patient sign in", description: "Sign in to revisit your private Stillwell journal, routines, and reflections." },
@@ -367,20 +343,19 @@ function Routes() {
     <QueryClientProvider client={queryClient}><ClerkCacheInvalidator/><Switch>
       <Route path="/" component={HomeRedirect}/>
       <Route path="/sign-in/*?" component={SignInPage}/>
-      <Route path="/clinician/sign-in/*?" component={ClinicianSignInPage}/>
+      <Route path="/clinician/sign-in/*?"><Redirect to="/clinicians/sign-in"/></Route>
       <Route path="/account/continue" component={AccountContinuation}/>
       <Route path="/sign-up/patient/*?" component={PatientSignUpPage}/>
-      <Route path="/clinician/sign-up/*?"><Redirect to="/partners/join"/></Route>
+      <Route path="/clinician/sign-up/*?"><Redirect to="/clinicians/join"/></Route>
       <Route path="/sign-up/*?" component={SignUpPage}/>
-      <Route path="/clinician/portal" component={ClinicianPortalRoute}/>
+      <Route path="/clinician/portal"><Redirect to="/clinicians/dashboard"/></Route>
       <Route path="/quiz" component={QuizRoute}/>
       <Route path="/dashboard" component={PrivateDashboard}/>
-      <Route path="/partners"><PartnersLandingPage/></Route>
-      <Route path="/partners/join"><ClinicianJoinPage/></Route>
-      <Route path="/partners/request"><PartnerRequestPage/></Route>
-      <Route path="/find-your-clinician"><FindClinicianPage/></Route>
-      <Route path="/clinicians/:connectCode"><PublicClinicianProfilePage/></Route>
-      <Route path="/admin/partners"><PartnerAdminPage/></Route>
+      <Route path="/partners"><Redirect to="/clinicians"/></Route>
+      <Route path="/partners/join"><Redirect to="/clinicians/join"/></Route>
+      <Route path="/partners/request"><Redirect to="/clinicians"/></Route>
+      <Route path="/find-your-clinician"><PublicLayout><PublicInfoPage content={{ eyebrow: "Planned", title: "Find your clinician", description: "A public clinician directory is not available yet.", placeholder: "Stillwell does not currently match or connect people with clinicians. If you already have a clinician, you can continue using your private journal and share it with them outside of Stillwell." }}/></PublicLayout></Route>
+      <Route path="/admin/partners"><Redirect to="/clinicians"/></Route>
       <Route path="/privacy"><PublicLayout><PrivacyPage/></PublicLayout></Route>
       <Route path="/unsubscribe"><PublicLayout><UnsubscribePage/></PublicLayout></Route>
       <Route path="/our-history"><PublicLayout><PublicInfoPage content={{ eyebrow: "About Stillwell", title: "Our history", description: "Stillwell is a private, self-guided recovery journal made for people who want a quiet place to record their own reflections.", placeholder: "This page is a placeholder. More about the people, ideas, and history behind Stillwell will be added here." }}/></PublicLayout></Route>

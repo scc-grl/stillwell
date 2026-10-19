@@ -6,21 +6,31 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { ClinicianArea } from './clinicianArea';
+import type { ClinicianPracticeType } from './clinicianPracticeType';
 import type { ClinicianProfession } from './clinicianProfession';
 import type { ClinicianProfileVerificationStatus } from './clinicianProfileVerificationStatus';
 
 export interface ClinicianProfile {
   userId: string;
   displayName: string;
+  firstName: string;
+  lastName: string;
+  practiceType: ClinicianPracticeType;
+  /** @nullable */
+  website: string | null;
   /** @nullable */
   phone: string | null;
   /** @nullable */
   inviteCode: string | null;
-  profession: ClinicianProfession;
-  licenseNumber: string;
-  licenseRegion: string;
-  practiceName: string;
-  location: string;
+  profession: ClinicianProfession | null;
+  /** @nullable */
+  licenseNumber: string | null;
+  /** @nullable */
+  licenseRegion: string | null;
+  /** @nullable */
+  practiceName: string | null;
+  /** @nullable */
+  location: string | null;
   areas: ClinicianArea[];
   listInDirectory: boolean;
   openToNewPatients: boolean;

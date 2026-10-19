@@ -12,7 +12,9 @@ export type ClinicianProfession = typeof ClinicianProfession[keyof typeof Clinic
 export const ClinicianProfession = {
   Physician: 'Physician',
   Physiotherapist: 'Physiotherapist',
+  Psychologist: 'Psychologist',
   Occupational_therapist: 'Occupational therapist',
+  Nurse: 'Nurse',
   Neuropsychologist: 'Neuropsychologist',
   Vestibular_therapist: 'Vestibular therapist',
   Athletic_trainer: 'Athletic trainer',

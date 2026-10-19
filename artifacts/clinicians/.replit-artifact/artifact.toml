@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/clinicians/"
+title = "Stillwell Clinician & Partner Portal"
+description = "A Stillwell clinician portal for clinician account setup and a private professional profile, with program and research participation clearly marked as coming later. Uses shared Clerk authentication and API; no patient journal data is available to clinicians."
+version = "1.0.0"
+id = "artifacts/clinicians"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/clinicians/" ]
+localPort = 19114
+
+[services.development]
+run = "pnpm --filter @workspace/clinicians run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/clinicians", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/clinicians/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19114"
+BASE_PATH = "/clinicians/"

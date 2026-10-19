@@ -241,7 +241,9 @@ export type ClinicianProfession = typeof ClinicianProfession[keyof typeof Clinic
 export const ClinicianProfession = {
   Physician: 'Physician',
   Physiotherapist: 'Physiotherapist',
+  Psychologist: 'Psychologist',
   Occupational_therapist: 'Occupational therapist',
+  Nurse: 'Nurse',
   Neuropsychologist: 'Neuropsychologist',
   Vestibular_therapist: 'Vestibular therapist',
   Athletic_trainer: 'Athletic trainer',
@@ -425,6 +427,14 @@ export interface PartnerRequestList {
   items: PartnerRequest[];
 }
 
+export type ClinicianPracticeType = typeof ClinicianPracticeType[keyof typeof ClinicianPracticeType];
+
+
+export const ClinicianPracticeType = {
+  individual: 'individual',
+  clinic: 'clinic',
+} as const;
+
 export type ClinicianArea = typeof ClinicianArea[keyof typeof ClinicianArea];
 
 
@@ -442,6 +452,16 @@ export const ClinicianArea = {
 } as const;
 
 export interface ClinicianProfileInput {
+  /** @maxLength 80 */
+  firstName?: string;
+  /** @maxLength 80 */
+  lastName?: string;
+  practiceType?: ClinicianPracticeType;
+  /**
+     * @maxLength 2048
+     * @nullable
+     */
+  website?: string | null;
   /**
      * @maxLength 40
      * @nullable
@@ -452,29 +472,29 @@ export interface ClinicianProfileInput {
      * @nullable
      */
   inviteCode: string | null;
-  profession: ClinicianProfession;
+  profession: ClinicianProfession | null;
   /**
-     * @minLength 1
      * @maxLength 100
+     * @nullable
      */
-  licenseNumber: string;
+  licenseNumber: string | null;
   /**
-     * @minLength 1
      * @maxLength 120
+     * @nullable
      */
-  licenseRegion: string;
+  licenseRegion: string | null;
   /**
-     * @minLength 1
      * @maxLength 180
+     * @nullable
      */
-  practiceName: string;
+  practiceName: string | null;
   /**
-     * @minLength 1
      * @maxLength 180
+     * @nullable
      */
-  location: string;
+  location: string | null;
   /**
-     * @minItems 1
+     * @minItems 0
      * @maxItems 10
      */
   areas: ClinicianArea[];
@@ -494,15 +514,24 @@ export const ClinicianProfileVerificationStatus = {
 export interface ClinicianProfile {
   userId: string;
   displayName: string;
+  firstName: string;
+  lastName: string;
+  practiceType: ClinicianPracticeType;
+  /** @nullable */
+  website: string | null;
   /** @nullable */
   phone: string | null;
   /** @nullable */
   inviteCode: string | null;
-  profession: ClinicianProfession;
-  licenseNumber: string;
-  licenseRegion: string;
-  practiceName: string;
-  location: string;
+  profession: ClinicianProfession | null;
+  /** @nullable */
+  licenseNumber: string | null;
+  /** @nullable */
+  licenseRegion: string | null;
+  /** @nullable */
+  practiceName: string | null;
+  /** @nullable */
+  location: string | null;
   areas: ClinicianArea[];
   listInDirectory: boolean;
   openToNewPatients: boolean;

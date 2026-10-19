@@ -50,7 +50,7 @@ export default function AccountTypeChoicePage() {
               <CardHeader>
                 <CardTitle className="display text-2xl font-medium">I’m a clinician</CardTitle>
                 <CardDescription className="leading-6">
-                  Create a clinician account to access the clinician portal as it becomes available.
+                  Create a separate clinician account and save a private professional profile.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -60,7 +60,7 @@ export default function AccountTypeChoicePage() {
               </CardContent>
               <CardFooter>
                 <Button asChild variant="outline" className="w-full">
-                  <Link href="/clinician/sign-up" aria-label="Create a clinician account" onClick={() => rememberAccountChoice("clinician")}>
+                  <Link href="/clinicians/join" aria-label="Create a clinician account">
                     Continue as a clinician <ArrowRight aria-hidden="true" />
                   </Link>
                 </Button>

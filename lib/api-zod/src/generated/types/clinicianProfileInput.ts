@@ -6,9 +6,20 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { ClinicianArea } from './clinicianArea';
+import type { ClinicianPracticeType } from './clinicianPracticeType';
 import type { ClinicianProfession } from './clinicianProfession';
 
 export interface ClinicianProfileInput {
+  /** @maxLength 80 */
+  firstName?: string;
+  /** @maxLength 80 */
+  lastName?: string;
+  practiceType?: ClinicianPracticeType;
+  /**
+     * @maxLength 2048
+     * @nullable
+     */
+  website?: string | null;
   /**
      * @maxLength 40
      * @nullable
@@ -19,29 +30,29 @@ export interface ClinicianProfileInput {
      * @nullable
      */
   inviteCode: string | null;
-  profession: ClinicianProfession;
+  profession: ClinicianProfession | null;
   /**
-     * @minLength 1
      * @maxLength 100
+     * @nullable
      */
-  licenseNumber: string;
+  licenseNumber: string | null;
   /**
-     * @minLength 1
      * @maxLength 120
+     * @nullable
      */
-  licenseRegion: string;
+  licenseRegion: string | null;
   /**
-     * @minLength 1
      * @maxLength 180
+     * @nullable
      */
-  practiceName: string;
+  practiceName: string | null;
   /**
-     * @minLength 1
      * @maxLength 180
+     * @nullable
      */
-  location: string;
+  location: string | null;
   /**
-     * @minItems 1
+     * @minItems 0
      * @maxItems 10
      */
   areas: ClinicianArea[];
