@@ -6,7 +6,7 @@ import { Button } from '@workspace/stillwell-design-system/components/ui/button'
 import { Card, CardContent } from '@workspace/stillwell-design-system/components/ui/card';
 import { useAccountType } from '@/hooks/use-clinician-account';
 import { sendPatientToDashboard } from '@/lib/config';
-import { Brand, Footer } from '@/components/portal-shell';
+import { Footer, PortalHeader } from '@/components/portal-shell';
 
 const steps = [
   ['01', 'Choose your role', 'Tell us whether you practise independently or as a clinic.'],
@@ -139,17 +139,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-[100dvh] bg-background">
-      <header className="mx-auto flex min-h-20 max-w-7xl items-center justify-between gap-2 px-4 sm:gap-4 sm:px-6">
-        <Brand />
-        <nav className="flex shrink-0 items-center gap-1 sm:gap-2">
-            <Link href="/sign-in" className="inline-flex min-h-11 shrink-0 items-center whitespace-nowrap rounded-full px-2 text-sm font-semibold text-secondary-foreground hover:bg-secondary sm:px-4" data-testid="link-home-sign-in">
-            Sign in
-          </Link>
-              <Button asChild className="shrink-0 whitespace-nowrap px-3" data-testid="button-home-create-account">
-                <Link href="/join">Create account</Link>
-              </Button>
-        </nav>
-      </header>
+      <PortalHeader />
 
       <main>
         <section className="mx-auto grid max-w-7xl items-center gap-12 px-6 pb-20 pt-12 md:grid-cols-2 md:gap-16 md:pb-28 md:pt-20">
