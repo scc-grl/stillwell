@@ -508,7 +508,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/RecoveryLogInput"
+              $ref: "#/components/schemas/RecoveryLogSaveInput"
       responses:
         "200":
           description: Saved daily log
@@ -735,6 +735,15 @@ components:
           maxLength: 2000
         dailyCheckIn:
           $ref: "#/components/schemas/DailyCheckIn"
+    RecoveryLogSaveInput:
+      allOf:
+        - $ref: "#/components/schemas/RecoveryLogInput"
+        - type: object
+          properties:
+            section:
+              type: string
+              enum: [check_in, activities]
+              description: Atomically update only this journal section, preserving fields written on another device. Omit for backwards-compatible merge.
     RecoveryStartInput:
       type: object
       additionalProperties: false

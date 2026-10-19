@@ -28,7 +28,9 @@ import {
   symptomsForRecoveryLog,
   weekDates,
   weeklyInsight,
-} from "@/lib/daily-check-in";
+  summaryLine,
+  hasSavedCheckIn,
+} from "@workspace/recovery-journal";
 import { formatDate } from "@/lib/journal";
 
 type Page = "home" | "symptoms" | "voice" | "review" | "edit" | "saved";
@@ -42,6 +44,8 @@ type Props = {
   onPersist: (log: RecoveryLogInput) => Promise<RecoveryLog>;
   onEditJournal?: () => void;
   onExit?: () => void;
+  exitLabel?: string;
+  draftMode?: boolean;
 };
 
 function responseFor(
@@ -60,15 +64,17 @@ export function DailyCheckInFlow({
   onPersist,
   onEditJournal,
   onExit,
+  exitLabel,
+  draftMode = false,
 }: Props) {
   const colors = useColors();
   const [page, setPage] = useState<Page>(startAt);
   const [log, setLog] = useState<RecoveryLogInput>(initial);
   const [checkIn, setCheckIn] = useState<DailyCheckIn>(() =>
-    initial.dailyCheckIn ?? dailyCheckInFromLog(initial),
+    dailyCheckInFromLog(initial),
   );
   const [originalCheckIn, setOriginalCheckIn] = useState<DailyCheckIn>(() =>
-    initial.dailyCheckIn ?? dailyCheckInFromLog(initial),
+    dailyCheckInFromLog(initial),
   );
   const [symptomIndex, setSymptomIndex] = useState(0);
   const [saving, setSaving] = useState(false);
@@ -140,12 +146,12 @@ export function DailyCheckInFlow({
   }
 
   const dates = weekDates(today);
-  const savedDates = new Set(logs.map((entry) => entry.date));
+  const savedDates = new Set(logs.filter(hasSavedCheckIn).map((entry) => entry.date));
   const symptom = checkInSymptoms[symptomIndex];
   const currentAnswer = symptom
     ? responseFor(checkIn, symptom.name)
     : undefined;
-  const insight = weeklyInsight(logs, today);
+  const insight = draftMode ? null : weeklyInsight(logs, today);
   const overallLabel = overallChoices.find(
     (choice) => choice.value === checkIn.overallFeeling,
   )?.label;
@@ -154,7 +160,7 @@ export function DailyCheckInFlow({
     : page === "symptoms"
       ? "Add symptoms"
             : page === "voice"
-              ? "Voice to text"
+              ? "Use voice-to-text"
         : page === "edit"
           ? "Edit your check-in"
           : page === "review"
@@ -164,13 +170,18 @@ export function DailyCheckInFlow({
   return (
     <View style={styles.container}>
       {onExit ? (
-        <Button tone="outline" onPress={leaveFlow} disabled={saving}>
-          Back
+        <Button
+          tone="outline"
+          onPress={leaveFlow}
+          disabled={saving}
+          testID="check-in-exit"
+        >
+          {exitLabel ?? "Back"}
         </Button>
       ) : null}
       <View style={styles.heading}>
         <Text variant="label">
-          {page === "saved" ? "CHECK-IN SAVED" : page === "edit" ? "EDIT CHECK-IN" : "DAILY CHECK-IN"}
+          {page === "saved" ? (draftMode ? "SUMMARY READY" : "CHECK-IN SAVED") : page === "edit" ? "EDIT CHECK-IN" : "DAILY CHECK-IN"}
         </Text>
         <Text variant="display">{heading}</Text>
         <Text variant="body">{formatDate(initial.date)}</Text>
@@ -222,7 +233,7 @@ export function DailyCheckInFlow({
           }}>
             Add symptoms
           </Button>
-          <Button tone="secondary" onPress={() => setPage("voice")}>
+          <Button tone="secondary" onPress={() => { setVoiceDraft(checkIn.summary); setPage("voice"); }}>
             Use voice-to-text
           </Button>
           {onEditJournal ? (
@@ -462,7 +473,7 @@ export function DailyCheckInFlow({
               </Button>
             ) : null}
             <Button fullWidth={false} style={styles.rowButton} onPress={() => void saveReview()} disabled={saving}>
-              {saving ? "Saving…" : "Save check-in"}
+              {saving ? "Saving…" : draftMode ? "Use this summary" : "Save check-in"}
             </Button>
           </View>
         </>
@@ -472,13 +483,11 @@ export function DailyCheckInFlow({
         <>
           <Card tone="sage">
             <Text variant="heading">
-              {checkIn.summary.trim()
-                ? checkIn.summary.trim()
-                : overallLabel
-                  ? `Today felt ${overallLabel.toLowerCase()}.`
-                  : "Your check-in is saved."}
+              {draftMode ? "Your first summary is ready to review." : summaryLine(checkIn)}
             </Text>
-            <Text variant="caption">Saved for {formatDate(initial.date)}</Text>
+            <Text variant="caption">
+              {draftMode ? "Not stored until you agree to save your starting summary." : `Saved for ${formatDate(initial.date)}`}
+            </Text>
             <View style={styles.scoreChips}>
               {overallLabel ? (
                 <View
@@ -543,7 +552,7 @@ export function DailyCheckInFlow({
           ) : null}
           {onExit ? (
             <Button tone="outline" onPress={leaveFlow}>
-              Back to history
+              {exitLabel ?? "Back to history"}
             </Button>
           ) : (
             <Button tone="outline" onPress={() => setPage("home")}>

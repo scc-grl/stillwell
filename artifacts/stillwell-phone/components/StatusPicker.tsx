@@ -3,12 +3,7 @@ import type { ActivityStatus } from "@workspace/api-client-react";
 import { Button } from "@workspace/stillwell-design-system/components/native/button";
 import { Text } from "@workspace/stillwell-design-system/components/native/text";
 import { spacing } from "@/lib/layout";
-
-const choices: ReadonlyArray<{ value: ActivityStatus; label: string }> = [
-  { value: "done", label: "Done" },
-  { value: "not_done", label: "Not done" },
-  { value: "not_planned", label: "Not planned" },
-];
+import { activityChoices as choices } from "@workspace/recovery-journal";
 
 type Props = {
   label: string;

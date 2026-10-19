@@ -3,7 +3,6 @@ import { StyleSheet, View } from "react-native";
 import type {
   ActivityStatus,
   RecoveryLogInput,
-  SymptomEntry,
 } from "@workspace/api-client-react";
 import { SaveRecoveryLogBody } from "@workspace/api-zod";
 import { Button } from "@workspace/stillwell-design-system/components/native/button";
@@ -13,8 +12,7 @@ import { Text } from "@workspace/stillwell-design-system/components/native/text"
 import { useColors } from "@workspace/stillwell-design-system/hooks/use-colors";
 import { spacing } from "@/lib/layout";
 import { Textarea } from "@workspace/stillwell-design-system/components/native/textarea";
-import { localDate, symptomChoices } from "@/lib/journal";
-import { SeverityStepper } from "@/components/SeverityStepper";
+import { localDate } from "@/lib/journal";
 import { StatusPicker } from "@/components/StatusPicker";
 
 type Props = {
@@ -32,8 +30,8 @@ export function RecoveryLogEditor({
   onSave,
   onChange,
   onCancel,
-  saveLabel = "Save this check-in",
-  title = "Daily check-in",
+  saveLabel = "Save food, movement and pacing",
+  title = "Log food, movement and pacing",
   description = "A record of your day, at your pace. This is not a treatment plan.",
 }: Props) {
   const colors = useColors();
@@ -46,22 +44,6 @@ export function RecoveryLogEditor({
     value: RecoveryLogInput[K],
   ) {
     const next = { ...log, [key]: value };
-    setLog(next);
-    onChange?.(next);
-  }
-
-  function patchSymptom(name: SymptomEntry["name"], severity: number) {
-    const next = {
-      ...log,
-      symptoms: [
-        ...log.symptoms.filter((entry) => entry.name !== name),
-        { name, severity },
-      ].sort(
-        (a, b) =>
-          symptomChoices.findIndex((item) => item.name === a.name) -
-          symptomChoices.findIndex((item) => item.name === b.name),
-      ),
-    };
     setLog(next);
     onChange?.(next);
   }
@@ -90,24 +72,6 @@ export function RecoveryLogEditor({
         <Text variant="display">{title}</Text>
         <Text variant="caption">{description}</Text>
       </View>
-
-      <Card>
-        <Text variant="heading">How are you feeling?</Text>
-        <Text variant="caption">
-          Rate only what you want to record. Leave a symptom unselected to skip
-          it.
-        </Text>
-        {symptomChoices.map((choice) => (
-          <SeverityStepper
-            key={choice.name}
-            label={choice.label}
-            value={
-              log.symptoms.find((item) => item.name === choice.name)?.severity
-            }
-            onChange={(severity) => patchSymptom(choice.name, severity)}
-          />
-        ))}
-      </Card>
 
       <Card>
         <Text variant="heading">What did you choose today?</Text>

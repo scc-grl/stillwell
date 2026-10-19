@@ -1,6 +1,6 @@
 import { Router, type IRouter, type Request } from "express";
 import { getAuth } from "@clerk/express";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { accountRoles, db, recoveryLogs, recoveryProfiles } from "@workspace/db";
 import {
   DeleteRecoveryLogParams,
@@ -12,6 +12,7 @@ import {
   UpdateRecoveryProfileResponse,
 } from "@workspace/api-zod";
 import { getClerkProxyHost } from "../middlewares/clerkProxyMiddleware";
+import { recoveryLogWrite } from "../lib/recovery-log-write";
 
 const router: IRouter = Router();
 const CONSENT_VERSION = "2026-10-08";
@@ -127,11 +128,18 @@ router.post("/recovery/logs", async (req, res): Promise<void> => {
     res.status(404).json({ error: "Complete the starting quiz first." });
     return;
   }
-  const data = parsed.data;
-  const [saved] = await db.insert(recoveryLogs).values({ ownerId, date: data.date, data })
+  if (parsed.data.section === "check_in" && !parsed.data.dailyCheckIn) {
+    res.status(400).json({ error: "Include the symptom check-in for this update." });
+    return;
+  }
+  const { initial, patch } = recoveryLogWrite(parsed.data);
+  const [saved] = await db.insert(recoveryLogs).values({ ownerId, date: initial.date, data: initial })
     .onConflictDoUpdate({
       target: [recoveryLogs.ownerId, recoveryLogs.date],
-      set: { data, updatedAt: new Date() },
+      set: {
+        data: sql`${recoveryLogs.data} || ${JSON.stringify(patch)}::jsonb`,
+        updatedAt: new Date(),
+      },
     }).returning();
   res.json(SaveRecoveryLogResponse.parse({ ...saved.data, date: saved.date, updatedAt: saved.updatedAt.toISOString() }));
 });

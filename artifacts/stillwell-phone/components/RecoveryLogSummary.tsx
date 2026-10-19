@@ -3,8 +3,8 @@ import type { RecoveryLog } from "@workspace/api-client-react";
 import { Card } from "@workspace/stillwell-design-system/components/native/card";
 import { Text } from "@workspace/stillwell-design-system/components/native/text";
 import { spacing } from "@/lib/layout";
-import { checkInSymptoms, overallChoices, ratingChoices } from "@/lib/daily-check-in";
-import { formatDate, symptomChoices } from "@/lib/journal";
+import { checkInSymptoms, overallChoices, dailyCheckInFromLog, ratingLabel } from "@workspace/recovery-journal";
+import { formatDate } from "@/lib/journal";
 
 function statusText(value: string) {
   if (value === "done") return "Done";
@@ -22,18 +22,7 @@ function Detail({ title, value }: { title: string; value: string }) {
 }
 
 export function RecoveryLogSummary({ log }: { log: RecoveryLog }) {
-  const dailyCheckIn = log.dailyCheckIn;
-  const symptomText =
-    log.symptoms.length === 0
-      ? "No symptoms were rated."
-      : log.symptoms
-          .map((symptom) => {
-            const label =
-              symptomChoices.find((choice) => choice.name === symptom.name)
-                ?.label ?? symptom.name;
-            return `${label}: ${symptom.severity}/10`;
-          })
-          .join(" · ");
+  const dailyCheckIn = dailyCheckInFromLog(log);
 
   return (
     <View style={styles.container}>
@@ -46,9 +35,7 @@ export function RecoveryLogSummary({ log }: { log: RecoveryLog }) {
             </Text>
             {dailyCheckIn.symptoms.map((answer) => {
               const label = checkInSymptoms.find((symptom) => symptom.name === answer.name)?.label ?? answer.name;
-              const value = answer.status === "recorded"
-                ? ratingChoices.find((choice) => choice.value === answer.rating)?.label
-                : "Not recorded";
+              const value = ratingLabel(answer);
               return (
                 <Text key={answer.name} variant="caption">
                   {label}: {value}
@@ -62,7 +49,7 @@ export function RecoveryLogSummary({ log }: { log: RecoveryLog }) {
         ) : (
           <>
             <Text variant="label">Symptoms</Text>
-            <Text variant="caption">{symptomText}</Text>
+            <Text variant="caption">Not recorded</Text>
           </>
         )}
       </Card>

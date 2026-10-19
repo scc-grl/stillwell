@@ -46,7 +46,7 @@ import type {
   PublicClinician,
   PublicClinicianList,
   RecoveryLog,
-  RecoveryLogInput,
+  RecoveryLogSaveInput,
   RecoveryPreferences,
   RecoveryProfile,
   RecoveryStartInput,
@@ -1954,7 +1954,7 @@ export const getSaveRecoveryLogUrl = () => {
 /**
  * @summary Create or update the signed-in person's entry for a calendar day
  */
-export const saveRecoveryLog = async (recoveryLogInput: RecoveryLogInput, options?: Parameters<typeof customFetch>[1]): Promise<RecoveryLog> => {
+export const saveRecoveryLog = async (recoveryLogSaveInput: RecoveryLogSaveInput, options?: Parameters<typeof customFetch>[1]): Promise<RecoveryLog> => {
 
     const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
     if (!h) return {};
@@ -1975,7 +1975,7 @@ return customFetch<RecoveryLog>(getSaveRecoveryLogUrl(),
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
-    body: JSON.stringify(recoveryLogInput)
+    body: JSON.stringify(recoveryLogSaveInput)
   }
 );}
 
@@ -2013,9 +2013,9 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
   return  { mutationFn, ...mutationOptions }}
 
     export type SaveRecoveryLogMutationResult = NonNullable<Awaited<ReturnType<typeof saveRecoveryLog>>>
-    export type SaveRecoveryLogMutationBody = BodyType<RecoveryLogInput>
+    export type SaveRecoveryLogMutationBody = BodyType<RecoveryLogSaveInput>
     export type SaveRecoveryLogMutationError = ErrorType<void>
-    export type SaveRecoveryLogMutationVariables = {data: BodyType<RecoveryLogInput>}
+    export type SaveRecoveryLogMutationVariables = {data: BodyType<RecoveryLogSaveInput>}
 
     /**
  * @summary Create or update the signed-in person's entry for a calendar day

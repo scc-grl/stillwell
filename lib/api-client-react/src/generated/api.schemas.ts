@@ -177,6 +177,22 @@ export interface RecoveryLogInput {
   dailyCheckIn?: DailyCheckIn;
 }
 
+/**
+ * Atomically update only this journal section, preserving fields written on another device. Omit for backwards-compatible merge.
+ */
+export type RecoveryLogSaveInputSection = typeof RecoveryLogSaveInputSection[keyof typeof RecoveryLogSaveInputSection];
+
+
+export const RecoveryLogSaveInputSection = {
+  check_in: 'check_in',
+  activities: 'activities',
+} as const;
+
+export type RecoveryLogSaveInput = RecoveryLogInput & {
+  /** Atomically update only this journal section, preserving fields written on another device. Omit for backwards-compatible merge. */
+  section?: RecoveryLogSaveInputSection;
+};
+
 export interface RecoveryStartInput {
   preferences: RecoveryPreferences;
   consentAccepted: true;

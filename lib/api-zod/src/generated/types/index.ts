@@ -59,6 +59,8 @@ export * from './publicClinician';
 export * from './publicClinicianList';
 export * from './recoveryLog';
 export * from './recoveryLogInput';
+export * from './recoveryLogSaveInput';
+export * from './recoveryLogSaveInputSection';
 export * from './recoveryPreferences';
 export * from './recoveryPreferencesPrioritiesItem';
 export * from './recoveryPreferencesSupportMode';

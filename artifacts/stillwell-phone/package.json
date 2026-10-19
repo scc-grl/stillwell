@@ -54,6 +54,7 @@
     "zod-validation-error": "^3.4.0"
   },
   "dependencies": {
+    "@workspace/recovery-journal": "workspace:*",
     "@clerk/expo": "^4.10.1",
     "@expo-google-fonts/dm-sans": "^0.4.2",
     "@expo-google-fonts/fraunces": "^0.4.1",

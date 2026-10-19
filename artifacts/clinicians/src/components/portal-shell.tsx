@@ -71,7 +71,6 @@ export function PortalHeader({
   const navigation = [
     { label: 'For people in recovery', href: '/', external: true },
     { label: 'Resources', href: '/faqs', external: true },
-    { label: 'Find your clinician (planned)', href: '/find-your-clinician', external: true },
     { label: 'For clinicians', href: '/', external: false },
   ];
 

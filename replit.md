@@ -46,6 +46,10 @@ _Populate as you build — non-obvious choices a reader couldn't infer from the 
 
 ## Product
 
+The phone journal flow is the standard for both web and mobile: the same starting setup, six-symptom four-step check-in, separate food/movement/pacing log, routines, and history. Shared journal definitions and legacy-score conversion live in `lib/recovery-journal`; do not duplicate scales or weekly-pattern logic in an app.
+
+Daily entry saves are section-specific (`check_in` or `activities`) and atomically merge into the latest saved day so edits on one device preserve the other section. Skipped symptoms are not recorded, never inferred. Voice-to-text uses the device's keyboard/browser dictation; Stillwell does not record audio.
+
 Public landing → starting quiz → explicit storage consent → email-based account creation → first saved summary and private daily journal. Users can edit routine priorities, log symptoms and food/movement/meditation/pacing, edit or delete individual days, and delete all recovery data without deleting their sign-in account.
 
 ## Health-data safety

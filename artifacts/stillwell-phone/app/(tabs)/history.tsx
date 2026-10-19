@@ -34,9 +34,9 @@ export default function HistoryScreen() {
   const entries =
     recovery?.logs.filter((log) => log.date < localDate()) ?? [];
 
-  async function persistPastDay(log: Parameters<typeof saveLog.mutateAsync>[0]["data"]) {
+  async function persistPastDay(log: Parameters<typeof saveLog.mutateAsync>[0]["data"], section: "check_in" | "activities" = "check_in") {
     if (!userId) throw new Error("A signed-in patient account is required.");
-    const saved = await saveLog.mutateAsync({ data: log });
+    const saved = await saveLog.mutateAsync({ data: { ...log, section } });
     queryClient.setQueryData(
       recoveryQueryKey(userId),
       (current: typeof recovery) => upsertLog(current, saved),
@@ -45,8 +45,8 @@ export default function HistoryScreen() {
     return saved;
   }
 
-  async function savePastDay(log: Parameters<typeof saveLog.mutateAsync>[0]["data"]) {
-    const saved = await persistPastDay(log);
+  async function savePastDay(log: Parameters<typeof saveLog.mutateAsync>[0]["data"], section: "check_in" | "activities" = "check_in") {
+    const saved = await persistPastDay(log, section);
     setEditing(false);
     return saved;
   }
@@ -110,7 +110,7 @@ export default function HistoryScreen() {
             key={`${selected.date}-details`}
             initial={selected}
             onSave={async (log) => {
-              await savePastDay(log);
+              await savePastDay(log, "activities");
             }}
             onCancel={() => {
               setEditingDetails(false);

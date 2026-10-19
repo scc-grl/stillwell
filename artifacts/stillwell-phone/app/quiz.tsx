@@ -18,6 +18,8 @@ import { useColors } from "@workspace/stillwell-design-system/hooks/use-colors";
 import { usePatientData } from "@/contexts/PatientDataContext";
 import { spacing } from "@/lib/layout";
 import { RecoveryLogEditor } from "@/components/RecoveryLogEditor";
+import { DailyCheckInFlow } from "@/components/DailyCheckInFlow";
+import { setupCopy, supportModes, localDate } from "@workspace/recovery-journal";
 import { SafetyNotice } from "@/components/SafetyNotice";
 import { Screen } from "@/components/Screen";
 import {
@@ -31,23 +33,6 @@ import {
   emptyLog,
   priorityChoices,
 } from "@/lib/journal";
-
-const supportModes: ReadonlyArray<{
-  value: RecoveryPreferences["supportMode"];
-  title: string;
-  detail: string;
-}> = [
-  {
-    value: "self_guided",
-    title: "Self-guided",
-    detail: "I am keeping this journal for myself.",
-  },
-  {
-    value: "clinician_supported",
-    title: "With clinician support",
-    detail: "I may review the journal with a clinician.",
-  },
-];
 
 export default function StartingQuizScreen() {
   const router = useRouter();
@@ -73,6 +58,7 @@ export default function StartingQuizScreen() {
   const [firstLog, setFirstLog] =
     useState<RecoveryLogInput>(() => emptyLog());
   const [consentAccepted, setConsentAccepted] = useState(false);
+  const [editingActivities, setEditingActivities] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [handoffError, setHandoffError] = useState(false);
@@ -285,24 +271,32 @@ export default function StartingQuizScreen() {
 
   return (
     <Screen>
-      <Text variant="display">A starting point</Text>
-      <Text variant="body">
-        This short check-in is a place to record what you notice and which
-        routines you want to keep track of. There are no right answers.
-      </Text>
+      <Text variant="display">{setupCopy.title}</Text>
+      <Text variant="body">{setupCopy.intro}</Text>
 
       <Card>
-        <Text variant="heading">How are you feeling today?</Text>
-        <Text variant="caption">
-          Select a number from 0 (none) to 10 (most intense), or leave a
-          symptom unselected to skip it.
-        </Text>
-        <RecoveryLogEditor
-          initial={firstLog}
-          onChange={setFirstLog}
-          title="Your first daily summary"
-          description="Rate symptoms and record food, movement, meditation, and pacing from today. No routine is prescribed."
-        />
+        <Text variant="heading">Your first daily summary</Text>
+        {editingActivities ? (
+          <>
+            <RecoveryLogEditor initial={firstLog} onChange={setFirstLog} />
+            <Button tone="outline" onPress={() => setEditingActivities(false)}>
+              Back to your first summary
+            </Button>
+          </>
+        ) : (
+          <DailyCheckInFlow
+            initial={firstLog}
+            logs={[]}
+            today={localDate()}
+            startAt={firstLog.dailyCheckIn ? "saved" : "home"}
+            draftMode
+            onPersist={async (next) => {
+              setFirstLog(next);
+              return { ...next, updatedAt: new Date().toISOString() };
+            }}
+            onEditJournal={() => setEditingActivities(true)}
+          />
+        )}
       </Card>
 
       <Card tone="sage">
@@ -339,8 +333,8 @@ export default function StartingQuizScreen() {
       <Card>
         <Checkbox
           checked={consentAccepted}
-          label="I agree to store these setup answers and my first daily summary in my private journal."
-          detail="The journal is linked to your account. You can delete your recovery data from the app settings."
+          label={setupCopy.consent}
+          detail={setupCopy.consentDetail}
           onPress={() => setConsentAccepted((current) => !current)}
           testID="storage-consent"
         />

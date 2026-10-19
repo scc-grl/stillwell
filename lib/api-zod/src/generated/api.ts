@@ -712,54 +712,56 @@ export const UpdateRecoveryProfileResponse = zod.object({
 /**
  * @summary Create or update the signed-in person's entry for a calendar day
  */
-export const saveRecoveryLogBodyDateRegExp = new RegExp('^\\d{4}-\\d{2}-\\d{2}$');
-export const saveRecoveryLogBodySymptomsItemSeverityMin = 0;
-export const saveRecoveryLogBodySymptomsItemSeverityMax = 10;
+export const saveRecoveryLogBodyOneDateRegExp = new RegExp('^\\d{4}-\\d{2}-\\d{2}$');
+export const saveRecoveryLogBodyOneSymptomsItemSeverityMin = 0;
+export const saveRecoveryLogBodyOneSymptomsItemSeverityMax = 10;
 
-export const saveRecoveryLogBodySymptomsMax = 7;
+export const saveRecoveryLogBodyOneSymptomsMax = 7;
 
-export const saveRecoveryLogBodyDietNoteMax = 2000;
+export const saveRecoveryLogBodyOneDietNoteMax = 2000;
 
-export const saveRecoveryLogBodyExerciseNoteMax = 2000;
+export const saveRecoveryLogBodyOneExerciseNoteMax = 2000;
 
-export const saveRecoveryLogBodyMeditationMinutesMin = 0;
-export const saveRecoveryLogBodyMeditationMinutesMax = 240;
+export const saveRecoveryLogBodyOneMeditationMinutesMin = 0;
+export const saveRecoveryLogBodyOneMeditationMinutesMax = 240;
 
-export const saveRecoveryLogBodyMeditationNoteMax = 2000;
+export const saveRecoveryLogBodyOneMeditationNoteMax = 2000;
 
-export const saveRecoveryLogBodyNoteMax = 2000;
+export const saveRecoveryLogBodyOneNoteMax = 2000;
 
-export const saveRecoveryLogBodyDailyCheckInSymptomsMin = 6;
-export const saveRecoveryLogBodyDailyCheckInSymptomsMax = 6;
+export const saveRecoveryLogBodyOneDailyCheckInSymptomsMin = 6;
+export const saveRecoveryLogBodyOneDailyCheckInSymptomsMax = 6;
 
-export const saveRecoveryLogBodyDailyCheckInSummaryMax = 500;
+export const saveRecoveryLogBodyOneDailyCheckInSummaryMax = 500;
 
 
 
 export const SaveRecoveryLogBody = zod.object({
-  "date": zod.string().regex(saveRecoveryLogBodyDateRegExp),
+  "date": zod.string().regex(saveRecoveryLogBodyOneDateRegExp),
   "symptoms": zod.array(zod.object({
   "name": zod.enum(['headache', 'dizziness', 'focus', 'fatigue', 'sleep', 'light_sound', 'mood']),
-  "severity": zod.number().int().min(saveRecoveryLogBodySymptomsItemSeverityMin).max(saveRecoveryLogBodySymptomsItemSeverityMax)
-})).max(saveRecoveryLogBodySymptomsMax),
+  "severity": zod.number().int().min(saveRecoveryLogBodyOneSymptomsItemSeverityMin).max(saveRecoveryLogBodyOneSymptomsItemSeverityMax)
+})).max(saveRecoveryLogBodyOneSymptomsMax),
   "dietStatus": zod.enum(['done', 'not_done', 'not_planned']),
-  "dietNote": zod.string().max(saveRecoveryLogBodyDietNoteMax),
+  "dietNote": zod.string().max(saveRecoveryLogBodyOneDietNoteMax),
   "exerciseStatus": zod.enum(['done', 'not_done', 'not_planned']),
-  "exerciseNote": zod.string().max(saveRecoveryLogBodyExerciseNoteMax),
+  "exerciseNote": zod.string().max(saveRecoveryLogBodyOneExerciseNoteMax),
   "meditationStatus": zod.enum(['done', 'not_done', 'not_planned']),
-  "meditationMinutes": zod.number().int().min(saveRecoveryLogBodyMeditationMinutesMin).max(saveRecoveryLogBodyMeditationMinutesMax),
-  "meditationNote": zod.string().max(saveRecoveryLogBodyMeditationNoteMax),
-  "note": zod.string().max(saveRecoveryLogBodyNoteMax),
+  "meditationMinutes": zod.number().int().min(saveRecoveryLogBodyOneMeditationMinutesMin).max(saveRecoveryLogBodyOneMeditationMinutesMax),
+  "meditationNote": zod.string().max(saveRecoveryLogBodyOneMeditationNoteMax),
+  "note": zod.string().max(saveRecoveryLogBodyOneNoteMax),
   "dailyCheckIn": zod.object({
   "overallFeeling": zod.enum(['rough', 'low', 'okay', 'good', 'great']).nullable(),
   "symptoms": zod.array(zod.object({
   "name": zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light']),
   "status": zod.enum(['recorded', 'not_recorded']),
   "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3)]).nullable()
-})).min(saveRecoveryLogBodyDailyCheckInSymptomsMin).max(saveRecoveryLogBodyDailyCheckInSymptomsMax),
-  "summary": zod.string().max(saveRecoveryLogBodyDailyCheckInSummaryMax)
+})).min(saveRecoveryLogBodyOneDailyCheckInSymptomsMin).max(saveRecoveryLogBodyOneDailyCheckInSymptomsMax),
+  "summary": zod.string().max(saveRecoveryLogBodyOneDailyCheckInSummaryMax)
 }).optional()
-})
+}).and(zod.object({
+  "section": zod.enum(['check_in', 'activities']).optional().describe('Atomically update only this journal section, preserving fields written on another device. Omit for backwards-compatible merge.')
+}))
 
 export const saveRecoveryLogResponseOneDateRegExp = new RegExp('^\\d{4}-\\d{2}-\\d{2}$');
 export const saveRecoveryLogResponseOneSymptomsItemSeverityMin = 0;
