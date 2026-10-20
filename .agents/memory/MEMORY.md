@@ -6,5 +6,6 @@
 - [Artifact rename lifecycle](artifact-rename-lifecycle.md) — removing a managed workflow during a folder move may leave its server listening; stop it before renaming.
 - [Newsletter data privacy](newsletter-data-privacy.md) — never send newsletter email addresses to Stillwell analytics or application/request logs.
 - [Expo DevTools on Nix](expo-devtools-nix.md) — Metro can serve Expo Go even if optional React Native DevTools cannot load libglib.
+- [Expo static-build port isolation](expo-static-build-ports.md) — static phone builds must use a free Metro port and preserve the live preview's shared cache.
 - [Expo preview auth testing](expo-preview-auth-testing.md) — a successful Clerk test login on the root host does not prove the separate Expo preview is signed in.
 - [Codegen and preview watchers](codegen-preview-watchers.md) — shared API regeneration can leave Metro with stale missing-module or SHA-1 errors; restart affected previews after generation finishes.
