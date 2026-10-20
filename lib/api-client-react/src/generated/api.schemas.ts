@@ -516,7 +516,7 @@ export interface ClinicianProfileInput {
   areas: ClinicianArea[];
   listInDirectory: boolean;
   openToNewPatients: boolean;
-  termsAccepted: true;
+  termsAccepted?: boolean;
 }
 
 export type ClinicianProfileVerificationStatus = typeof ClinicianProfileVerificationStatus[keyof typeof ClinicianProfileVerificationStatus];
@@ -553,7 +553,8 @@ export interface ClinicianProfile {
   openToNewPatients: boolean;
   verificationStatus: ClinicianProfileVerificationStatus;
   connectCode: string;
-  termsAcceptedAt: string;
+  /** @nullable */
+  termsAcceptedAt: string | null;
   updatedAt: string;
 }
 
@@ -598,7 +599,8 @@ export interface AdminClinician {
   openToNewPatients: boolean;
   verificationStatus: AdminClinicianVerificationStatus;
   connectCode: string;
-  termsAcceptedAt: string;
+  /** @nullable */
+  termsAcceptedAt: string | null;
   updatedAt: string;
 }
 

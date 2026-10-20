@@ -125,7 +125,7 @@ export const GetClinicianProfileResponse = zod.object({
   "openToNewPatients": zod.boolean(),
   "verificationStatus": zod.enum(['pending', 'verified']),
   "connectCode": zod.string(),
-  "termsAcceptedAt": zod.coerce.date(),
+  "termsAcceptedAt": zod.coerce.date().nullable(),
   "updatedAt": zod.coerce.date()
 }),zod.null()])
 })
@@ -172,7 +172,7 @@ export const SaveClinicianProfileBody = zod.object({
   "areas": zod.array(zod.enum(['Headaches', 'Neck & headaches', 'Dizziness & balance', 'Vision', 'Sleep', 'Mood & anxiety', 'Concentration & memory', 'Return to sport', 'Return to school', 'Return to work'])).min(saveClinicianProfileBodyAreasMin).max(saveClinicianProfileBodyAreasMax),
   "listInDirectory": zod.boolean(),
   "openToNewPatients": zod.boolean(),
-  "termsAccepted": zod.literal(true)
+  "termsAccepted": zod.boolean().optional()
 })
 
 export const SaveClinicianProfileResponse = zod.object({
@@ -194,7 +194,7 @@ export const SaveClinicianProfileResponse = zod.object({
   "openToNewPatients": zod.boolean(),
   "verificationStatus": zod.enum(['pending', 'verified']),
   "connectCode": zod.string(),
-  "termsAcceptedAt": zod.coerce.date(),
+  "termsAcceptedAt": zod.coerce.date().nullable(),
   "updatedAt": zod.coerce.date()
 })
 
@@ -464,7 +464,7 @@ export const ListClinicianProfilesForAdminResponse = zod.object({
   "openToNewPatients": zod.boolean(),
   "verificationStatus": zod.enum(['pending', 'verified']),
   "connectCode": zod.string(),
-  "termsAcceptedAt": zod.coerce.date(),
+  "termsAcceptedAt": zod.coerce.date().nullable(),
   "updatedAt": zod.coerce.date()
 }))
 })

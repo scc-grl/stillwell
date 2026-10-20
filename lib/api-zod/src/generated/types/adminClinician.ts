@@ -26,6 +26,7 @@ export interface AdminClinician {
   openToNewPatients: boolean;
   verificationStatus: AdminClinicianVerificationStatus;
   connectCode: string;
-  termsAcceptedAt: Date;
+  /** @nullable */
+  termsAcceptedAt: Date | null;
   updatedAt: Date;
 }

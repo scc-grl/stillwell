@@ -42,7 +42,7 @@ export const clinicianProfiles = pgTable("clinician_profiles", {
     .default("pending"),
   inviteCode: text("invite_code"),
   connectCode: text("connect_code").notNull().unique(),
-  termsAcceptedAt: timestamp("terms_accepted_at", { withTimezone: true }).notNull(),
+  termsAcceptedAt: timestamp("terms_accepted_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true })
     .notNull()

@@ -1126,7 +1126,6 @@ components:
         - areas
         - listInDirectory
         - openToNewPatients
-        - termsAccepted
       properties:
         firstName:
           type: string
@@ -1175,7 +1174,6 @@ components:
           type: boolean
         termsAccepted:
           type: boolean
-          enum: [true]
     ClinicianProfile:
       type: object
       additionalProperties: false
@@ -1244,7 +1242,7 @@ components:
         connectCode:
           type: string
         termsAcceptedAt:
-          type: string
+          type: ["string", "null"]
           format: date-time
         updatedAt:
           type: string
@@ -1344,7 +1342,7 @@ components:
         connectCode:
           type: string
         termsAcceptedAt:
-          type: string
+          type: ["string", "null"]
           format: date-time
         updatedAt:
           type: string

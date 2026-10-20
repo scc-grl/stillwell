@@ -157,7 +157,7 @@ function serializedProfile(profile: typeof clinicianProfiles.$inferSelect) {
     lastName: profile.lastName ?? nameParts.slice(1).join(" "),
     practiceType: profile.practiceType === "clinic" ? "clinic" : "individual",
     website: profile.website ?? null,
-    termsAcceptedAt: profile.termsAcceptedAt.toISOString(),
+    termsAcceptedAt: profile.termsAcceptedAt?.toISOString() ?? null,
     updatedAt: profile.updatedAt.toISOString(),
   };
 }
@@ -272,8 +272,8 @@ router.put("/clinician/profile", async (req, res): Promise<void> => {
   }
 
   const parsed = SaveClinicianProfileBody.safeParse(req.body);
-  if (!parsed.success || parsed.data.termsAccepted !== true) {
-    res.status(400).json({ error: "Complete the profile and accept the clinician terms to continue." });
+  if (!parsed.success) {
+    res.status(400).json({ error: "Complete the profile to continue." });
     return;
   }
 
@@ -327,7 +327,7 @@ router.put("/clinician/profile", async (req, res): Promise<void> => {
     openToNewPatients: input.openToNewPatients,
     verificationStatus,
     connectCode,
-    termsAcceptedAt: new Date(),
+    termsAcceptedAt: existing?.termsAcceptedAt ?? (input.termsAccepted === true ? new Date() : null),
     updatedAt: new Date(),
   }).onConflictDoUpdate({
     target: clinicianProfiles.userId,
@@ -348,7 +348,7 @@ router.put("/clinician/profile", async (req, res): Promise<void> => {
       listInDirectory: input.listInDirectory,
       openToNewPatients: input.openToNewPatients,
       verificationStatus,
-      termsAcceptedAt: new Date(),
+      termsAcceptedAt: existing?.termsAcceptedAt ?? (input.termsAccepted === true ? new Date() : null),
       updatedAt: new Date(),
     },
   }).returning();
@@ -732,7 +732,7 @@ router.get("/admin/clinicians", async (req, res): Promise<void> => {
       openToNewPatients: profile.openToNewPatients,
       verificationStatus: profile.verificationStatus,
       connectCode: profile.connectCode,
-      termsAcceptedAt: profile.termsAcceptedAt.toISOString(),
+      termsAcceptedAt: profile.termsAcceptedAt?.toISOString() ?? null,
       updatedAt: profile.updatedAt.toISOString(),
     };
   }));

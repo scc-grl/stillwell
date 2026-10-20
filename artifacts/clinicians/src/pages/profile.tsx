@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
-import { ArrowLeft, ArrowRight, Check, CircleHelp, MapPin, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, CircleHelp, MapPin } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import type {
   ClinicianArea,
@@ -9,7 +9,6 @@ import type {
 } from '@workspace/api-client-react';
 import { Button } from '@workspace/stillwell-design-system/components/ui/button';
 import { Card, CardContent } from '@workspace/stillwell-design-system/components/ui/card';
-import { Checkbox } from '@workspace/stillwell-design-system/components/ui/checkbox';
 import { Input } from '@workspace/stillwell-design-system/components/ui/input';
 import { Textarea } from '@workspace/stillwell-design-system/components/ui/textarea';
 import { cn } from '@workspace/stillwell-design-system/lib/utils';
@@ -122,7 +121,6 @@ export default function ProfilePage() {
         ? 'clinic'
         : 'individual',
   }));
-  const [termsAccepted, setTermsAccepted] = useState(false);
   const [formError, setFormError] = useState('');
 
   useEffect(() => {
@@ -150,7 +148,6 @@ export default function ProfilePage() {
           listInDirectory: profile.listInDirectory ?? false,
           openToNewPatients: profile.openToNewPatients ?? false,
         });
-        setTermsAccepted(true);
       }
     }
   }, [account.data?.accountType, profileQuery.data, profileQuery.isLoading]);
@@ -163,10 +160,6 @@ export default function ProfilePage() {
     setFormError('');
     if (!form.firstName.trim() || !form.lastName.trim()) {
       setFormError('Please add your first and last name to continue.');
-      return;
-    }
-    if (!termsAccepted) {
-      setFormError('Please review and accept the clinician account terms to save your profile.');
       return;
     }
 
@@ -185,7 +178,6 @@ export default function ProfilePage() {
       areas: form.areas,
       listInDirectory: form.listInDirectory,
       openToNewPatients: form.openToNewPatients,
-      termsAccepted: true,
     };
     save.mutate(
       { data },
@@ -354,72 +346,6 @@ export default function ProfilePage() {
                   );
                 })}
               </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border shadow-none">
-            <CardContent className="p-6 md:p-8">
-              <h2 className="font-serif text-2xl text-foreground">Preferences for later</h2>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                These preferences are private only. Saving them does not publish
-                your profile, create a directory listing, or enable patient
-                invitations.
-              </p>
-              <div className="mt-4 space-y-2">
-                {[
-                  ['listInDirectory', 'I may be interested in being listed in a directory in the future.'],
-                  ['openToNewPatients', 'I may be open to new patients in the future.'],
-                ].map(([key, label], index) => (
-                  <div
-                    key={key}
-                    className="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl px-2 py-2 text-sm leading-6 text-foreground hover:bg-secondary/50"
-                    onClick={(event) => {
-                      if ((event.target as HTMLElement).closest('[role="checkbox"]')) return;
-                      const preference = key as 'listInDirectory' | 'openToNewPatients';
-                      update(preference, !form[preference]);
-                    }}
-                    data-testid={`row-private-preference-${index}`}
-                  >
-                    <Checkbox
-                      checked={form[key as 'listInDirectory' | 'openToNewPatients']}
-                      onCheckedChange={(checked) => update(key as 'listInDirectory' | 'openToNewPatients', Boolean(checked))}
-                      aria-label={label}
-                      data-testid={`checkbox-private-preference-${index}`}
-                    />
-                    <span>{label}</span>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border bg-secondary/60 shadow-none">
-            <CardContent className="p-6 md:p-8">
-              <div
-                className="flex min-h-12 cursor-pointer items-start gap-3 text-sm leading-6 text-foreground"
-                onClick={(event) => {
-                  if ((event.target as HTMLElement).closest('[role="checkbox"], a')) return;
-                  setTermsAccepted((accepted) => !accepted);
-                }}
-              >
-                <Checkbox
-                  checked={termsAccepted}
-                  onCheckedChange={(checked) => setTermsAccepted(Boolean(checked))}
-                  aria-label="I understand this saves only my private professional profile, with no access to patient journals, and I accept the clinician terms and privacy notice"
-                  data-testid="checkbox-profile-terms"
-                />
-                <div>
-                  <p>I understand this saves only my private professional profile and does not give me access to patient journals. I accept the clinician account terms and have read the privacy notice.</p>
-                  <div className="mt-1 flex flex-wrap gap-3">
-                    <Link href="/terms" className="inline-flex min-h-11 items-center font-semibold underline underline-offset-2" data-testid="link-profile-terms">Clinician terms</Link>
-                    <Link href="/privacy" className="inline-flex min-h-11 items-center font-semibold underline underline-offset-2" data-testid="link-profile-privacy">Privacy notice</Link>
-                  </div>
-                </div>
-              </div>
-              <p className="mt-3 flex items-start gap-2 text-xs leading-5 text-muted-foreground">
-                <ShieldCheck className="mt-0.5 shrink-0" size={15} aria-hidden="true" />
-                Your account is for professional setup only. No patient journals are connected.
-              </p>
             </CardContent>
           </Card>
 

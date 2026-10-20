@@ -7,3 +7,4 @@
 - [Newsletter data privacy](newsletter-data-privacy.md) — never send newsletter email addresses to Stillwell analytics or application/request logs.
 - [Expo DevTools on Nix](expo-devtools-nix.md) — Metro can serve Expo Go even if optional React Native DevTools cannot load libglib.
 - [Expo preview auth testing](expo-preview-auth-testing.md) — a successful Clerk test login on the root host does not prove the separate Expo preview is signed in.
+- [Codegen and preview watchers](codegen-preview-watchers.md) — shared API regeneration can leave Metro with stale missing-module or SHA-1 errors; restart affected previews after generation finishes.

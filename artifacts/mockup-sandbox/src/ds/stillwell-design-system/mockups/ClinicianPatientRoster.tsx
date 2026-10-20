@@ -176,21 +176,6 @@ export function ClinicianPatientRoster() {
         <h1 className="font-serif text-3xl font-medium leading-tight tracking-tight sm:text-4xl">Patient journeys</h1>
       </section>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Card>
-          <CardContent className="space-y-1 pt-5">
-            <p className="text-sm text-muted-foreground">New to this workspace</p>
-            <p className="font-serif text-2xl font-medium">{demoPatients.filter(({ status }) => status === "New").length} people</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="space-y-1 pt-5">
-            <p className="text-sm text-muted-foreground">Already in this workspace</p>
-            <p className="font-serif text-2xl font-medium">{demoPatients.filter(({ status }) => status === "Existing").length} people</p>
-          </CardContent>
-        </Card>
-      </div>
-
       <Card>
         <CardHeader>
           <CardTitle>People</CardTitle>

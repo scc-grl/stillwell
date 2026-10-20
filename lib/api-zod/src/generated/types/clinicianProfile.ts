@@ -36,6 +36,7 @@ export interface ClinicianProfile {
   openToNewPatients: boolean;
   verificationStatus: ClinicianProfileVerificationStatus;
   connectCode: string;
-  termsAcceptedAt: Date;
+  /** @nullable */
+  termsAcceptedAt: Date | null;
   updatedAt: Date;
 }

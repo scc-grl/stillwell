@@ -58,5 +58,5 @@ export interface ClinicianProfileInput {
   areas: ClinicianArea[];
   listInDirectory: boolean;
   openToNewPatients: boolean;
-  termsAccepted: true;
+  termsAccepted?: boolean;
 }
