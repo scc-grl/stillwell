@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useAuth } from '@clerk/react';
 import { ArrowUpRight, Menu, X } from 'lucide-react';
 import { Link } from 'wouter';
 import { Button } from '@workspace/stillwell-design-system/components/ui/button';
@@ -56,6 +57,7 @@ export function PortalHeader({
 }: {
   dashboard?: boolean;
 }) {
+  const { isSignedIn } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const closeMenu = () => setMenuOpen(false);
   const navigation = [
@@ -68,19 +70,21 @@ export function PortalHeader({
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 shadow-sm backdrop-blur-sm">
       <div className="mx-auto flex max-w-[1240px] items-center justify-between px-5 py-3 sm:px-8 lg:px-12 lg:py-4">
         <Brand />
-        <nav className="hidden items-center gap-6 text-[12px] font-medium text-muted-foreground lg:flex" aria-label="Main navigation">
-          {navigation.map(({ label, href, external }) => (
-            external ? (
-              <a key={label} href={href} data-testid={`link-clinician-nav-${label.toLowerCase().replaceAll(' ', '-')}`}>
-                {label}
-              </a>
-            ) : (
-              <Link key={label} href={href} data-testid="link-clinician-nav-home">
-                {label}
-              </Link>
-            )
-          ))}
-        </nav>
+        {!isSignedIn && (
+          <nav className="hidden items-center gap-6 text-[12px] font-medium text-muted-foreground lg:flex" aria-label="Main navigation">
+            {navigation.map(({ label, href, external }) => (
+              external ? (
+                <a key={label} href={href} data-testid={`link-clinician-nav-${label.toLowerCase().replaceAll(' ', '-')}`}>
+                  {label}
+                </a>
+              ) : (
+                <Link key={label} href={href} data-testid="link-clinician-nav-home">
+                  {label}
+                </Link>
+              )
+            ))}
+          </nav>
+        )}
         <div className="hidden items-center gap-3 lg:flex">
           {dashboard ? (
             <Link
@@ -127,7 +131,7 @@ export function PortalHeader({
           className="grid gap-1 border-t border-border bg-background px-5 py-3 lg:hidden"
           aria-label="Mobile navigation"
         >
-          {navigation.map(({ label, href, external }) => (
+          {!isSignedIn && navigation.map(({ label, href, external }) => (
             external ? (
               <a
                 key={label}
