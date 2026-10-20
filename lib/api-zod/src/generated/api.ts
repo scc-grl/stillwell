@@ -491,6 +491,7 @@ export const UpdateClinicianVerificationResponse = zod.object({
 /**
  * @summary Get the signed-in person's recovery profile and daily logs
  */
+export const getRecoveryResponseProfileOneOnePrioritiesMin = 0;
 export const getRecoveryResponseProfileOneOnePrioritiesMax = 4;
 
 export const getRecoveryResponseLogsItemOneDateRegExp = new RegExp('^\\d{4}-\\d{2}-\\d{2}$');
@@ -520,7 +521,7 @@ export const getRecoveryResponseLogsItemOneDailyCheckInSummaryMax = 500;
 export const GetRecoveryResponse = zod.object({
   "profile": zod.union([zod.object({
   "supportMode": zod.enum(['self_guided', 'clinician_supported']),
-  "priorities": zod.array(zod.enum(['food_hydration', 'movement', 'meditation', 'pacing'])).min(1).max(getRecoveryResponseProfileOneOnePrioritiesMax)
+  "priorities": zod.array(zod.enum(['food_hydration', 'movement', 'meditation', 'pacing'])).min(getRecoveryResponseProfileOneOnePrioritiesMin).max(getRecoveryResponseProfileOneOnePrioritiesMax)
 }).and(zod.object({
   "consentVersion": zod.string(),
   "consentedAt": zod.coerce.date()
@@ -563,6 +564,7 @@ export const DeleteRecoveryResponse = zod.void()
 /**
  * @summary Save consent, quiz preferences, and first daily log atomically
  */
+export const startRecoveryBodyPreferencesPrioritiesMin = 0;
 export const startRecoveryBodyPreferencesPrioritiesMax = 4;
 
 export const startRecoveryBodyFirstLogDateRegExp = new RegExp('^\\d{4}-\\d{2}-\\d{2}$');
@@ -592,7 +594,7 @@ export const startRecoveryBodyFirstLogDailyCheckInSummaryMax = 500;
 export const StartRecoveryBody = zod.object({
   "preferences": zod.object({
   "supportMode": zod.enum(['self_guided', 'clinician_supported']),
-  "priorities": zod.array(zod.enum(['food_hydration', 'movement', 'meditation', 'pacing'])).min(1).max(startRecoveryBodyPreferencesPrioritiesMax)
+  "priorities": zod.array(zod.enum(['food_hydration', 'movement', 'meditation', 'pacing'])).min(startRecoveryBodyPreferencesPrioritiesMin).max(startRecoveryBodyPreferencesPrioritiesMax)
 }),
   "consentAccepted": zod.literal(true),
   "firstLog": zod.object({
@@ -621,6 +623,7 @@ export const StartRecoveryBody = zod.object({
 })
 })
 
+export const startRecoveryResponseProfileOneOnePrioritiesMin = 0;
 export const startRecoveryResponseProfileOneOnePrioritiesMax = 4;
 
 export const startRecoveryResponseLogsItemOneDateRegExp = new RegExp('^\\d{4}-\\d{2}-\\d{2}$');
@@ -650,7 +653,7 @@ export const startRecoveryResponseLogsItemOneDailyCheckInSummaryMax = 500;
 export const StartRecoveryResponse = zod.object({
   "profile": zod.union([zod.object({
   "supportMode": zod.enum(['self_guided', 'clinician_supported']),
-  "priorities": zod.array(zod.enum(['food_hydration', 'movement', 'meditation', 'pacing'])).min(1).max(startRecoveryResponseProfileOneOnePrioritiesMax)
+  "priorities": zod.array(zod.enum(['food_hydration', 'movement', 'meditation', 'pacing'])).min(startRecoveryResponseProfileOneOnePrioritiesMin).max(startRecoveryResponseProfileOneOnePrioritiesMax)
 }).and(zod.object({
   "consentVersion": zod.string(),
   "consentedAt": zod.coerce.date()
@@ -687,22 +690,24 @@ export const StartRecoveryResponse = zod.object({
 /**
  * @summary Update personal routine priorities and support mode
  */
+export const updateRecoveryProfileBodyPrioritiesMin = 0;
 export const updateRecoveryProfileBodyPrioritiesMax = 4;
 
 
 
 export const UpdateRecoveryProfileBody = zod.object({
   "supportMode": zod.enum(['self_guided', 'clinician_supported']),
-  "priorities": zod.array(zod.enum(['food_hydration', 'movement', 'meditation', 'pacing'])).min(1).max(updateRecoveryProfileBodyPrioritiesMax)
+  "priorities": zod.array(zod.enum(['food_hydration', 'movement', 'meditation', 'pacing'])).min(updateRecoveryProfileBodyPrioritiesMin).max(updateRecoveryProfileBodyPrioritiesMax)
 })
 
+export const updateRecoveryProfileResponseOnePrioritiesMin = 0;
 export const updateRecoveryProfileResponseOnePrioritiesMax = 4;
 
 
 
 export const UpdateRecoveryProfileResponse = zod.object({
   "supportMode": zod.enum(['self_guided', 'clinician_supported']),
-  "priorities": zod.array(zod.enum(['food_hydration', 'movement', 'meditation', 'pacing'])).min(1).max(updateRecoveryProfileResponseOnePrioritiesMax)
+  "priorities": zod.array(zod.enum(['food_hydration', 'movement', 'meditation', 'pacing'])).min(updateRecoveryProfileResponseOnePrioritiesMin).max(updateRecoveryProfileResponseOnePrioritiesMax)
 }).and(zod.object({
   "consentVersion": zod.string(),
   "consentedAt": zod.coerce.date()

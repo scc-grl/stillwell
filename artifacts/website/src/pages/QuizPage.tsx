@@ -9,13 +9,12 @@ import { ShieldCheck } from "lucide-react";
 import { ActivitiesEditor } from "@/components/ActivitiesEditor";
 import { DailyCheckInFlow } from "@/components/DailyCheckInFlow";
 import { clearDraft, emptyLog, writeDraft } from "@/lib/recovery";
-import { localDate, priorityChoices, setupCopy, supportModes } from "@workspace/recovery-journal";
+import { localDate, setupCopy, supportModes } from "@workspace/recovery-journal";
 
 export default function QuizPage() {
   const { isLoaded, isSignedIn, user } = useUser();
   const [, setLocation] = useLocation();
   const [firstLog, setFirstLog] = useState<RecoveryLogInput>(() => emptyLog(localDate()));
-  const [priorities, setPriorities] = useState<RecoveryPreferences["priorities"]>([]);
   const [supportMode, setSupportMode] = useState<RecoveryPreferences["supportMode"]>("self_guided");
   const [consentAccepted, setConsentAccepted] = useState(false);
   const [editingActivities, setEditingActivities] = useState(false);
@@ -23,16 +22,8 @@ export default function QuizPage() {
   const [saving, setSaving] = useState(false);
   const ownerId = isSignedIn ? user?.id ?? null : null;
 
-  function togglePriority(id: RecoveryPreferences["priorities"][number]) {
-    setPriorities((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
-  }
-
   function saveStartingSummary() {
     setError("");
-    if (priorities.length === 0) {
-      setError("Choose at least one routine focus and review the answers.");
-      return;
-    }
     if (!consentAccepted) {
       setError("Please agree to store this setup in your private journal.");
       return;
@@ -40,7 +31,7 @@ export default function QuizPage() {
     setSaving(true);
     try {
       writeDraft({
-        preferences: { supportMode, priorities },
+        preferences: { supportMode, priorities: [] },
         consentAccepted: true,
         firstLog: { ...firstLog, date: localDate() },
       }, ownerId);
@@ -95,21 +86,10 @@ export default function QuizPage() {
 
       <Card className="space-y-4 bg-secondary p-5 sm:p-6">
         <div>
-          <h2 className="font-serif text-2xl font-medium">Choose what matters to track</h2>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">Pick the parts of your day you want to notice. You can change these later.</p>
+          <h2 id="recovery-track-heading" className="font-serif text-2xl font-medium">Choose your recovery track</h2>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">Keep a journal for yourself or alongside support from a clinician. You can change this later.</p>
         </div>
-        <div className="space-y-2">
-          {priorityChoices.map((choice) => <label key={choice.id} className="flex cursor-pointer items-start gap-3 rounded-xl p-2 hover:bg-muted/60">
-            <Checkbox
-              checked={priorities.includes(choice.id)}
-              onCheckedChange={() => togglePriority(choice.id)}
-              aria-label={choice.title}
-              data-testid={`priority-${choice.id}`}
-            />
-            <span><span className="block text-sm font-medium">{choice.title}</span><span className="text-xs leading-5 text-muted-foreground">{choice.detail}</span></span>
-          </label>)}
-        </div>
-        <div className="space-y-2 border-t border-border pt-4">
+        <div className="space-y-2" role="radiogroup" aria-labelledby="recovery-track-heading">
           {supportModes.map((mode) => <label key={mode.value} className="flex cursor-pointer items-start gap-3 rounded-xl p-2 hover:bg-muted/60">
             <Checkbox
               checked={supportMode === mode.value}
@@ -125,7 +105,6 @@ export default function QuizPage() {
           <h3 className="text-sm font-semibold">Clinician support is not available in Stillwell yet</h3>
           <p className="text-xs leading-5 text-muted-foreground">In-app invitations and journal sharing are planned, but are not available yet. You can choose to bring your own reflections to a clinician outside Stillwell.</p>
         </Card>}
-        <p className="text-xs text-muted-foreground">These are your chosen areas, not a prescribed care plan.</p>
       </Card>
 
       <Card className="p-5">
@@ -151,7 +130,7 @@ export default function QuizPage() {
       {error && <Card role="alert" className="border-destructive p-3 text-sm text-destructive">{error}</Card>}
       <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         <Button variant="outline" onClick={cancelSetup}>Cancel and clear this setup</Button>
-        <Button onClick={saveStartingSummary} disabled={saving || priorities.length === 0 || !consentAccepted} data-testid="save-starting-summary">
+        <Button onClick={saveStartingSummary} disabled={saving || !consentAccepted} data-testid="save-starting-summary">
           {saving ? "Saving…" : isSignedIn ? "Save my starting summary" : "Agree and create my account"}
         </Button>
       </div>

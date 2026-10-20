@@ -11,7 +11,7 @@ import type { RecoveryPreferencesSupportMode } from './recoveryPreferencesSuppor
 export interface RecoveryPreferences {
   supportMode: RecoveryPreferencesSupportMode;
   /**
-     * @minItems 1
+     * @minItems 0
      * @maxItems 4
      */
   priorities: RecoveryPreferencesPrioritiesItem[];
