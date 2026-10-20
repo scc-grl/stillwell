@@ -7,5 +7,6 @@ export const modules: ModuleMap = {
   "./components/mockups/stillwell-orientation/RecoveryCompass.tsx": () => import("../components/mockups/stillwell-orientation/RecoveryCompass.tsx"),
   "./components/mockups/stillwell-orientation/RecoveryCompassMobile.tsx": () => import("../components/mockups/stillwell-orientation/RecoveryCompassMobile.tsx"),
   "./components/mockups/stillwell-progress-atlas/PatientProgressAtlas.tsx": () => import("../components/mockups/stillwell-progress-atlas/PatientProgressAtlas.tsx"),
+  "./components/mockups/stillwell-progress-atlas/PatientProgressDaybook.tsx": () => import("../components/mockups/stillwell-progress-atlas/PatientProgressDaybook.tsx"),
   "./components/mockups/templates/MindfulnessAppLanding-WGCeX5/Lp11.tsx": () => import("../components/mockups/templates/MindfulnessAppLanding-WGCeX5/Lp11.tsx")
 };

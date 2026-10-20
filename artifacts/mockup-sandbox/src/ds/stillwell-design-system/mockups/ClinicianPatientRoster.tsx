@@ -174,18 +174,9 @@ export function ClinicianPatientRoster() {
       <section className="space-y-2">
         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Your shared-patient workspace</p>
         <h1 className="font-serif text-3xl font-medium leading-tight tracking-tight sm:text-4xl">Patient journeys</h1>
-        <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
-          A calm place to review what people have chosen to share. Open a patient to compare their starting snapshot with dated check-ins.
-        </p>
       </section>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <Card>
-          <CardContent className="space-y-1 pt-5">
-            <p className="text-sm text-muted-foreground">Fictional profiles</p>
-            <p className="font-serif text-2xl font-medium">{demoPatients.length} people</p>
-          </CardContent>
-        </Card>
         <Card>
           <CardContent className="space-y-1 pt-5">
             <p className="text-sm text-muted-foreground">New to this workspace</p>
