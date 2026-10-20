@@ -24,7 +24,7 @@ Self-guided concussion and post-concussive recovery journaling, with optional cl
 
 - `artifacts/website` (`@workspace/website`) — patient landing page, starting quiz, sign-in/up, private journal/dashboard, and privacy page. Patient routes remain at `/`, `/quiz`, `/dashboard`, and `/privacy`; clinician links hand off to `/clinicians`.
 - `artifacts/clinicians` (`@workspace/clinicians`) — separate clinician portal web app mounted at `/clinicians`, with a public landing page, shared Clerk sign-in/up, private clinician profile setup/editing, dashboard, and draft privacy/terms pages. Run with `pnpm --filter @workspace/clinicians run dev`.
-- `artifacts/stillwell-phone` (`@workspace/stillwell-phone`) — separate Expo patient app for iOS and Android; run with `pnpm --filter @workspace/stillwell-phone run dev`, then open the Expo workflow preview or scan its QR code with Expo Go.
+- `artifacts/stillwell-phone` (`@workspace/stillwell-phone`) — Expo app for iOS and Android with the patient journal plus a clinician role switch, clinician profile setup, and a private clinician home. Run with `pnpm --filter @workspace/stillwell-phone run dev`, then open the Expo workflow preview or scan its QR code with Expo Go.
 - `artifacts/api-server` — shared API, still served at `/api`.
 - `artifacts/stillwell-design-system` — reusable Stillwell tokens and components; `artifacts/mockup-sandbox` holds design explorations.
 - `design/` — separate imported design exports; not another application.
@@ -40,7 +40,7 @@ _Populate as you build — non-obvious choices a reader couldn't infer from the 
 ## Account types and clinician portal
 
 - `account_roles` is the source of truth for patient vs clinician; legacy accounts without a role default to patient. Both web apps use the same Clerk accounts.
-- Patients use the website or phone journal. Clinicians land at `/clinicians/dashboard` and can only read or update their own professional profile; recovery APIs reject clinician accounts.
+- Patients use the website or phone journal. Clinicians can sign in on the website or choose the clinician role in the phone app; they can only read or update their own professional profile and cannot open patient journal data. Recovery APIs reject clinician accounts.
 - Patient invitations, journal sharing, clinician matching/directory, licence verification, real-time alerts, and partnership intake are planned, not active. The shared API returns `410` for those routes; no patient journal data is available in the clinician portal.
 - The clinician profile is owned by the authenticated Clerk user. The user can save private preferences for future listing, but those preferences do not create a public listing or patient connection.
 

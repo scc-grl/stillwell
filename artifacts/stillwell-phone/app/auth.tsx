@@ -4,7 +4,9 @@ import { useAuth, useSignIn, useSignUp } from "@clerk/expo";
 import { Redirect, type Href, useLocalSearchParams, useRouter } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
+  ClinicianPracticeType,
   getGetAccountTypeQueryKey,
+  type ClinicianPracticeType as ClinicianPracticeTypeValue,
   useCompleteAccountRegistration,
   useCreateAccountRegistrationIntent,
 } from "@workspace/api-client-react";
@@ -14,6 +16,7 @@ import { Input } from "@workspace/stillwell-design-system/components/native/inpu
 import { Text } from "@workspace/stillwell-design-system/components/native/text";
 import { Screen } from "@/components/Screen";
 import { SafetyNotice } from "@/components/SafetyNotice";
+import { AccountTypeSwitch, type AccountRole } from "@/components/AccountTypeSwitch";
 import {
   clearConsentedDraft,
   isPendingPatientSignup,
@@ -23,12 +26,26 @@ import {
 type AuthMode = "sign-in" | "sign-up";
 
 export default function AuthScreen() {
-  const params = useLocalSearchParams<{ mode?: string }>();
+  const params = useLocalSearchParams<{
+    mode?: string;
+    role?: string;
+    practiceType?: string;
+  }>();
   const [mode, setMode] = useState<AuthMode>(
     params.mode === "sign-up" ? "sign-up" : "sign-in",
   );
+  const [role, setRole] = useState<AccountRole>(
+    params.role === "clinician" ? "clinician" : "patient",
+  );
+  const [practiceType, setPracticeType] =
+    useState<ClinicianPracticeTypeValue>(
+      params.practiceType === ClinicianPracticeType.clinic
+        ? ClinicianPracticeType.clinic
+        : ClinicianPracticeType.individual,
+    );
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [code, setCode] = useState("");
   const [message, setMessage] = useState("");
   const [actionError, setActionError] = useState("");
@@ -56,33 +73,55 @@ export default function AuthScreen() {
   useEffect(() => {
     const nextMode = params.mode === "sign-up" ? "sign-up" : "sign-in";
     setMode(nextMode);
-  }, [params.mode]);
+    setRole(params.role === "clinician" ? "clinician" : "patient");
+    setPracticeType(
+      params.practiceType === ClinicianPracticeType.clinic
+        ? ClinicianPracticeType.clinic
+        : ClinicianPracticeType.individual,
+    );
+  }, [params.mode, params.practiceType, params.role]);
 
   useEffect(() => {
-    if (mode === "sign-up") {
+    if (mode === "sign-up" && role === "patient") {
       setPendingPatientSignup(true);
-    } else if (!isPendingPatientSignup()) {
+    } else {
       setPendingPatientSignup(false);
-      void clearConsentedDraft();
+      if (mode === "sign-in" && !isPendingPatientSignup()) {
+        void clearConsentedDraft();
+      }
     }
-  }, [mode]);
+  }, [mode, role]);
 
-  async function finishPatientRegistration(token: string) {
+  useEffect(() => {
+    if (mode === "sign-up" && role === "clinician" && !params.practiceType) {
+      router.replace("/clinician-join");
+    }
+  }, [mode, params.practiceType, role, router]);
+
+  async function finishRegistration(token: string) {
     setActionError("");
     try {
-      await completeRegistration.mutateAsync({
+      const result = await completeRegistration.mutateAsync({
         data: { registrationToken: token },
       });
       setRoleSaveFailed(false);
       await queryClient.invalidateQueries({
         queryKey: getGetAccountTypeQueryKey(),
       });
-      setPendingPatientSignup(true);
-      router.replace("/quiz");
+      if (result.accountType === "patient") {
+        setPendingPatientSignup(true);
+        router.replace("/quiz");
+      } else {
+        setPendingPatientSignup(false);
+        router.replace({
+          pathname: "/clinician-profile",
+          params: { practiceType },
+        });
+      }
     } catch {
       setRoleSaveFailed(true);
       setActionError(
-        "Your account was created, but its patient setup did not finish. Retry to continue.",
+        "Your account was created, but its Stillwell setup did not finish. Retry to continue.",
       );
     }
   }
@@ -90,9 +129,13 @@ export default function AuthScreen() {
   async function beginSignUp() {
     setActionError("");
     setMessage("");
+    if (role === "clinician" && password.length < 12) {
+      setActionError("Use a password with at least 12 characters.");
+      return;
+    }
     try {
       const intent = await createIntent.mutateAsync({
-        data: { accountType: "patient" },
+        data: { accountType: role },
       });
       setRegistrationToken(intent.registrationToken);
       const { error: signUpError } = await signUp.password({
@@ -127,10 +170,10 @@ export default function AuthScreen() {
       await signUp.finalize({ navigate: () => undefined });
       if (!registrationToken) {
         setRoleSaveFailed(true);
-        setActionError("Your account was created, but patient setup is incomplete. Retry below.");
+        setActionError("Your account was created, but setup is incomplete. Retry below.");
         return;
       }
-      await finishPatientRegistration(registrationToken);
+      await finishRegistration(registrationToken);
     } catch {
       setActionError("Your account could not be opened. Please try signing in.");
     }
@@ -221,31 +264,66 @@ export default function AuthScreen() {
   return (
     <Screen>
       <Text variant="display">
-        {mode === "sign-up" ? "Create your patient account" : "Welcome back"}
+        {mode === "sign-up"
+          ? role === "clinician"
+            ? "Create your clinician account"
+            : "Create your patient account"
+          : role === "clinician"
+            ? "Clinician sign in"
+            : "Welcome back"}
       </Text>
       <Text variant="body">
         {mode === "sign-up"
-          ? "Your account keeps your private journal connected across Stillwell."
-          : "Sign in to return to your private journal."}
+          ? role === "clinician"
+            ? "Create a private professional profile for your work."
+            : "Your account keeps your private journal connected across Stillwell."
+          : role === "clinician"
+            ? "Sign in to your private professional space. Patient journals are not available in this app."
+            : "Sign in to return to your private journal."}
       </Text>
+
+      {!isEmailVerification && !isSignInVerification && !roleSaveFailed ? (
+        <>
+          {mode === "sign-up" && role === "clinician" ? (
+            <Text variant="label">STEP 2 OF 4 · CREATE YOUR ACCOUNT</Text>
+          ) : null}
+          <AccountTypeSwitch
+            value={role}
+            onChange={(nextRole) => {
+              setActionError("");
+              setMessage("");
+              setCode("");
+              if (mode === "sign-up" && nextRole === "clinician") {
+                setRole(nextRole);
+                router.replace("/clinician-join");
+                return;
+              }
+              setRole(nextRole);
+            }}
+            disabled={busy}
+          />
+        </>
+      ) : null}
 
       {roleSaveFailed ? (
         <Card tone="sage">
-          <Text variant="heading">Finish patient setup</Text>
+          <Text variant="heading">
+            Finish {role === "clinician" ? "clinician" : "patient"} setup
+          </Text>
           <Text variant="body">
-            Your account is ready. We need to finish its patient account setup
+            Your account is ready. We need to finish its Stillwell setup
             before continuing.
           </Text>
           <Button
             onPress={() => {
               if (registrationToken) {
-                void finishPatientRegistration(registrationToken);
+                void finishRegistration(registrationToken);
               } else {
                 setActionError("Please start account creation again or sign in.");
               }
             }}
             disabled={busy || !registrationToken}
-            testID="retry-patient-registration"
+            testID="retry-account-registration"
           >
             Retry setup
           </Button>
@@ -327,24 +405,50 @@ export default function AuthScreen() {
             label="Password"
             value={password}
             onChangeText={setPassword}
-            secureTextEntry
+            secureTextEntry={!showPassword}
             autoComplete={mode === "sign-up" ? "new-password" : "password"}
             textContentType={mode === "sign-up" ? "newPassword" : "password"}
             accessibilityLabel="Password"
             testID="auth-password"
           />
+          {mode === "sign-up" && role === "clinician" ? (
+            <>
+              <Text variant="caption">Use at least 12 characters.</Text>
+              <Button
+                tone="outline"
+                onPress={() => setShowPassword((visible) => !visible)}
+              >
+                {showPassword ? "Hide password" : "Show password"}
+              </Button>
+            </>
+          ) : null}
           <Button
             onPress={() =>
               void (mode === "sign-up" ? beginSignUp() : signInWithPassword())
             }
-            disabled={busy || !emailAddress.trim() || !password}
-            testID={mode === "sign-up" ? "create-patient-account" : "sign-in"}
+            disabled={
+              busy ||
+              !emailAddress.trim() ||
+              !password ||
+              (mode === "sign-up" &&
+                role === "clinician" &&
+                password.length < 12)
+            }
+            testID={
+              mode === "sign-up"
+                ? `create-${role}-account`
+                : `sign-in-${role}`
+            }
           >
             {busy
               ? "Please wait…"
               : mode === "sign-up"
-                ? "Create account"
-                : "Sign in"}
+                ? role === "clinician"
+                  ? "Create clinician account"
+                  : "Create patient account"
+                : role === "clinician"
+                  ? "Sign in as clinician"
+                  : "Sign in"}
           </Button>
           <View nativeID="clerk-captcha" />
         </Card>
@@ -361,33 +465,38 @@ export default function AuthScreen() {
         </Text>
       ) : null}
 
-      {!roleSaveFailed ? (
+      {!roleSaveFailed && !isEmailVerification && !isSignInVerification ? (
         <Button
           tone="outline"
           onPress={() => {
             setActionError("");
             setMessage("");
             setCode("");
-            const next: AuthMode =
-              mode === "sign-up" ? "sign-in" : "sign-up";
-            setMode(next);
-            if (next === "sign-in") {
+            if (mode === "sign-up") {
+              setMode("sign-in");
               setPendingPatientSignup(false);
               void clearConsentedDraft();
             } else {
-              setPendingPatientSignup(true);
+              if (role === "clinician") {
+                router.replace("/clinician-join");
+              } else {
+                setMode("sign-up");
+                setPendingPatientSignup(true);
+              }
             }
           }}
         >
           {mode === "sign-up"
             ? "I already have an account — sign in"
-            : "Create a patient account"}
+            : role === "clinician"
+              ? "Create a clinician account"
+              : "Create a patient account"}
         </Button>
       ) : null}
       <Button tone="secondary" onPress={() => void cancel()}>
         Cancel and return to welcome
       </Button>
-      <SafetyNotice />
+      {role === "patient" ? <SafetyNotice /> : null}
     </Screen>
   );
 }

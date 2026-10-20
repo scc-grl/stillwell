@@ -33,9 +33,11 @@ The user wants an eventual way for a patient to connect their account with a cli
 
 The user later requested working clinician account creation, professional profiles, partnership requests, and an admin-only review path. Licence verification is manual, and clinician listings must remain hidden until verified and explicitly opted into the directory. No mail service is connected, so partnership requests are stored for manual follow-up without sending notifications. The current data model does not support patient-to-clinician invitations or journal sharing; an optional invite code may be stored on a clinician profile, but it does not connect accounts or reveal patient data.
 
-**Why:** The user explicitly approved implementing the onboarding and request flows while deferring email delivery and patient linking.
+The user later expanded the phone app to let people choose patient or clinician sign-in. Clinicians can create/sign into their account and use a private profile/home in the phone app, while the patient journal remains patient-only.
 
-**How to apply:** Keep clinician tools clearly planned where they are not implemented. Do not present invite codes as connections or expose recovery records to clinicians. Configure authorized Stillwell admins separately; never infer admin access from a notification email address.
+**Why:** The user explicitly approved implementing the onboarding and request flows while deferring email delivery and patient linking, then requested the clinician role switch and screens in the phone app.
+
+**How to apply:** Keep clinician tools clearly planned where they are not implemented. Do not present invite codes as connections or expose recovery records to clinicians. Phone clinician screens may read or edit only the authenticated clinician’s profile; do not enable any patient-journal query for a clinician session. Configure authorized Stillwell admins separately; never infer admin access from a notification email address.
 
 ## Whole-check-in voice direction
 

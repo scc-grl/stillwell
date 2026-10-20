@@ -145,7 +145,7 @@ export default function TabLayout() {
     );
   }
   if (accountType === "clinician") {
-    return <Redirect href="/clinician-message" />;
+    return <Redirect href="/clinician-home" />;
   }
   if (accountType !== "patient") return <Redirect href="/" />;
   return isLiquidGlassAvailable() ? (
