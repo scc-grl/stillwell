@@ -15,7 +15,7 @@ import { cn } from '@workspace/stillwell-design-system/lib/utils';
 import { useAccountType, useClinicianProfile, useSaveProfile } from '@/hooks/use-clinician-account';
 import { useAuth } from '@clerk/react';
 import { Footer, PortalHeader } from '@/components/portal-shell';
-import { sendPatientToDashboard } from '@/lib/config';
+import { BASE_PATH, sendPatientToDashboard } from '@/lib/config';
 
 const professions: ClinicianProfession[] = [
   'Physician',
@@ -107,7 +107,7 @@ function ProfileLoading() {
 }
 
 export default function ProfilePage() {
-  const { isLoaded, isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn, signOut } = useAuth();
   const [, setLocation] = useLocation();
   const account = useAccountType(isLoaded && Boolean(isSignedIn));
   const isClinician = isSignedIn && account.data?.accountType === 'clinician';
@@ -122,6 +122,8 @@ export default function ProfilePage() {
         : 'individual',
   }));
   const [formError, setFormError] = useState('');
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const [signOutError, setSignOutError] = useState('');
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) setLocation('/sign-in');
@@ -188,6 +190,19 @@ export default function ProfilePage() {
         },
       },
     );
+  };
+
+  const handleSignOut = async () => {
+    setSignOutError('');
+    setIsSigningOut(true);
+    try {
+      await signOut({
+        redirectUrl: `${window.location.origin}${BASE_PATH}/`,
+      });
+    } catch {
+      setSignOutError('We could not log you out. Please try again.');
+      setIsSigningOut(false);
+    }
   };
 
   if (!isLoaded || (isSignedIn && (account.isLoading || account.data?.accountType === 'clinician' && profileQuery.isLoading))) {
@@ -371,6 +386,35 @@ export default function ProfilePage() {
             </div>
           </div>
         </form>
+        <section className="mt-6" aria-labelledby="profile-sign-out-heading" data-testid="section-profile-sign-out">
+          <Card className="border-border shadow-none">
+            <CardContent className="flex flex-col gap-5 p-6 sm:flex-row sm:items-center sm:justify-between md:p-8">
+              <div className="max-w-xl">
+                <h2 id="profile-sign-out-heading" className="font-serif text-2xl text-foreground">
+                  Log out
+                </h2>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  Your saved profile stays on your account. Any unsaved changes on this page will be discarded.
+                </p>
+                {signOutError && (
+                  <p role="alert" className="mt-3 text-sm text-destructive" data-testid="status-profile-sign-out-error">
+                    {signOutError}
+                  </p>
+                )}
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                className="min-h-11 w-full border-destructive/40 text-destructive hover:bg-destructive/5 hover:text-destructive sm:w-auto"
+                disabled={isSigningOut}
+                onClick={() => void handleSignOut()}
+                data-testid="button-profile-sign-out"
+              >
+                {isSigningOut ? 'Logging out…' : 'Log out'}
+              </Button>
+            </CardContent>
+          </Card>
+        </section>
       </main>
       <Footer />
     </div>
