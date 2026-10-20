@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Button } from "@workspace/stillwell-design-system/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@workspace/stillwell-design-system/components/ui/card";
-import { ArrowLeft, ArrowRight, CalendarDays, Check, CircleHelp, LockKeyhole, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ArrowRight, CalendarDays, Check, CircleHelp, ClipboardList, LockKeyhole, ShieldCheck } from "lucide-react";
 
 type SymptomKey = "headache" | "fatigue" | "focus" | "sleep" | "mood" | "light";
 type CheckIn = {
@@ -285,6 +285,39 @@ export function PatientProgressAtlas() {
                     </div>
                   );
                 })}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-3">
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Patient-chosen plan · example</p>
+                <CardTitle className="mt-1 flex items-center gap-2 text-xl font-medium" style={{ fontFamily: "Fraunces, Georgia, serif" }}>
+                  <ClipboardList size={19} className="text-primary" aria-hidden="true" />
+                  Recovery protocol
+                </CardTitle>
+                <p className="text-sm leading-6 text-muted-foreground">Routines Taylor has chosen to keep track of between check-ins.</p>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {[
+                  { title: "Food & hydration", detail: "Notice meals and fluids that felt manageable.", status: "Chosen" },
+                  { title: "Movement", detail: "Note activity that fits current guidance and how it felt.", status: "Chosen" },
+                  { title: "Meditation or quiet pause", detail: "Optional; note a familiar practice or pause if chosen.", status: "Optional" },
+                  { title: "Pacing", detail: "Notice breaks, changed plans, or when a pause helped.", status: "Chosen" },
+                ].map((item) => (
+                  <div key={item.title} className="flex items-start justify-between gap-3 border-t border-border py-3 first:border-0 first:pt-0">
+                    <div className="flex min-w-0 items-start gap-2.5">
+                      <Check size={15} className="mt-0.5 shrink-0 text-primary" aria-hidden="true" />
+                      <div>
+                        <p className="text-sm font-medium">{item.title}</p>
+                        <p className="mt-1 text-xs leading-5 text-muted-foreground">{item.detail}</p>
+                      </div>
+                    </div>
+                    <span className="shrink-0 rounded-full bg-secondary px-2.5 py-1 text-[11px] text-secondary-foreground">{item.status}</span>
+                  </div>
+                ))}
+                <p className="border-t border-border pt-3 text-xs leading-5 text-muted-foreground">
+                  This reflects Taylor’s choices, not a prescribed care plan. They can adjust or pause any part.
+                </p>
               </CardContent>
             </Card>
 
