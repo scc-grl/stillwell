@@ -65,20 +65,25 @@ export function PortalHeader({
     { label: 'Resources', href: '/faqs', external: true },
     { label: 'For clinicians', href: `${BASE_PATH}/`, external: true },
   ];
+  const headerNavigation = isSignedIn
+    ? dashboard
+      ? [{ label: 'Patients', href: '/dashboard', external: false }]
+      : []
+    : navigation;
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 shadow-sm backdrop-blur-sm">
       <div className="mx-auto flex max-w-[1240px] items-center justify-between px-5 py-3 sm:px-8 lg:px-12 lg:py-4">
         <Brand />
-        {!isSignedIn && (
+        {headerNavigation.length > 0 && (
           <nav className="hidden items-center gap-6 text-[12px] font-medium text-muted-foreground lg:flex" aria-label="Main navigation">
-            {navigation.map(({ label, href, external }) => (
+            {headerNavigation.map(({ label, href, external }) => (
               external ? (
                 <a key={label} href={href} data-testid={`link-clinician-nav-${label.toLowerCase().replaceAll(' ', '-')}`}>
                   {label}
                 </a>
               ) : (
-                <Link key={label} href={href} data-testid="link-clinician-nav-home">
+                <Link key={label} href={href} data-testid={`link-clinician-nav-${label.toLowerCase().replaceAll(' ', '-')}`}>
                   {label}
                 </Link>
               )
@@ -131,7 +136,7 @@ export function PortalHeader({
           className="grid gap-1 border-t border-border bg-background px-5 py-3 lg:hidden"
           aria-label="Mobile navigation"
         >
-          {!isSignedIn && navigation.map(({ label, href, external }) => (
+          {headerNavigation.map(({ label, href, external }) => (
             external ? (
               <a
                 key={label}
@@ -148,7 +153,7 @@ export function PortalHeader({
                 href={href}
                 onClick={closeMenu}
                 className="rounded-lg px-3 py-3 text-sm text-secondary-foreground hover:bg-secondary"
-                data-testid="link-mobile-clinician-home"
+                data-testid={`link-mobile-clinician-${label.toLowerCase().replaceAll(' ', '-')}`}
               >
                 {label}
               </Link>
