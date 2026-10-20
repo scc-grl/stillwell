@@ -3,10 +3,149 @@ import { Button } from "@workspace/stillwell-design-system/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@workspace/stillwell-design-system/components/ui/card";
 import { Input } from "@workspace/stillwell-design-system/components/ui/input";
 import { PatientRosterLayout } from "./_patientRosterLayout";
-import { demoPatients, patientName, type DemoPatient, type PatientStatus } from "./_patientRosterDemo";
-import { PatientProgressView } from "./ClinicianPatientProgress";
+import { demoPatients, formatDemoDate, patientName, symptoms, type DemoPatient, type PatientStatus } from "./_patientRosterDemo";
 
 type PatientFilter = "All" | PatientStatus;
+
+const symptomLineColors = [
+  "hsl(var(--primary))",
+  "hsl(var(--accent-foreground))",
+  "hsl(var(--destructive))",
+  "hsl(var(--secondary-foreground))",
+  "hsl(var(--muted-foreground))",
+  "hsl(var(--foreground))",
+];
+
+function chartValue(rating: number | undefined) {
+  if (rating === undefined) return 0;
+  return [1, 2, 3, 5][rating] ?? 0;
+}
+
+function ratingDisplay(rating: number | undefined) {
+  if (rating === undefined) return "0 / 5 · Not supplied";
+  const labels = ["Not noticeable", "Less noticeable", "Noticeable", "More noticeable"];
+  return `${chartValue(rating)} / 5 · ${labels[rating] ?? "Not supplied"}`;
+}
+
+function PatientProgressChart({ patient, onBack }: { patient: DemoPatient; onBack: () => void }) {
+  const entries = [
+    { date: patient.baselineDate, ratings: patient.baseline },
+    ...patient.checkIns,
+  ];
+  const chart = { width: 760, height: 290, left: 48, right: 744, top: 20, bottom: 224 };
+  const x = (index: number) => entries.length === 1
+    ? (chart.left + chart.right) / 2
+    : chart.left + (index / (entries.length - 1)) * (chart.right - chart.left);
+  const y = (value: number) => chart.bottom - (value / 5) * (chart.bottom - chart.top);
+
+  return (
+    <PatientRosterLayout onBack={onBack}>
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Patient-reported journey · fictional profile</p>
+            <h1 className="font-serif text-3xl font-medium leading-tight tracking-tight sm:text-4xl">{patientName(patient)}</h1>
+            <p className="text-sm text-muted-foreground">{patient.id} · {patient.status} in this demo workspace</p>
+          </div>
+          <span className="rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground">Patient-selected sharing · simulated</span>
+        </div>
+      </section>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Symptom progress over time</CardTitle>
+          <p className="text-sm leading-6 text-muted-foreground">
+            A visual view of the patient’s reported ratings from their starting snapshot through each supplied check-in.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <div className="overflow-x-auto">
+            <svg
+              className="h-auto min-w-[38rem] w-full"
+              viewBox={`0 0 ${chart.width} ${chart.height}`}
+              role="img"
+              aria-label={`Symptom rating progress chart for ${patientName(patient)}. Ratings range from zero for not supplied to five for more noticeable.`}
+            >
+              {[0, 1, 2, 3, 4, 5].map((value) => (
+                <g key={value}>
+                  <line x1={chart.left} x2={chart.right} y1={y(value)} y2={y(value)} stroke="hsl(var(--border))" strokeDasharray={value === 0 ? undefined : "3 5"} />
+                  <text x={chart.left - 14} y={y(value) + 4} textAnchor="end" fill="hsl(var(--muted-foreground))" fontSize="12">{value}</text>
+                </g>
+              ))}
+              {entries.map((entry, index) => (
+                <g key={entry.date}>
+                  <line x1={x(index)} x2={x(index)} y1={chart.bottom} y2={chart.bottom + 5} stroke="hsl(var(--border))" />
+                  <text x={x(index)} y={chart.bottom + 24} textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize="11">
+                    {index === 0 ? "Start" : formatDemoDate(entry.date).replace(/, \d{4}$/, "")}
+                  </text>
+                </g>
+              ))}
+              {symptoms.map(({ key }, seriesIndex) => {
+                const values = entries.map((entry) => chartValue(entry.ratings[key]));
+                const points = values.map((value, index) => `${x(index)},${y(value)}`).join(" ");
+                return (
+                  <g key={key}>
+                    <polyline points={points} fill="none" stroke={symptomLineColors[seriesIndex]} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+                    {values.map((value, index) => (
+                      <circle key={`${key}-${entries[index].date}`} cx={x(index)} cy={y(value)} r="4" fill="hsl(var(--card))" stroke={symptomLineColors[seriesIndex]} strokeWidth="2.5">
+                        <title>{`${symptoms.find((symptom) => symptom.key === key)?.label}: ${entries[index].ratings[key] === undefined ? "Not supplied, charted as 0" : `${value} of 5`} · ${formatDemoDate(entries[index].date)}`}</title>
+                      </circle>
+                    ))}
+                  </g>
+                );
+              })}
+            </svg>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3" aria-label="Chart symptom legend">
+            {symptoms.map(({ key, label }, index) => (
+              <div key={key} className="flex items-center gap-2 text-sm">
+                <span className="size-2.5 rounded-full" style={{ backgroundColor: symptomLineColors[index] }} aria-hidden="true" />
+                <span>{label}</span>
+              </div>
+            ))}
+          </div>
+          <div className="grid gap-2 rounded-lg bg-muted p-4 text-xs leading-5 text-muted-foreground sm:grid-cols-2">
+            <p><strong className="text-foreground">Rating key:</strong> Not noticeable 1 · Less noticeable 2 · Noticeable 3 · More noticeable 5</p>
+            <p><strong className="text-foreground">Not supplied:</strong> charted as 0, representing a symptom not yet reported.</p>
+          </div>
+          <p className="border-t border-border pt-4 text-xs leading-5 text-muted-foreground">
+            These are fictional example entries. The chart shows reported values over time; it does not explain what caused a change or provide a diagnosis.
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Reported ratings</CardTitle>
+          <p className="text-sm leading-6 text-muted-foreground">Starting snapshot compared with the latest supplied check-in.</p>
+        </CardHeader>
+        <CardContent className="overflow-x-auto">
+          <table className="w-full min-w-[32rem] border-collapse text-left text-sm">
+            <thead>
+              <tr className="border-b border-border">
+                <th scope="col" className="py-3 pr-4 font-semibold">Symptom</th>
+                <th scope="col" className="py-3 pr-4 font-semibold">Starting · {formatDemoDate(patient.baselineDate)}</th>
+                <th scope="col" className="py-3 font-semibold">Latest · {patient.checkIns.length ? formatDemoDate(patient.checkIns[patient.checkIns.length - 1].date) : "—"}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {symptoms.map(({ key, label }) => {
+                const latest = patient.checkIns[patient.checkIns.length - 1]?.ratings[key];
+                return (
+                  <tr key={key} className="border-b border-border last:border-0">
+                    <th scope="row" className="py-3 pr-4 font-medium">{label}</th>
+                    <td className="py-3 pr-4">{ratingDisplay(patient.baseline[key])}</td>
+                    <td className="py-3">{ratingDisplay(latest)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </CardContent>
+      </Card>
+    </PatientRosterLayout>
+  );
+}
 
 export function ClinicianPatientRoster() {
   const [query, setQuery] = useState("");
@@ -23,7 +162,7 @@ export function ClinicianPatientRoster() {
 
   if (selectedPatient) {
     return (
-      <PatientProgressView
+      <PatientProgressChart
         patient={selectedPatient}
         onBack={() => setSelectedPatient(null)}
       />
