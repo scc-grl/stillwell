@@ -13,16 +13,9 @@ import {
 } from "lucide-react";
 
 type SymptomKey = "headache" | "fatigue" | "focus" | "sleep" | "mood" | "light";
-type RoutineKey = "food" | "movement" | "meditation" | "pacing";
-type RoutineEntry = {
-  status: "Done" | "Not done" | "Not planned";
-  note?: string;
-};
 type CheckIn = {
   date: string;
   ratings: Record<SymptomKey, number>;
-  overall: "Rough" | "Low" | "Okay" | "Good" | "Great";
-  routines: Partial<Record<RoutineKey, RoutineEntry>>;
   reflection?: string;
 };
 
@@ -39,67 +32,27 @@ const entries: CheckIn[] = [
   {
     date: "2025-01-06",
     ratings: { headache: 3, fatigue: 2, focus: 2, sleep: 3, mood: 1, light: 2 },
-    overall: "Low",
-    routines: {
-      food: { status: "Done", note: "Ate lunch and kept water nearby." },
-      movement: { status: "Not planned", note: "Rest day." },
-      pacing: { status: "Done", note: "Paused between afternoon tasks." },
-    },
   },
   {
     date: "2025-01-14",
     ratings: { headache: 2, fatigue: 5, focus: 2, sleep: 3, mood: 1, light: 2 },
-    overall: "Rough",
-    routines: {
-      food: { status: "Done", note: "Had breakfast and lunch." },
-      movement: { status: "Done", note: "Took an easy walk." },
-      meditation: { status: "Not done" },
-      pacing: { status: "Done", note: "Kept the afternoon quieter." },
-    },
     reflection: "I had a quieter afternoon and still felt tired by evening.",
   },
   {
     date: "2025-01-28",
     ratings: { headache: 2, fatigue: 2, focus: 1, sleep: 2, mood: 2, light: 1 },
-    overall: "Okay",
-    routines: {
-      food: { status: "Done", note: "Made time for a midday meal." },
-      movement: { status: "Not planned" },
-      meditation: { status: "Done", note: "Took a few quiet minutes." },
-      pacing: { status: "Done", note: "Moved one task to tomorrow." },
-    },
   },
   {
     date: "2025-02-12",
     ratings: { headache: 0, fatigue: 2, focus: 1, sleep: 2, mood: 1, light: 2 },
-    overall: "Good",
-    routines: {
-      food: { status: "Done", note: "Had lunch before errands." },
-      movement: { status: "Done", note: "Took a short walk." },
-      pacing: { status: "Done", note: "Took a quiet hour afterward." },
-    },
     reflection: "A short walk felt manageable. I needed a quiet hour afterward.",
   },
   {
     date: "2025-02-20",
     ratings: { headache: 1, fatigue: 2, focus: 2, sleep: 3, mood: 1, light: 0 },
-    overall: "Okay",
-    routines: {
-      food: { status: "Done", note: "Kept meals simple today." },
-      movement: { status: "Not planned", note: "Chose a rest day." },
-      meditation: { status: "Not done" },
-      pacing: { status: "Done", note: "Made room for breaks." },
-    },
     reflection: "The week had a mix of easier and harder moments.",
   },
 ];
-
-const routineLabels: Record<RoutineKey, string> = {
-  food: "Food & hydration",
-  movement: "Movement",
-  meditation: "Meditation or quiet pause",
-  pacing: "Pacing",
-};
 
 const patientProtocol = [
   { label: "Food & hydration", detail: "Notice what meals and fluids felt manageable." },
@@ -333,45 +286,6 @@ export function PatientProgressDaybook() {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  <CalendarDays size={15} className="text-primary" /> Journal entry · {formatDate(activeEntry.date, { month: "short", day: "numeric", year: "numeric" })}
-                </div>
-                <CardTitle className="mt-1 text-2xl font-medium" style={{ fontFamily: "Fraunces, Georgia, serif" }}>What Taylor recorded that day</CardTitle>
-                <p className="text-sm text-muted-foreground">Only notes saved with the selected check-in appear here.</p>
-              </CardHeader>
-              <CardContent className="space-y-5">
-                <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-secondary/70 p-4">
-                  <span className="text-sm font-medium">Overall, that day</span>
-                  <span className="rounded-full bg-card px-3 py-1.5 text-sm font-semibold text-secondary-foreground">{activeEntry.overall}</span>
-                </div>
-                <div className="space-y-2">
-                  {(Object.keys(routineLabels) as RoutineKey[]).map((key) => {
-                    const routine = activeEntry.routines[key];
-                    return (
-                      <div key={key} className="rounded-lg border border-border bg-background p-3">
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <span className="text-sm font-medium">{routineLabels[key]}</span>
-                          <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${routine ? "bg-secondary text-secondary-foreground" : "bg-muted text-muted-foreground"}`}>
-                            {routine?.status ?? "Not supplied"}
-                          </span>
-                        </div>
-                        {routine?.note && <p className="mt-2 text-sm leading-6 text-muted-foreground">{routine.note}</p>}
-                      </div>
-                    );
-                  })}
-                </div>
-                {activeEntry.reflection ? (
-                  <div className="border-t border-border pt-4">
-                    <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground"><MessageSquareText size={14} className="text-primary" /> Patient-shared reflection</p>
-                    <blockquote className="border-l-2 border-accent pl-4 text-sm leading-6">“{activeEntry.reflection}”</blockquote>
-                  </div>
-                ) : (
-                  <p className="border-t border-border pt-4 text-sm text-muted-foreground">No reflection was supplied for this selected date.</p>
-                )}
-              </CardContent>
-            </Card>
           </div>
         </section>
 
