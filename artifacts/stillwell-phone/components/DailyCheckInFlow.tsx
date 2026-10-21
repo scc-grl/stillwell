@@ -352,7 +352,7 @@ export function DailyCheckInFlow({
           <Card tone="sage">
             <Text variant="heading">A private summary for your own review</Text>
             <Text variant="caption">
-              In-app sharing with a clinician is planned but not available yet. Your dictated words are editable text; Stillwell does not create or share an audio recording.
+              Your check-in is part of your journal. Only clinicians you choose to share with can read it. Your dictated words are editable text; Stillwell does not create or share an audio recording.
             </Text>
           </Card>
           <Card inset="compact">

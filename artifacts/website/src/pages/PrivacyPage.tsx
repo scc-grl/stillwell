@@ -6,6 +6,18 @@ import { useDeleteRecovery, getGetRecoveryQueryKey } from "@workspace/api-client
 import { Check, ShieldCheck, Trash2 } from "lucide-react";
 import { clearDraft } from "@/lib/recovery";
 import { useClerk } from "@clerk/react";
+import { Card } from "@workspace/stillwell-design-system/components/ui/card";
+import { JOURNAL_SHARING_COPY } from "@/components/CareTeamSharingFeature";
+
+// FOUNDER LEGAL REVIEW: all care-team disclosures below need review before release.
+const careTeamDisclosures = [
+  ["What is shared", "Sharing covers your whole journal: daily symptom ratings, routines, notes, routine focus areas and past entries. A connected clinician can read your journal, but cannot edit it. Your sign-in details are not shared. Entries you delete are removed from the live journal; deletion cannot change a frozen copy a former clinician already holds."],
+  ["Who can read it", "Only clinicians you invite, or whose requests you accept, get care-team access. You can share with up to 5 clinicians. Stillwell does not verify clinicians; only share with someone you know. This patient-controlled access is separate from the service-operator and hosting access described above."],
+  ["Your consent", "Tapping Send invite is your consent to offer read-only sharing to that clinician; they must accept before they can read it. For a clinician's request, tapping Share my journal is your consent. Stillwell records the consent version and time. Opening a request, creating an account or choosing Not now does not grant access."],
+  ["Stopping sharing", "Stopping sharing ends access to new entries and updates right away. The clinician keeps a frozen, read-only copy of your journal and focus areas as they were when sharing stopped. Later edits and deleted days do not change that copy. It stays until the clinician removes it from their patient list, which permanently deletes their copy."],
+  ["Deleting all recovery data", "Deleting all recovery data removes your recovery profile, daily entries, active sharing and pending invitations associated with your journal. Before active sharing ends, each connected clinician receives a frozen copy of what was shared up to that point. Copies already held by former clinicians remain with them until they delete them. Your Stillwell sign-in account remains."],
+  ["Invitation and request emails", "Invite emails use first names only, not the patient's last name, and contain no symptom ratings, journal entries, routine logs or notes. A clinician's request email includes the clinician's professional name so you know who is asking. The recipient's email address is used for delivery. These emails include a private, expiring link; do not forward it. When email delivery is unavailable, Stillwell identifies that no email was sent."],
+];
 
 export default function PrivacyPage() {
   const { isSignedIn, user } = useUser();
@@ -35,6 +47,19 @@ export default function PrivacyPage() {
           ["04", "Delete when you choose", "Delete one day or remove all Stillwell recovery data from your account. Deleting all data first ends active sharing and creates frozen copies for those clinicians. Later patient edits or deletions do not change a former clinician’s frozen copy; it remains until that clinician removes it. Your sign-in account is not deleted."],
           ["05", "Newsletter subscriptions", "The newsletter service stores only the submitted email address and signup timestamp. Repeated email addresses are deduplicated. You can remove an address using the unsubscribe page. Newsletter emails are not sent to analytics or request logs; Stillwell does not send newsletter messages yet."],
         ].map(([n, title, body]) => <article key={n} className="bg-[#fbfaf5] p-6 sm:p-7"><span className="display text-2xl text-[#91a18e]">{n}</span><h2 className="mt-4 text-sm font-semibold text-[#385343]">{title}</h2><p className="mt-2 text-xs leading-6 text-[#758075]">{body}</p></article>)}
+      </section>
+      {/* FOUNDER LEGAL REVIEW: sharing summary, scope, consent, retention, deletion and email disclosures. */}
+      <section aria-labelledby="care-team-privacy" className="mt-8 space-y-5">
+        <h2 id="care-team-privacy" className="font-serif text-3xl font-medium text-foreground">Sharing with your care team</h2>
+        <p className="text-sm leading-7 text-muted-foreground">{JOURNAL_SHARING_COPY}</p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {careTeamDisclosures.map(([title, body]) => (
+            <Card key={title} className="space-y-3 p-6 shadow-none">
+              <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+              <p className="text-sm leading-7 text-muted-foreground">{body}</p>
+            </Card>
+          ))}
+        </div>
       </section>
       <div className="mt-8 rounded-[24px] border border-[#e6d8c9] bg-[#f4eee5] p-5 sm:p-6"><div className="flex gap-3"><ShieldCheck size={19} className="mt-0.5 shrink-0 text-[#9a7258]"/><div><h2 className="text-sm font-semibold text-[#66503f]">A clear boundary</h2><p className="mt-2 text-xs leading-6 text-[#786d60]">Stillwell provides educational reflection and user-chosen routine tracking. It is not a diagnosis, treatment plan, or emergency service. If symptoms worsen, seek clinical help; for severe or urgent symptoms, seek emergency care.</p></div></div></div>
       {feedback && <p data-testid="status-privacy-feedback" role="status" className="mt-5 rounded-xl bg-[#eaf0e7] p-4 text-sm text-[#466450]">{feedback}</p>}

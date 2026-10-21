@@ -458,8 +458,8 @@ export function CareTeamCard() {
           </View>
           <Text variant="caption" color={colors.mutedForeground}>
             Email delivery isn’t set up here, so {preview.name} wasn’t emailed. This
-            development link carries the invite token for testing the invite
-            acceptance API; there is no invite page to open yet. Don’t share it.
+            development link opens the website invite page so you can test
+            acceptance with the invited clinician account. Don’t share it.
           </Text>
           <Text variant="caption" selectable testID="care-team-dev-link">
             {preview.link}

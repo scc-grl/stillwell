@@ -122,7 +122,9 @@ function PrefilledInvite({ prefill, onDone, onDismiss }: { prefill: InvitePrefil
     setError("");
     if (!form.firstName.trim() || !form.lastName.trim() || !isValidEmail(form.email)) { setError("Enter a first name, last name and a valid email."); return; }
     create.mutate({ data: { firstName: form.firstName.trim(), lastName: form.lastName.trim(), email: form.email.trim(), consentAccepted: true } }, {
-      onSuccess: () => onDone(`Invite sent to ${dr}.`),
+      onSuccess: (result) => onDone(result.suppressed
+        ? "Invite saved. No email was sent. Email delivery is turned off in this environment."
+        : `Invite sent to ${dr}.`),
       onError: (err) => {
         const code = errorCode(err);
         setError(code === "care_team_full" ? "Your care team is full. Remove someone first."

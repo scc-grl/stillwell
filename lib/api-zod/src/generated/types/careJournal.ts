@@ -20,6 +20,8 @@ export interface CareJournal {
   disconnectedAt: Date | null;
   /** @nullable */
   lastUpdated: Date | null;
+  /** Opaque consistency fingerprint of this authorized journal version. Compare across pages; never log or send to analytics. */
+  revision: string;
   supportApproach: unknown;
   focusAreas: unknown;
   profileSummary: CareJournalProfileSummary;

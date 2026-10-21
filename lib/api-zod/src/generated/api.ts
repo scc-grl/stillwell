@@ -320,6 +320,7 @@ export const GetCarePatientJournalResponse = zod.object({
   "connectedAt": zod.coerce.date(),
   "disconnectedAt": zod.coerce.date().nullable(),
   "lastUpdated": zod.coerce.date().nullable(),
+  "revision": zod.string().describe('Opaque consistency fingerprint of this authorized journal version. Compare across pages; never log or send to analytics.'),
   "supportApproach": zod.unknown(),
   "focusAreas": zod.unknown(),
   "profileSummary": zod.record(zod.string(), zod.unknown()),

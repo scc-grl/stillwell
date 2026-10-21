@@ -227,6 +227,61 @@ test("unlinked clinicians and patients cannot read journal history; all history 
   assert.deepEqual((await service.readPatient(clinician,linkId)).entries,first.entries);
   assert.equal((await service.readPatient(clinician,linkId,2)).entries.length,5);
 });
+
+test("journal revisions detect profile edits and content changes even with identical totals and timestamps", async () => {
+  await log();
+  const { linkId } = await connect();
+  const before = await service.readPatient(clinician, linkId);
+  await pool.query("UPDATE recovery_logs SET data=jsonb_set(data,'{note}','\"Changed\"'::jsonb) WHERE owner_id=$1", [patient.id]);
+  const edited = await service.readPatient(clinician, linkId);
+  assert.equal(edited.lastUpdated, before.lastUpdated);
+  assert.equal(edited.total, before.total);
+  assert.notEqual(edited.revision, before.revision);
+  await pool.query("UPDATE recovery_profiles SET preferences=$2 WHERE owner_id=$1", [patient.id, { focusAreas: ["Sleep"] }]);
+  const profileEdited = await service.readPatient(clinician, linkId);
+  assert.notEqual(profileEdited.revision, edited.revision);
+  await service.removeClinician(patient, linkId);
+  const frozen = await service.readPatient(clinician, linkId);
+  await pool.query("DELETE FROM recovery_logs WHERE owner_id=$1", [patient.id]);
+  assert.equal((await service.readPatient(clinician, linkId)).revision, frozen.revision);
+});
+
+test("one journal response remains consistent when a patient edits and deletes during the read", async () => {
+  for (let day = 1; day <= 25; day++) await log(`2026-09-${String(day).padStart(2, "0")}`);
+  const { linkId } = await connect();
+  let mutated = false;
+  const readerPool = {
+    query: (...args) => pool.query(...args),
+    connect: async () => {
+      const client = await pool.connect();
+      return { release: () => client.release(), query: async (sql, values) => {
+        const result = await client.query(sql, values);
+        if (!mutated && sql.startsWith("SELECT count(*) AS count,max(updated_at)")) {
+          mutated = true;
+          await patientWrite(pool, patient.id, async tx => {
+            await tx.query("DELETE FROM recovery_logs WHERE owner_id=$1 AND date='2026-09-25'", [patient.id]);
+            await tx.query("UPDATE recovery_profiles SET preferences=$2 WHERE owner_id=$1", [patient.id, { focusAreas: ["Sleep"] }]);
+          });
+        }
+        return result;
+      } };
+    },
+  };
+  const reader = new CareTeamService({
+    pool: readerPool, identity: async key => users.get(key),
+    send: async () => { throw new Error("No mail in read-only test"); },
+  });
+  const during = await reader.readPatient(clinician, linkId);
+  assert.equal(during.total, 25);
+  assert.equal(during.entries.length, 20);
+  assert.equal(during.entries[0].date, "2026-09-25");
+  assert.deepEqual(during.focusAreas, ["Headache"]);
+  const after = await service.readPatient(clinician, linkId);
+  assert.equal(after.total, 24);
+  assert.equal(after.entries[0].date, "2026-09-24");
+  assert.deepEqual(after.focusAreas, ["Sleep"]);
+  assert.notEqual(after.revision, during.revision);
+});
 test("a former snapshot is unchanged by patient edits, day deletion and delete-all; reconnect creates a separate link", async () => {
   await log();
   const first=await connect();
@@ -302,6 +357,39 @@ test("email templates use required copy, escape user values, and omit journal co
   const b=renderCareEmail({...deliveries[0],direction:CLINICIAN_REQUEST,clinicianName:"<Dr. Example>"});
   assert.match(b.html,/&lt;Dr\. Example&gt;/);assert.match(b.text,/You decide\. Nothing is shared unless you agree/);
   assert.match(b.text,/It's not for emergencies/);
+});
+
+test("both plain-text email templates exactly preserve the approved subjects and body copy", () => {
+  const input = {
+    recipient: "clinician@example.com", recipientFirstName: "Alex",
+    patientFirstName: "Jordan", clinicianName: "Dr. Morgan",
+    link: "https://stillwell.example/invite/EXAMPLE",
+    expiresAt: new Date("2026-11-04T00:00:00Z"),
+  };
+  const invitation = renderCareEmail({ ...input, direction: PATIENT_INVITE });
+  assert.equal(invitation.subject, "Jordan invited you to view their Stillwell journal");
+  assert.equal(invitation.text, [
+    "Jordan invited you to view their recovery journal",
+    "Hi Alex, Jordan uses Stillwell, a private journal for concussion recovery, and would like you to be able to read it.",
+    "Accept invite: https://stillwell.example/invite/EXAMPLE",
+    "Read-only: you can't change anything, and Jordan can remove access at any time. Accept by signing in with this email address. The invite expires on November 4, 2026.",
+    "Didn't expect this? You can ignore this email. Nothing is shared unless you accept.",
+    "Stillwell is an educational recovery journal. It does not diagnose or replace clinical care. You're receiving this because a Stillwell user entered your email address.",
+  ].join("\n\n"));
+  const request = renderCareEmail({
+    ...input, direction: CLINICIAN_REQUEST, recipientFirstName: "Jordan",
+    link: "https://stillwell.example/request/EXAMPLE",
+  });
+  assert.equal(request.subject, "Dr. Morgan asked you to share your Stillwell journal");
+  assert.equal(request.text, [
+    "Dr. Morgan asked you to share your recovery journal",
+    "Hi Jordan, Dr. Morgan would like to be able to read your Stillwell journal, a private place to note how you're feeling day to day.",
+    "You decide. Nothing is shared unless you agree, and you can stop sharing anytime. Stillwell doesn't verify clinicians, so only agree if you know Dr. Morgan.",
+    "Review the request: https://stillwell.example/request/EXAMPLE",
+    "New to Stillwell? You'll set up your private journal first, then decide about sharing. This request expires on November 4, 2026.",
+    "Didn't expect this? You can ignore this email. Nothing is shared unless you accept.",
+    "Stillwell is an educational recovery journal. It does not diagnose or replace clinical care. It's not for emergencies. You're receiving this because a Stillwell user entered your email address.",
+  ].join("\n\n"));
 });
 test("token routes, link identifiers and query strings are redacted from request logs",()=>{
   const secret="private-token";

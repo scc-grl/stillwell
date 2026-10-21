@@ -1,6 +1,19 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { requestLogPath, careLinkSecurityHeaders } from "./request-log-path.ts";
+import { readFileSync } from "node:fs";
+
+test("every registered care-team route redacts bearer tokens, record IDs and query values", () => {
+  const routes = readFileSync(new URL("../routes/care-team.ts", import.meta.url), "utf8");
+  const registered = [...routes.matchAll(/router\.(?:get|post|delete)\("([^"]+)"/g)];
+  assert.equal(registered.length, 19, "Update this inventory deliberately when adding care-team routes.");
+  for (const [, route] of registered) {
+    const concrete = `/api${route.replaceAll(":token", "SENSITIVE_TOKEN").replaceAll(":id", "SENSITIVE_ID")}?email=SENSITIVE_EMAIL`;
+    const safe = requestLogPath(concrete);
+    assert.ok(!/SENSITIVE_/.test(safe), `Sensitive route segment was not redacted for ${route}`);
+    assert.ok(!safe.includes("?"), `Query values were not removed for ${route}`);
+  }
+});
 
 test("care-link HTML prevents referrer leaks, caching, indexing and off-origin analytics",()=>{
   for(const path of ["/invite/private-token","/request/private-token?return=ignored","/INVITE/private-token/nested", "/clinician/portal", "/clinician/patients/private-id/days/2026-10-20"]) {

@@ -12,6 +12,7 @@ import {
   type GetMyCareRequests200,
 } from '@workspace/api-client-react';
 import { normalizeCareEntries, type ClinicalEntry } from '@workspace/recovery-journal/clinician-journal';
+import { readAllJournalPages } from './journal-loader';
 
 /**
  * Private clinical reads: never cached after unmount, never retried or queued
@@ -64,29 +65,10 @@ export interface FullJournal {
 
 /** Reads every page so ranges and stats cover the whole selected history, not just page one. */
 async function fetchAllPages(id: string, signal: AbortSignal): Promise<FullJournal> {
-  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += 1) {
-    const first = await getCarePatientJournal(id, { page: 1 }, { signal });
-    const raw: unknown[] = [...first.entries];
-    let page = first;
-    let consistent = true;
-    const pageCount = Math.max(1, Math.ceil(first.total / first.pageSize));
-    for (let n = 2; page.hasMore && n <= pageCount; n += 1) {
-      page = await getCarePatientJournal(id, { page: n }, { signal });
-      // An edit, or the patient stopping sharing (live -> frozen snapshot),
-      // mid-read: restart from page one so pages never mix two versions.
-      if (page.total !== first.total || page.status !== first.status ||
-          page.disconnectedAt !== first.disconnectedAt || page.lastUpdated !== first.lastUpdated) {
-        consistent = false;
-        break;
-      }
-      raw.push(...page.entries);
-    }
-    if (consistent && !page.hasMore) return { journal: first, entries: normalizeCareEntries(raw) };
-  }
-  throw new Error('journal_changed_while_reading');
+  const { journal, raw } = await readAllJournalPages(id, signal,
+    (link, page, abort) => getCarePatientJournal(link, { page }, { signal: abort }));
+  return { journal, entries: normalizeCareEntries(raw) };
 }
-
-const MAX_ATTEMPTS = 3;
 
 export function useFullJournal(id: string, enabled = true) {
   const owner = useCareOwner();

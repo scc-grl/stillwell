@@ -11,3 +11,4 @@
 - [Codegen and preview watchers](codegen-preview-watchers.md) — shared API regeneration can leave Metro with stale missing-module or SHA-1 errors; restart affected previews after generation finishes.
 - [Shared native control types](shared-native-control-types.md) — portable imperative handles avoid incompatible native View ref types across workspace peer instances.
 - [Care-link privacy on static hosting](care-link-static-privacy.md) — injected analytics can run before React; API-only headers do not protect static link documents.
+- [Workspace validation memory](workspace-validation-memory.md) — run full workspace validation serially to avoid memory exhaustion interrupting previews.

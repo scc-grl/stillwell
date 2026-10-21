@@ -1,5 +1,5 @@
 import { Link } from 'wouter';
-import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import { careSymptoms, type CareRoutine } from '@workspace/recovery-journal/clinician-journal';
 import { Button } from '@workspace/stillwell-design-system/components/ui/button';
 import { Card } from '@workspace/stillwell-design-system/components/ui/card';
@@ -44,6 +44,15 @@ export function DayView({ data, date }: { data: FullJournal; date: string }) {
         </nav>
       </div>
 
+      <div className="flex items-start gap-3 rounded-2xl bg-secondary p-4 text-sm leading-6 text-secondary-foreground" data-testid="banner-day-read-only">
+        <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+        <p>Patient-reported journal, not a clinical record. Read-only.</p>
+      </div>
+      {journal.status === 'former' ? (
+        <div className="rounded-2xl bg-accent p-4 text-sm leading-6 text-accent-foreground" data-testid="banner-day-former">
+          {journal.firstName} stopped sharing on {journal.disconnectedAt ? shortIso(journal.disconnectedAt) : 'the recorded sharing end date'}. You’re seeing entries up to then; nothing new will appear.
+        </div>
+      ) : null}
       {!entry ? (
         <Card className="p-6 shadow-none" data-testid="status-day-missing">
           <p className="text-foreground">There’s no entry for this day.</p>

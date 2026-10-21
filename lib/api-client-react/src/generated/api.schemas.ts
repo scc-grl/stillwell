@@ -776,6 +776,8 @@ export interface CareJournal {
   disconnectedAt: string | null;
   /** @nullable */
   lastUpdated: string | null;
+  /** Opaque consistency fingerprint of this authorized journal version. Compare across pages; never log or send to analytics. */
+  revision: string;
   supportApproach: unknown;
   focusAreas: unknown;
   profileSummary: CareJournalProfileSummary;

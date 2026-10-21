@@ -207,7 +207,7 @@ export function DailyCheckInFlow({
     {(page === "review" || page === "edit") && <>
       <Card className="space-y-2 bg-secondary p-5">
         <h3 className="font-serif text-xl font-medium">A private summary for your own review</h3>
-        <p className="text-sm leading-6 text-muted-foreground">In-app sharing with a clinician is planned but not available yet. Your dictated words are editable text; Stillwell does not create or share an audio recording.</p>
+        <p className="text-sm leading-6 text-muted-foreground">Your check-in is part of your journal. Only clinicians you choose to share with can read it. Your dictated words are editable text; Stillwell does not create or share an audio recording.</p>
       </Card>
       <Card className="space-y-3 p-5">
         <p className="text-sm font-semibold">Overall, how did today feel?</p>

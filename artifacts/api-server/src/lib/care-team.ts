@@ -330,13 +330,17 @@ export class CareTeamService {
     requireRole(user, "clinician");
     if (!Number.isInteger(page) || page < 1 || page > 1000000) fail("invalid_page", "Choose a valid page.");
     return transaction(this.deps.pool, async tx => {
-      // Link lock also serializes this read with disconnection/deletion.
-      const { rows: [link] } = await tx.query("SELECT * FROM care_team_links WHERE id=$1 AND clinician_id=$2 FOR SHARE", [id, user.id]);
+      // One MVCC snapshot for authorization, profile, totals and entries. A read
+      // begun before disconnect sees only that point in time, never later edits.
+      // Avoid patient/link lock inversion with the disconnect writer.
+      await tx.query("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY");
+      const { rows: [link] } = await tx.query("SELECT * FROM care_team_links WHERE id=$1 AND clinician_id=$2", [id, user.id]);
       if (!link) fail("not_found", "This shared journal was not found.", 404);
       let profileSummary: Record<string, unknown>;
       let entries: Record<string, any>[];
       let total: number;
       let lastUpdated: string | null;
+      let revision: string;
       if (link.status === "former") {
         const { rows: [snapshot] } = await tx.query("SELECT * FROM care_team_snapshots WHERE link_id=$1", [link.id]);
         if (!snapshot) fail("snapshot_unavailable", "The frozen journal is unavailable.", 500);
@@ -344,16 +348,22 @@ export class CareTeamService {
         total = snapshot.entries.length;
         entries = snapshot.entries.slice((page - 1) * 20, page * 20);
         lastUpdated = snapshot.entries.reduce((latest: string | null, e: any) => e.updatedAt && (!latest || e.updatedAt > latest) ? e.updatedAt : latest, null);
+        revision = createHash("sha256").update(JSON.stringify([snapshot.profile_summary, snapshot.entries])).digest("hex");
       } else {
         const { rows: [profile] } = await tx.query("SELECT preferences FROM recovery_profiles WHERE owner_id=$1", [link.patient_id]);
         profileSummary = profile?.preferences ?? {};
-        const { rows: [stats] } = await tx.query("SELECT count(*) AS count,max(updated_at) AS updated FROM recovery_logs WHERE owner_id=$1", [link.patient_id]);
+        // Includes every row/content and the profile, not just max(updated_at):
+        // older deletions, equal timestamps and profile-only changes must count.
+        const { rows: [stats] } = await tx.query(`SELECT count(*) AS count,max(updated_at) AS updated,
+          md5(COALESCE(string_agg(date::text || ':' || updated_at::text || ':' || md5(data::text), ',' ORDER BY date), '')) AS version
+          FROM recovery_logs WHERE owner_id=$1`, [link.patient_id]);
         total = Number(stats.count); lastUpdated = stats.updated?.toISOString() ?? null;
+        revision = createHash("sha256").update(JSON.stringify([profileSummary, stats.version])).digest("hex");
         const { rows } = await tx.query("SELECT data,date::text AS date,updated_at FROM recovery_logs WHERE owner_id=$1 ORDER BY date DESC LIMIT 20 OFFSET $2", [link.patient_id, (page - 1) * 20]);
         entries = rows.map(e => ({ ...e.data, date: e.date, updatedAt: e.updated_at.toISOString() }));
       }
       return { linkId: link.id, status: link.status, firstName: link.patient_first_name, lastName: link.patient_last_name,
-        connectedAt: link.connected_at, disconnectedAt: link.disconnected_at, lastUpdated,
+        connectedAt: link.connected_at, disconnectedAt: link.disconnected_at, lastUpdated, revision,
         supportApproach: profileSummary.supportApproach ?? profileSummary.supportMode ?? null,
         focusAreas: profileSummary.focusAreas ?? profileSummary.priorities ?? [], profileSummary,
         entries, page, pageSize: 20, total, hasMore: page * 20 < total };

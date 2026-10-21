@@ -444,7 +444,7 @@ components:
         lastEntryDate: { type: [string, "null"] }
     CareJournal:
       type: object
-      required: [linkId, status, firstName, lastName, connectedAt, disconnectedAt, lastUpdated, supportApproach, focusAreas, profileSummary, entries, page, pageSize, total, hasMore]
+      required: [linkId, status, firstName, lastName, connectedAt, disconnectedAt, lastUpdated, revision, supportApproach, focusAreas, profileSummary, entries, page, pageSize, total, hasMore]
       properties:
         linkId: { type: string, format: uuid }
         status: { type: string, enum: [active, former] }
@@ -453,6 +453,9 @@ components:
         connectedAt: { type: string, format: date-time }
         disconnectedAt: { type: [string, "null"], format: date-time }
         lastUpdated: { type: [string, "null"], format: date-time }
+        revision:
+          type: string
+          description: Opaque consistency fingerprint of this authorized journal version. Compare across pages; never log or send to analytics.
         supportApproach: {}
         focusAreas: {}
         profileSummary: { type: object, additionalProperties: true }
