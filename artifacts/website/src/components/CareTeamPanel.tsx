@@ -11,10 +11,11 @@ import {
   useRemoveCareClinician,
 } from "@workspace/api-client-react";
 import { careLinkPath } from "@workspace/recovery-journal/care-link-handoff";
+import { careTeamErrorMessage, inviteFieldError, notSentMessage, sendFailedMessage } from "@workspace/recovery-journal/care-team-copy";
 import { Button } from "@workspace/stillwell-design-system/components/ui/button";
 import { Card } from "@workspace/stillwell-design-system/components/ui/card";
 import { Input } from "@workspace/stillwell-design-system/components/ui/input";
-import { careMemory, doctorName, errorCode, formatLinkDate, isValidEmail, pendingLink, privateMutation, privateQuery, type InvitePrefill } from "@/lib/care-link";
+import { careMemory, doctorName, errorCode, formatLinkDate, pendingLink, privateMutation, privateQuery, type InvitePrefill } from "@/lib/care-link";
 
 type Confirm = { kind: "remove" | "cancel"; id: string; name: string } | null;
 
@@ -126,17 +127,16 @@ function PrefilledInvite({ prefill, onDone, onDismiss }: { prefill: InvitePrefil
   function submit(event: FormEvent) {
     event.preventDefault();
     setError("");
-    if (!form.firstName.trim() || !form.lastName.trim() || !isValidEmail(form.email)) { setError("Enter a first name, last name and a valid email."); return; }
+    const validationError = inviteFieldError("firstName", form.firstName)
+      || inviteFieldError("lastName", form.lastName) || inviteFieldError("email", form.email);
+    if (validationError) { setError(validationError); return; }
     create.mutate({ data: { firstName: form.firstName.trim(), lastName: form.lastName.trim(), email: form.email.trim(), consentAccepted: true } }, {
       onSuccess: (result) => onDone(result.suppressed
-        ? "Invite saved. No email was sent. Email delivery is turned off in this environment."
+        ? notSentMessage("patient")
         : `Invite sent to ${dr}.`),
       onError: (err) => {
         const code = errorCode(err);
-        setError(code === "care_team_full" ? "Your care team is full. Remove someone first."
-          : code === "already_sharing" ? `You already share with ${dr}.`
-          : code === "daily_limit" ? "You’ve sent the most invites allowed today. Try again tomorrow."
-          : "Your invite wasn’t sent. Check your connection and try again.");
+        setError(careTeamErrorMessage(code, "patient", sendFailedMessage("patient")));
       },
     });
   }

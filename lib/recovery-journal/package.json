@@ -6,6 +6,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./care-link-handoff": "./src/care-link-handoff.ts",
+    "./care-team-copy": "./src/care-team-copy.ts",
     "./clinician-journal": "./src/clinician-journal.ts"
   },
   "scripts": { "test": "node --test test/*.test.mjs" },

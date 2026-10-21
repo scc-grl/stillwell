@@ -1,6 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import { freezeLink, lockPatient, patientWrite, transaction, type SqlClient, type SqlPool } from "./recovery-lock";
 import type { CareEmail } from "./care-team-email";
+import { CARE_TEAM_FULL, careTeamErrorMessage, dailyLimitMessage, inviteFieldError, ownEmailMessage, resendAvailableMessage, sendFailedMessage } from "@workspace/recovery-journal/care-team-copy";
 
 export type Direction = CareEmail["direction"];
 export const PATIENT_INVITE: Direction = "patient_invites_clinician";
@@ -46,9 +47,12 @@ export function inviteInput(value: { firstName?: string; lastName?: string; emai
   const firstName = value.firstName?.trim();
   const lastName = value.lastName?.trim();
   const email = normalized(value.email ?? "");
-  if (!firstName || firstName.length > 100) fail("first_name_required", "Enter their first name.");
-  if (!lastName || lastName.length > 100) fail("last_name_required", "Enter their last name.");
-  if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) fail("invalid_email", "Enter an email like name@example.com.");
+  const firstError = inviteFieldError("firstName", firstName ?? "");
+  const lastError = inviteFieldError("lastName", lastName ?? "");
+  const emailError = inviteFieldError("email", email);
+  if (firstError) fail("first_name_required", firstError);
+  if (lastError) fail("last_name_required", lastError);
+  if (emailError) fail("invalid_email", emailError);
   return { firstName: firstName!, lastName: lastName!, email };
 }
 
@@ -74,14 +78,14 @@ export class CareTeamService {
     [patientId, PATIENT_INVITE, now, excludeInvite ?? null]);
     if (Number(r.count) >= 5) fail("care_team_full", clinicianName
       ? `You share with 5 clinicians, the most Stillwell allows. Remove one to share with ${clinicianName}.`
-      : "You can share with up to 5 clinicians. Remove one to invite someone new.", 409);
+      : CARE_TEAM_FULL, 409);
   }
   private async emailLimit(tx: SqlClient, user: Identity, direction: Direction, now: Date) {
     const start = new Date(now); start.setUTCHours(0, 0, 0, 0);
     const { rows: [r] } = await tx.query("SELECT count(*) AS count FROM care_team_email_sends WHERE inviter_id=$1 AND direction=$2 AND sent_at >= $3 AND sent_at < $4",
       [user.id, direction, start, new Date(start.getTime() + 86400000)]);
     if (Number(r.count) >= (direction === PATIENT_INVITE ? 10 : 20)) fail("daily_limit",
-      direction === PATIENT_INVITE ? "You've sent 10 invites today. Try again tomorrow." : "You've sent 20 requests today. Try again tomorrow.", 429);
+      dailyLimitMessage(direction === PATIENT_INVITE ? "patient" : "clinician"), 429);
   }
   async sendInvite(user: Identity, direction: Direction, input: { firstName?: string; lastName?: string; email?: string }, baseUrl: string, resendId?: string, consentAccepted?: boolean) {
     requireRole(user, direction === PATIENT_INVITE ? "patient" : "clinician");
@@ -96,17 +100,17 @@ export class CareTeamService {
         if (!previous || !["pending", "expired"].includes(previous.status)) fail("not_found", "This invite is no longer available.", 404);
         input = { firstName: previous.invitee_first_name, lastName: previous.invitee_last_name, email: previous.invitee_email };
         const remaining = 600000 - (now.getTime() - new Date(previous.last_resend_at ?? previous.sent_at).getTime());
-        if (remaining > 0) fail("resend_cooldown", `Resend available in ${Math.ceil(remaining / 60000)} minutes`, 429);
+        if (remaining > 0) fail("resend_cooldown", resendAvailableMessage(Math.ceil(remaining / 60000)), 429);
       }
       const fields = inviteInput(input);
       if (user.emails.some(e => normalized(e.address) === fields.email)) fail("own_email",
-        direction === PATIENT_INVITE ? "This is your own email. Enter your clinician's." : "This is your own email. Enter your patient's.");
+        ownEmailMessage(direction === PATIENT_INVITE ? "patient" : "clinician"));
       const { rows: duplicates } = await tx.query("SELECT id FROM care_team_invites WHERE inviter_id=$1 AND direction=$2 AND invitee_email=$3 AND status='pending' AND ($4::uuid IS NULL OR id<>$4)", [user.id, direction, fields.email, resendId ?? null]);
       const { rows: active } = await tx.query(direction === PATIENT_INVITE
         ? "SELECT id FROM care_team_links WHERE patient_id=$1 AND clinician_email=$2 AND status='active'"
         : "SELECT id FROM care_team_links WHERE clinician_id=$1 AND patient_email=$2 AND status='active'", [user.id, fields.email]);
-      if (active.length) fail("already_connected", direction === PATIENT_INVITE ? "You've already invited this email." : `${fields.firstName} already shares their journal with you.`, 409);
-      if (duplicates.length) fail("already_invited", direction === PATIENT_INVITE ? "You've already invited this email." : `You've already sent ${fields.firstName} a request.`, 409);
+      if (active.length) fail("already_connected", careTeamErrorMessage("already_connected", direction === PATIENT_INVITE ? "patient" : "clinician", "", fields.firstName), 409);
+      if (duplicates.length) fail("already_invited", careTeamErrorMessage("already_invited", direction === PATIENT_INVITE ? "patient" : "clinician", "", fields.firstName), 409);
       if (direction === PATIENT_INVITE) {
         if (!previous && consentAccepted !== true) fail("consent_required", "Confirm that you want to share your journal with this clinician.");
         const { rows: profiles } = await tx.query("SELECT owner_id FROM recovery_profiles WHERE owner_id=$1", [user.id]);
@@ -126,7 +130,7 @@ export class CareTeamService {
           link, expiresAt,
         });
       } catch {
-        fail("email_failed", "The invite didn't send. Check your connection and try again. Nothing was shared.", 502);
+        fail("email_failed", sendFailedMessage(direction === PATIENT_INVITE ? "patient" : "clinician"), 502);
       }
       const consentVersion = direction === PATIENT_INVITE ? previous?.consent_version ?? CARE_CONSENT_VERSION : null;
       const consentedAt = direction === PATIENT_INVITE ? previous?.consented_at ?? now : null;
@@ -165,7 +169,7 @@ export class CareTeamService {
       if (new Date(invite.expires_at) <= now) fail("expired", "This invite has expired.", 410);
       const { rows: duplicate } = await tx.query("SELECT id FROM care_team_invites WHERE inviter_id=$1 AND direction=$2 AND invitee_email=$3 AND status='pending'", [user.id, PATIENT_INVITE, invite.invitee_email]);
       const { rows: active } = await tx.query("SELECT id FROM care_team_links WHERE patient_id=$1 AND clinician_email=$2 AND status='active'", [user.id, invite.invitee_email]);
-      if (duplicate.length || active.length) fail("already_invited", "You've already invited this email.", 409);
+      if (duplicate.length || active.length) fail("already_invited", careTeamErrorMessage("already_invited", "patient", ""), 409);
       await this.capacity(tx, user.id, now);
       const { rows: [restored] } = await tx.query("UPDATE care_team_invites SET status='pending',cancelled_at=NULL WHERE id=$1 RETURNING *", [id]);
       return publicInvite(restored);

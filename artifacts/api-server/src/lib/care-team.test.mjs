@@ -28,7 +28,11 @@ const id = (role, n) => ({
 const patient = id("patient", 1), clinician = id("clinician", 1), other = id("clinician", 2);
 const tokenOf = result => result.link.split("/").at(-1);
 const fields = user => ({ firstName: user.firstName, lastName: user.lastName, email: user.emails[0].address });
-const rejects = (promise, code) => assert.rejects(promise, e => e.code === code);
+const rejects = (promise, code, message) => assert.rejects(promise, e => {
+  assert.equal(e.code, code);
+  if (message) assert.equal(e.message, message);
+  return true;
+});
 const advance = minutes => { clock = new Date(clock.getTime() + minutes * 60000); };
 
 before(async () => {
@@ -91,7 +95,8 @@ test("validation uses the requested plain messages and normalized email", () => 
 test("role restrictions, own email and consent are enforced", async () => {
   await rejects(service.listTeam(clinician), "clinician_account");
   await rejects(service.listPatients(patient), "patient_account");
-  await rejects(service.sendInvite(patient, PATIENT_INVITE, fields(patient), baseUrl, undefined, true), "own_email");
+  await rejects(service.sendInvite(patient, PATIENT_INVITE, fields(patient), baseUrl, undefined, true), "own_email", "This is your own email. Enter your clinician’s.");
+  await rejects(service.sendInvite(clinician, CLINICIAN_REQUEST, fields(clinician), baseUrl), "own_email", "This is your own email. Enter your patient’s.");
   await rejects(service.sendInvite(patient, PATIENT_INVITE, fields(clinician), baseUrl), "consent_required");
   await rejects(service.sendInvite(patient, CLINICIAN_REQUEST, fields(clinician), baseUrl), "patient_account");
 });
@@ -131,9 +136,9 @@ test("cancelled, withdrawn, expired, and invalid tokens have distinct states", a
 test("resend rotates the token, restarts expiry and applies both 10-minute cooldowns", async () => {
   for (const [actor, direction, recipient] of [[patient,PATIENT_INVITE,clinician],[clinician,CLINICIAN_REQUEST,patient]]) {
     const sent = await service.sendInvite(actor, direction, fields(recipient), baseUrl, undefined, true);
-    await rejects(service.sendInvite(actor, direction, {}, baseUrl, sent.invite.id), "resend_cooldown");
+    await rejects(service.sendInvite(actor, direction, {}, baseUrl, sent.invite.id), "resend_cooldown", "Resend available in 10 minutes.");
     advance(9);
-    await assert.rejects(service.sendInvite(actor, direction, {}, baseUrl, sent.invite.id), /Resend available in 1 minutes/);
+    await rejects(service.sendInvite(actor, direction, {}, baseUrl, sent.invite.id), "resend_cooldown", "Resend available in 1 minute.");
     advance(1);
     const resent = await service.sendInvite(actor, direction, {}, baseUrl, sent.invite.id);
     assert.notEqual(tokenOf(sent), tokenOf(resent));
@@ -166,7 +171,7 @@ test("patient daily limit includes resends and cancelled emails; next UTC day re
     await service.sendInvite(patient, PATIENT_INVITE, {}, baseUrl, sent.invite.id);
   }
   advance(10);
-  await rejects(service.sendInvite(patient, PATIENT_INVITE, {}, baseUrl, sent.invite.id), "daily_limit");
+  await rejects(service.sendInvite(patient, PATIENT_INVITE, {}, baseUrl, sent.invite.id), "daily_limit", "You’ve sent 10 invites today. Try again tomorrow.");
   await service.cancel(patient, sent.invite.id, PATIENT_INVITE);
   await rejects(invite(), "daily_limit");
   advance(24*60);
@@ -177,7 +182,7 @@ test("clinician daily limit includes all 20 requests even after cancellation", a
     const sent = await service.sendInvite(clinician, CLINICIAN_REQUEST, fields(id("patient", n)), baseUrl);
     await service.cancel(clinician, sent.invite.id, CLINICIAN_REQUEST);
   }
-  await rejects(service.sendInvite(clinician, CLINICIAN_REQUEST, fields(patient), baseUrl), "daily_limit");
+  await rejects(service.sendInvite(clinician, CLINICIAN_REQUEST, fields(patient), baseUrl), "daily_limit", "You’ve sent 20 requests today. Try again tomorrow.");
 });
 test("clinician request validation, duplicate, email/role checks and explicit patient consent", async () => {
   const sent = await service.sendInvite(clinician, CLINICIAN_REQUEST, fields(patient), baseUrl);
@@ -325,12 +330,23 @@ test("delete-all snapshots every active clinician and deletes patient-side invit
 });
 test("failed sending rolls back a new invite and preserves the old token on failed resend",async()=>{
   failSending=true;
-  await rejects(invite(),"email_failed");
+  await rejects(invite(),"email_failed", "The invite didn’t send. Check your connection and try again. Nothing was shared.");
   assert.equal((await pool.query("SELECT * FROM care_team_invites")).rows.length,0);
   assert.equal((await pool.query("SELECT * FROM care_team_email_sends")).rows.length,0);
   failSending=false;const sent=await invite();advance(10);failSending=true;
   await rejects(service.sendInvite(patient,PATIENT_INVITE,{},baseUrl,sent.invite.id),"email_failed");
   await service.accept(clinician,tokenOf(sent),PATIENT_INVITE);
+});
+
+test("clinician delivery failures use request wording and roll back without exposing provider details", async () => {
+  failSending = true;
+  await rejects(
+    service.sendInvite(clinician, CLINICIAN_REQUEST, fields(patient), baseUrl),
+    "email_failed",
+    "The request didn’t send. Check your connection and try again. Nothing was shared.",
+  );
+  assert.equal((await pool.query("SELECT * FROM care_team_invites")).rows.length, 0);
+  assert.equal((await pool.query("SELECT * FROM care_team_email_sends")).rows.length, 0);
 });
 test("suppression sends nothing, logs only the exact phrase and exposes links only in development",async()=>{
   const sent=await invite();assert.deepEqual(suppressionLogs,["invite email suppressed"]);

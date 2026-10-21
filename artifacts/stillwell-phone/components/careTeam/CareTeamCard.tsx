@@ -36,18 +36,15 @@ import { CareTeamRow, statusLine, type CareTeamEntry } from "./CareTeamRow";
 import { InviteSheet } from "./InviteSheet";
 import { Toast, useConfirm, useToast } from "./feedback";
 import { usePendingRequest, type InvitePrefill } from "@/contexts/PendingRequestContext";
+import { CARE_TEAM_FULL, careTeamErrorMessage, dailyLimitMessage, resendAvailableMessage, sendFailedMessage } from "@workspace/recovery-journal/care-team-copy";
 
 type PreviewLink = { name: string; link: string };
 
 function failureMessage(error: unknown, fallback: string) {
   if (isOffline(error)) return OFFLINE_MESSAGE;
   const code = errorCode(error);
-  if (code === "resend_cooldown") return "You can resend this invite in a few minutes.";
-  if (code === "daily_limit") return "You've sent 10 invites today. You can resend tomorrow.";
-  if (code === "care_team_full") return "You can share with up to 5 clinicians. Remove one to invite someone new.";
-  if (code === "already_invited" || code === "already_connected") return "You've already invited this email.";
   if (code === "undo_expired") return "The Undo period has ended. Your invite is still cancelled.";
-  return fallback;
+  return careTeamErrorMessage(code, "patient", fallback);
 }
 
 export function CareTeamCard() {
@@ -212,7 +209,7 @@ export function CareTeamCard() {
   async function resend(id: string, name: string) {
     const result = await run(
       () => team.resend.mutateAsync({ id }),
-      "The invite didn’t resend. Check your connection and try again.",
+      sendFailedMessage("patient"),
     );
     void team.refresh();
     if (!result || !mounted.current) return;
@@ -305,10 +302,10 @@ export function CareTeamCard() {
       ? "Resend invite"
       : state.reason === "quota"
         ? "Resend available tomorrow"
-        : `Resend available in ${state.minutes} minute${state.minutes === 1 ? "" : "s"}`;
+        : resendAvailableMessage(state.minutes);
     const sheetMessage =
       !state.available && state.reason === "quota"
-        ? "You've sent 10 invites today. You can resend tomorrow."
+        ? dailyLimitMessage("patient")
         : statusLine(entry, now);
     const secondLabel = entry.kind === "pending" ? "Cancel invite" : "Remove";
     showActionSheetWithOptions(
@@ -336,8 +333,8 @@ export function CareTeamCard() {
     if (!state.available) {
       setActionError(
         state.reason === "quota"
-          ? "You've sent 10 invites today. You can resend tomorrow."
-          : `Resend available in ${state.minutes} minute${state.minutes === 1 ? "" : "s"}.`,
+          ? dailyLimitMessage("patient")
+          : resendAvailableMessage(state.minutes),
       );
       return;
     }
@@ -421,7 +418,7 @@ export function CareTeamCard() {
           >
             <Ionicons name="information-circle-outline" size={18} color={colors.primary} />
             <Text variant="caption" color={colors.secondaryForeground} style={styles.flex}>
-              You can share with up to 5 clinicians. Remove one to invite someone new.
+              {CARE_TEAM_FULL}
             </Text>
           </View>
         ) : null}

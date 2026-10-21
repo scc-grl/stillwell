@@ -1,4 +1,6 @@
 
+import { notSentMessage } from "@workspace/recovery-journal/care-team-copy";
+
 export const CARE_TEAM_LIMIT = 5;
 export const RESEND_COOLDOWN_MS = 10 * 60 * 1000;
 export const UNDO_WINDOW_MS = 5_000;
@@ -104,8 +106,7 @@ export type DeliveryNotice =
   | { kind: "dev-preview"; toast: string; link: string | null }
   | { kind: "not-sent"; error: string };
 
-export const NOT_SENT_MESSAGE =
-  "Your invite was saved, but no email was sent. Try resending it later.";
+export const NOT_SENT_MESSAGE = notSentMessage("patient");
 
 /**
  * Decide what to tell the patient after an invite is created or resent.

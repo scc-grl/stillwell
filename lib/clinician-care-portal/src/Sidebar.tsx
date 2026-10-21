@@ -18,6 +18,7 @@ import {
 } from '@workspace/stillwell-design-system/components/ui/dropdown-menu';
 import { careMutationOptions, errorCode, invalidateCare } from './queries';
 import { useNotify } from './toast';
+import { careTeamErrorMessage, notSentMessage, resendAvailableMessage, sendFailedMessage } from '@workspace/recovery-journal/care-team-copy';
 import { relativeDay, shortIso } from './format';
 
 const RESEND_COOLDOWN_MS = 10 * 60_000;
@@ -71,15 +72,11 @@ function RequestRow({ request }: { request: CareInvite }) {
 
   const onResend = () => resend.mutate({ id: request.id }, {
     onSuccess: (result) => notify(result.suppressed
-      ? 'Request renewed. No email was sent from this environment.'
+      ? notSentMessage('clinician')
       : `Request sent to ${result.invite.email}`),
     onError: (error) => {
       const code = errorCode(error);
-      notify(code === 'resend_cooldown'
-        ? 'You can resend this request 10 minutes after the last one.'
-        : code === 'daily_limit'
-          ? 'You’ve sent 20 requests today. Try again tomorrow.'
-          : 'The request didn’t resend. Check your connection and try again.', 6000);
+      notify(careTeamErrorMessage(code, 'clinician', sendFailedMessage('clinician'), request.firstName), 6000);
     },
     onSettled: () => void invalidateCare(queryClient),
   });
@@ -103,7 +100,7 @@ function RequestRow({ request }: { request: CareInvite }) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onSelect={onResend} disabled={waitMs > 0} data-testid={`menu-resend-${request.id}`}>
-            {waitMs > 0 ? `Resend available in ${waitMinutes} min` : 'Resend request'}
+            {waitMs > 0 ? resendAvailableMessage(waitMinutes) : 'Resend request'}
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={onCancel} className="text-destructive" data-testid={`menu-cancel-${request.id}`}>Cancel request</DropdownMenuItem>
         </DropdownMenuContent>

@@ -28,14 +28,14 @@ import {
   normalizeEmail,
 } from "@/lib/care-team";
 import { useConfirm } from "./feedback";
+import { careTeamErrorMessage, DUPLICATE_INVITE, inviteFieldError, ownEmailMessage, sendFailedMessage } from "@workspace/recovery-journal/care-team-copy";
 
 type Field = "firstName" | "lastName" | "email";
 type Errors = Partial<Record<Field, string>>;
 
-const SEND_FAILED =
-  "The invite didn’t send. Check your connection and try again. Nothing was shared.";
-const DUPLICATE = "You’ve already invited this email.";
-const OWN_EMAIL = "This is your own email. Enter your clinician’s.";
+const SEND_FAILED = sendFailedMessage("patient");
+const DUPLICATE = DUPLICATE_INVITE;
+const OWN_EMAIL = ownEmailMessage("patient");
 
 type Props = {
   visible: boolean;
@@ -116,10 +116,9 @@ function InviteSheetBody({
     isValidEmail(trimmed.email);
 
   function validate(field: Field, values = trimmed): string | undefined {
-    if (field === "firstName" && !values.firstName) return "Enter their first name.";
-    if (field === "lastName" && !values.lastName) return "Enter their last name.";
+    const fieldError = inviteFieldError(field, values[field]);
+    if (fieldError) return fieldError;
     if (field === "email") {
-      if (!isValidEmail(values.email)) return "Enter an email like name@example.com.";
       const normalized = normalizeEmail(values.email);
       if (ownEmails.includes(normalized)) return OWN_EMAIL;
       if (
@@ -187,14 +186,13 @@ function InviteSheetBody({
         setFieldError("email", DUPLICATE);
       } else if (code === "already_connected") {
         setFieldError("email", DUPLICATE, false);
-      } else if (code === "daily_limit") {
-        setBanner("You've sent 10 invites today. Try again tomorrow.");
-      } else if (code === "care_team_full") {
-        setBanner(
-          "You can share with up to 5 clinicians. Remove one to invite someone new.",
+      } else if (code === "invalid_email" || code === "first_name_required" || code === "last_name_required") {
+        setFieldError(
+          code === "invalid_email" ? "email" : code === "first_name_required" ? "firstName" : "lastName",
+          careTeamErrorMessage(code, "patient", SEND_FAILED),
         );
       } else {
-        setBanner(SEND_FAILED);
+        setBanner(careTeamErrorMessage(code, "patient", SEND_FAILED));
       }
     } finally {
       if (mounted.current) setSending(false);

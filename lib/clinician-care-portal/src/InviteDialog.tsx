@@ -15,20 +15,11 @@ import { Label } from '@workspace/stillwell-design-system/components/ui/label';
 import { careMutationOptions, errorCode, invalidateCare } from './queries';
 import { useNotify } from './toast';
 import { shortIso } from './format';
+import { careTeamErrorMessage, INVITE_FIELD_ERRORS, inviteFieldError, notSentMessage, sendFailedMessage } from '@workspace/recovery-journal/care-team-copy';
 
 type Field = 'firstName' | 'lastName' | 'email';
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const FIELD_ERRORS: Record<Field, string> = {
-  firstName: 'Enter their first name.',
-  lastName: 'Enter their last name.',
-  email: 'Enter an email like name@example.com.',
-};
-
-function validate(field: Field, value: string): string {
-  const trimmed = value.trim();
-  if (field === 'email') return EMAIL_RE.test(trimmed) && trimmed.length <= 254 ? '' : FIELD_ERRORS.email;
-  return trimmed && trimmed.length <= 100 ? '' : FIELD_ERRORS[field];
-}
+const FIELD_ERRORS = INVITE_FIELD_ERRORS;
+const validate = inviteFieldError;
 
 type Outcome = { kind: 'error'; message: string; seeRequests?: boolean } | { kind: 'preview'; email: string; link?: string } | null;
 
@@ -92,20 +83,20 @@ export function InviteDialog({ open, onOpenChange, requests, onSeeRequests }: {
           setOutcome({
             kind: 'error',
             message: pending
-              ? `You’ve already sent ${name} a request. It’s waiting until ${shortIso(pending.expiresAt)}.`
-              : `You’ve already sent ${name} a request.`,
+              ? `${careTeamErrorMessage(code, 'clinician', '', name)} It’s waiting until ${shortIso(pending.expiresAt)}.`
+              : careTeamErrorMessage(code, 'clinician', '', name),
             seeRequests: Boolean(pending),
           });
         } else if (code === 'already_connected') {
-          setOutcome({ kind: 'error', message: `${name} already shares their journal with you.` });
+          setOutcome({ kind: 'error', message: careTeamErrorMessage(code, 'clinician', '', name) });
         } else if (code === 'invalid_email') {
           setErrors((prev) => ({ ...prev, email: FIELD_ERRORS.email }));
         } else if (code === 'first_name_required' || code === 'last_name_required') {
           setErrors((prev) => ({ ...prev, [code === 'first_name_required' ? 'firstName' : 'lastName']: FIELD_ERRORS[code === 'first_name_required' ? 'firstName' : 'lastName'] }));
-        } else if (code === 'daily_limit') {
-          setOutcome({ kind: 'error', message: 'You’ve sent 20 requests today. Try again tomorrow.' });
+        } else if (code === 'own_email') {
+          setErrors((prev) => ({ ...prev, email: careTeamErrorMessage(code, 'clinician', '', name) }));
         } else {
-          setOutcome({ kind: 'error', message: 'The request didn’t send. Check your connection and try again. Nothing was shared.' });
+          setOutcome({ kind: 'error', message: careTeamErrorMessage(code, 'clinician', sendFailedMessage('clinician'), name) });
         }
       },
     });
@@ -146,8 +137,7 @@ export function InviteDialog({ open, onOpenChange, requests, onSeeRequests }: {
         {outcome?.kind === 'preview' ? (
           <div className="space-y-4" data-testid="status-invite-preview">
             <div role="status" className="space-y-2 rounded-xl bg-secondary p-4 text-sm leading-6 text-secondary-foreground">
-              <p className="font-semibold">Request saved. No email was sent.</p>
-              <p>Email delivery is turned off in this environment, so {outcome.email} wasn’t contacted.</p>
+              <p className="font-semibold">{notSentMessage('clinician')}</p>
             </div>
             {outcome.link ? (
               <div className="space-y-2 rounded-xl border border-border p-4">
