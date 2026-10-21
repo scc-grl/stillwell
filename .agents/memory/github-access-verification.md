@@ -20,3 +20,9 @@ Do not conclude that a user-supplied credential is invalid solely because fetchi
 **Why:** The authenticated-URL fetch failed here, but the same credential succeeded when supplied through a temporary, scoped HTTP authentication header with credential helpers disabled.
 
 **How to apply:** When explicitly authorized to use a stored credential, let the Git process receive it through ephemeral environment configuration. Keep the saved repository URL credential-free, suppress raw authentication output, and never put credentials in files or command arguments. Check the credential-supply method before asking the user to replace a token.
+
+Git repository access does not prove permission to read repository issues.
+
+**Why:** A scoped authenticated fetch succeeded while the issues API returned `403 Resource not accessible by personal access token`, explicitly requiring `issues=read`.
+
+**How to apply:** Check the API's permission response before treating this as a bad token or missing repository. Request Issues read permission on the existing credential, or ask for exported issue content when exact specifications are required.

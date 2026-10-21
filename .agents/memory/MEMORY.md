@@ -1,4 +1,4 @@
-- [Recovery journaling scope](recovery-protocol-content.md) — patient-controlled logs and sharing; clinician onboarding is manual-verification only, without journal linking or treatment prescriptions.
+- [Recovery journaling scope](recovery-protocol-content.md) — patient-controlled sharing, frozen former-patient snapshots, and non-prescriptive routines.
 - [Design language reuse](design-language-reuse.md) — the reusable system should carry Stillwell’s existing visual identity, not introduce a separate direction.
 - [Canvas preview verification](canvas-preview-verification.md) — app screenshots can pass while a canvas iframe has a wrong URL; verify its registered host and path.
 - [GitHub access verification](github-access-verification.md) — an active provider connection does not prove Git authentication or repository tracking works.

@@ -37,7 +37,17 @@ The user later expanded the phone app to let people choose patient or clinician 
 
 **Why:** The user explicitly approved implementing the onboarding and request flows while deferring email delivery and patient linking, then requested the clinician role switch and screens in the phone app.
 
-**How to apply:** Keep clinician tools clearly planned where they are not implemented. Do not present invite codes as connections or expose recovery records to clinicians. Phone clinician screens may read or edit only the authenticated clinician’s profile; do not enable any patient-journal query for a clinician session. Configure authorized Stillwell admins separately; never infer admin access from a notification email address.
+**How to apply:** Keep clinician tools clearly planned where they are not implemented. Do not present profile invite codes as connections. Clinician sessions must never use patient-owned recovery endpoints; any care-team reads must use the separate, authorized sharing routes described below. Configure authorized Stillwell admins separately; never infer admin access from a notification email address.
+
+## Care-team sharing and retention
+
+The user authorized patient-to-clinician invitations and clinician-to-patient requests with explicit patient consent. Clinician journal access is read-only and must be authorized by that clinician's active care-team link or their own former-patient snapshot.
+
+When a patient disconnects, the clinician keeps a frozen copy of the shared journal history and profile summary. Later patient edits, individual-day deletions, and deletion of all recovery data do not change that copy. It is kept until the clinician removes it. Deleting all patient recovery data first disconnects active links with frozen snapshots, then removes patient-side invitations and active links.
+
+**Why:** The user stated the founder decisions: “When a patient disconnects, the patient history is kept by the clinician and doesn't disappear but they will no longer be updated”; frozen copies survive patient deletions and are kept until the clinician removes them.
+
+**How to apply:** Keep snapshot lifetime independent of the live patient profile and journal. Never cascade patient deletion into a clinician-owned snapshot, and never update a former snapshot from current patient data.
 
 ## Whole-check-in voice direction
 
