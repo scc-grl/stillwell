@@ -41,7 +41,7 @@ _Populate as you build — non-obvious choices a reader couldn't infer from the 
 
 - `account_roles` is the source of truth for patient vs clinician; legacy accounts without a role default to patient. Both web apps use the same Clerk accounts.
 - Patients use the website or phone journal. Clinicians can sign in on either, manage their professional profile, and use the new backend-only care-team API for authorized read-only sharing. Patient-owned recovery APIs still reject all clinician accounts.
-- Care-team backend routes live under `/api/patient/care-team` and `/api/clinician/care-team`; UI integration is deferred. Old sharing URLs still return `410` and their obsolete handlers have been removed. Legacy generated hooks remain for source compatibility, not as working sharing APIs.
+- Care-team backend routes live under `/api/patient/care-team` and `/api/clinician/care-team`; the phone patient Account includes outbound invitations and access management. Clinician requests and clinician-side care-team screens are deferred. Old sharing URLs still return `410` and their obsolete handlers have been removed. Legacy generated hooks remain for source compatibility, not as working sharing APIs.
 - Clinician matching/directory, licence verification, real-time alerts, and partnership intake remain planned and blocked. Care-team acceptance does not verify a clinician's professional credentials.
 - The clinician profile is owned by the authenticated Clerk user. The user can save private preferences for future listing, but those preferences do not create a public listing or patient connection.
 
@@ -72,6 +72,10 @@ Public landing → starting quiz → explicit storage consent → email-based ac
 - Email: optional `EMAIL_API_KEY` enables Resend; then `EMAIL_FROM` and `CARE_TEAM_WEBSITE_URL` (the trusted HTTPS website origin) are required, with optional `EMAIL_REPLY_TO`. No provider key means no delivery and only `invite email suppressed` is logged. Suppressed accept/review links appear in responses only when `NODE_ENV=development`.
 - Website links are `/invite/:token` and `/request/:token`; their pages are intentionally not built in this backend-only phase. Use the generated API hooks or direct API calls in preview until UI integration.
 - `pnpm --filter @workspace/api-server test` includes PostgreSQL integration tests in an isolated temporary schema, removed after the run. It requires the development `DATABASE_URL` and never contacts Clerk or sends real email.
+- The phone patient's Account screen now includes care-team invite, resend, cancel/Undo, expired removal, and disconnect controls. Clinician-to-patient request screens are deferred to the next phase. The invite form is transient only; tapping Send provides sharing consent with the full-history/retained-snapshot disclosure.
+- `GET /api/patient/care-team` includes server time and daily send quota for accurate phone controls. `DELETE .../invites/:id` also removes expired invitations. `POST .../invites/:id/undo-cancel` restores the original recently cancelled invitation without sending email; UI Undo lasts 5 seconds, with a 10-second server window for network latency. All limits and owner checks still apply.
+- Development Expo web preview requests are admitted only from this workspace's configured HTTPS Expo host with an explicit Clerk bearer token. Cookie requests remain same-origin and production origin behavior is unchanged. This is not an authentication bypass.
+- Run phone care-team helper tests with `pnpm --filter @workspace/stillwell-phone test`. Suppressed email is clearly marked as preview-only in the phone UI; the development token link is selectable only within that signed-in preview and never persisted.
 
 ## User preferences
 

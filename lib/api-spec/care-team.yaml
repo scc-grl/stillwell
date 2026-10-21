@@ -40,6 +40,22 @@ paths:
           $ref: "#/components/responses/CareDelivery"
         default:
           $ref: "#/components/responses/CareError"
+  /patient/care-team/invites/{id}/undo-cancel:
+    parameters:
+      - $ref: "#/components/parameters/CareId"
+    post:
+      operationId: undoCancelPatientCareInvite
+      summary: Restore a recently cancelled invitation without sending email
+      description: Patient only. Five-second UI Undo with ten-second server grace for network latency. Rechecks expiry, duplicates and capacity.
+      responses:
+        "200":
+          description: Original invitation restored; no email sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CareInvite"
+        default:
+          $ref: "#/components/responses/CareError"
   /patient/care-team/invites/{id}/resend:
     parameters:
       - $ref: "#/components/parameters/CareId"
@@ -308,8 +324,16 @@ components:
         acceptedAt: { type: [string, "null"], format: date-time }
     CareTeamList:
       type: object
-      required: [pendingInvites, expiredInvites, activeClinicians]
+      required: [pendingInvites, expiredInvites, activeClinicians, serverTime, inviteEmailQuota]
       properties:
+        serverTime: { type: string, format: date-time }
+        inviteEmailQuota:
+          type: object
+          required: [used, limit, resetsAt]
+          properties:
+            used: { type: integer, minimum: 0 }
+            limit: { type: integer, minimum: 1 }
+            resetsAt: { type: string, format: date-time }
         pendingInvites:
           type: array
           items: { $ref: "#/components/schemas/CareInvite" }

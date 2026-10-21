@@ -10,6 +10,7 @@ import { tokenCache } from "@clerk/expo/token-cache";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { ActionSheetProvider } from "@expo/react-native-action-sheet";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -125,9 +126,11 @@ export default function RootLayout() {
             <QueryClientProvider client={queryClient}>
               <GestureHandlerRootView style={{ flex: 1 }}>
                 <KeyboardProvider>
-                  <SessionLifecycle>
-                    <RootLayoutNav />
-                  </SessionLifecycle>
+                  <ActionSheetProvider>
+                    <SessionLifecycle>
+                      <RootLayoutNav />
+                    </SessionLifecycle>
+                  </ActionSheetProvider>
                 </KeyboardProvider>
               </GestureHandlerRootView>
             </QueryClientProvider>

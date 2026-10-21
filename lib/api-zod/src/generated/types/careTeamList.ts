@@ -7,8 +7,11 @@
  */
 import type { CareInvite } from './careInvite';
 import type { CareTeamListActiveCliniciansItem } from './careTeamListActiveCliniciansItem';
+import type { CareTeamListInviteEmailQuota } from './careTeamListInviteEmailQuota';
 
 export interface CareTeamList {
+  serverTime: Date;
+  inviteEmailQuota: CareTeamListInviteEmailQuota;
   pendingInvites: CareInvite[];
   expiredInvites: CareInvite[];
   activeClinicians: CareTeamListActiveCliniciansItem[];

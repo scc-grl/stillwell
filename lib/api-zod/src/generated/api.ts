@@ -11,7 +11,18 @@ import * as zod from 'zod';
 /**
  * @summary Patient only. List own pending/expired invitations and active clinicians.
  */
+export const getMyCareTeamResponseInviteEmailQuotaUsedMin = 0;
+
+
+
+
 export const GetMyCareTeamResponse = zod.object({
+  "serverTime": zod.coerce.date(),
+  "inviteEmailQuota": zod.object({
+  "used": zod.number().int().min(getMyCareTeamResponseInviteEmailQuotaUsedMin),
+  "limit": zod.number().int().min(1),
+  "resetsAt": zod.coerce.date()
+}),
   "pendingInvites": zod.array(zod.object({
   "id": zod.string().uuid(),
   "direction": zod.enum(['patient_invites_clinician', 'clinician_requests_patient']),
@@ -103,6 +114,28 @@ export const ResendPatientCareInviteResponse = zod.object({
 }),
   "suppressed": zod.boolean(),
   "developmentLink": zod.string().optional()
+})
+
+
+/**
+ * Patient only. Five-second UI Undo with ten-second server grace for network latency. Rechecks expiry, duplicates and capacity.
+ * @summary Restore a recently cancelled invitation without sending email
+ */
+export const UndoCancelPatientCareInviteParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const UndoCancelPatientCareInviteResponse = zod.object({
+  "id": zod.string().uuid(),
+  "direction": zod.enum(['patient_invites_clinician', 'clinician_requests_patient']),
+  "firstName": zod.string(),
+  "lastName": zod.string(),
+  "email": zod.string(),
+  "status": zod.enum(['pending', 'accepted', 'cancelled', 'expired']),
+  "sentAt": zod.coerce.date(),
+  "expiresAt": zod.coerce.date(),
+  "lastResendAt": zod.coerce.date().nullable(),
+  "acceptedAt": zod.coerce.date().nullable()
 })
 
 

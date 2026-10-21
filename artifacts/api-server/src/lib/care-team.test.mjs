@@ -335,3 +335,52 @@ test("cancel and resend are scoped to their inviter, even if another account kno
   await rejects(service.cancel(other,request.invite.id,CLINICIAN_REQUEST),"not_found");
   await rejects(service.sendInvite(other,CLINICIAN_REQUEST,{},baseUrl,request.invite.id),"not_found");
 });
+
+test("cancellation takes effect immediately and Undo restores the same token without another email",async()=>{
+  const sent=await invite();
+  await service.cancel(patient,sent.invite.id,PATIENT_INVITE);
+  await rejects(service.accept(clinician,tokenOf(sent),PATIENT_INVITE),"cancelled");
+  await rejects(service.undoCancel(other,sent.invite.id),"clinician_account");
+  await rejects(service.undoCancel(id("patient",2),sent.invite.id),"not_found");
+  advance(5/60);
+  const restored=await service.undoCancel(patient,sent.invite.id);
+  assert.equal(restored.id,sent.invite.id);assert.equal(restored.status,"pending");
+  assert.equal(deliveries.length,1);
+  assert.equal((await service.listTeam(patient)).inviteEmailQuota.used,1);
+  await service.accept(clinician,tokenOf(sent),PATIENT_INVITE);
+});
+test("Undo rechecks capacity, duplicates, expiry and the short server window",async()=>{
+  const sent=await invite();await service.cancel(patient,sent.invite.id,PATIENT_INVITE);
+  for(let n=2;n<=6;n++) await invite(id("clinician",n));
+  await rejects(service.undoCancel(patient,sent.invite.id),"care_team_full");
+  const team=await service.listTeam(patient);
+  await service.cancel(patient,team.pendingInvites[0].id,PATIENT_INVITE);
+  const replacement=await invite();
+  await rejects(service.undoCancel(patient,sent.invite.id),"already_invited");
+  await service.cancel(patient,replacement.invite.id,PATIENT_INVITE);
+  advance(11/60);
+  await rejects(service.undoCancel(patient,sent.invite.id),"undo_expired");
+});
+test("expired invitations can be removed by their owner and send counters remain accurate",async()=>{
+  const sent=await invite();advance(14*24*60);
+  await rejects(service.cancel(id("patient",2),sent.invite.id,PATIENT_INVITE),"not_found");
+  await service.cancel(patient,sent.invite.id,PATIENT_INVITE);
+  assert.equal((await service.listTeam(patient)).expiredInvites.length,0);
+  await rejects(service.undoCancel(patient,sent.invite.id),"not_found");
+  assert.equal((await pool.query("SELECT * FROM care_team_email_sends")).rows.length,1);
+});
+test("Undo cannot restore an invitation whose original expiry has passed",async()=>{
+  const sent=await invite();
+  advance(14*24*60-1/60);
+  await service.cancel(patient,sent.invite.id,PATIENT_INVITE);
+  advance(2/60);
+  await rejects(service.undoCancel(patient,sent.invite.id),"expired");
+});
+test("care-team list exposes quota and reset time from the server, including cancelled sends",async()=>{
+  const sent=await invite();await service.cancel(patient,sent.invite.id,PATIENT_INVITE);
+  const state=await service.listTeam(patient);
+  assert.deepEqual(state.inviteEmailQuota,{used:1,limit:10,resetsAt:"2026-10-22T00:00:00.000Z"});
+  assert.equal(state.serverTime,clock.toISOString());
+  advance(24*60);
+  assert.equal((await service.listTeam(patient)).inviteEmailQuota.used,0);
+});

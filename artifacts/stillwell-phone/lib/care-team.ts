@@ -1,0 +1,91 @@
+
+export const CARE_TEAM_LIMIT = 5;
+export const RESEND_COOLDOWN_MS = 10 * 60 * 1000;
+export const UNDO_WINDOW_MS = 5_000;
+export const TOAST_MS = 4_000;
+
+export const OFFLINE_MESSAGE = "You’re offline. Try again when you’re connected.";
+
+export class OfflineError extends Error {
+  constructor() {
+    super(OFFLINE_MESSAGE);
+    this.name = "OfflineError";
+  }
+}
+
+export function errorCode(error: unknown): string | null {
+  if (error && typeof error === "object" && "data" in error) {
+    const data = (error as { data?: { code?: unknown } | null }).data;
+    return typeof data?.code === "string" ? data.code : null;
+  }
+  return null;
+}
+
+export function isOffline(error: unknown) {
+  return error instanceof OfflineError;
+}
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export function isValidEmail(value: string) {
+  return value.trim().length <= 254 && EMAIL_PATTERN.test(value.trim());
+}
+
+export type ResendState =
+  | { available: true }
+  | { available: false; reason: "cooldown"; minutes: number }
+  | { available: false; reason: "quota" };
+
+export function resendState(
+  invite: { sentAt: string; lastResendAt: string | null },
+  quota: { used: number; limit: number; resetsAt?: string } | undefined,
+  now: number,
+): ResendState {
+  const quotaCurrent = !quota?.resetsAt || new Date(quota.resetsAt).getTime() > now;
+  if (quota && quotaCurrent && quota.used >= quota.limit)
+    return { available: false, reason: "quota" };
+  const last = new Date(invite.lastResendAt ?? invite.sentAt).getTime();
+  const remaining = last + RESEND_COOLDOWN_MS - now;
+  if (remaining > 0)
+    return { available: false, reason: "cooldown", minutes: Math.max(1, Math.ceil(remaining / 60000)) };
+  return { available: true };
+}
+
+export function normalizeEmail(value: string) {
+  return value.trim().toLowerCase();
+}
+
+const shortDate = new Intl.DateTimeFormat(undefined, {
+  month: "short",
+  day: "numeric",
+});
+const longDate = new Intl.DateTimeFormat(undefined, {
+  month: "long",
+  day: "numeric",
+});
+
+export function formatShort(iso: string) {
+  return shortDate.format(new Date(iso));
+}
+
+export function formatLong(iso: string) {
+  return longDate.format(new Date(iso));
+}
+
+export function isSameDay(iso: string, now: number) {
+  const a = new Date(iso);
+  const b = new Date(now);
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
+
+export function sentLabel(iso: string, now: number) {
+  return isSameDay(iso, now) ? "Sent today" : `Sent ${formatShort(iso)}`;
+}
+
+export function fullName(person: { firstName: string; lastName: string }) {
+  return `${person.firstName} ${person.lastName}`.trim();
+}

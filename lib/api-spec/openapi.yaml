@@ -27,6 +27,8 @@ paths:
     $ref: "./care-team.yaml#/paths/~1patient~1care-team~1invites"
   /patient/care-team/invites/{id}/resend:
     $ref: "./care-team.yaml#/paths/~1patient~1care-team~1invites~1{id}~1resend"
+  /patient/care-team/invites/{id}/undo-cancel:
+    $ref: "./care-team.yaml#/paths/~1patient~1care-team~1invites~1{id}~1undo-cancel"
   /patient/care-team/invites/{id}:
     $ref: "./care-team.yaml#/paths/~1patient~1care-team~1invites~1{id}"
   /patient/care-team/links/{id}:

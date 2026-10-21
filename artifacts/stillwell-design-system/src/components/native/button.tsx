@@ -1,15 +1,21 @@
-import type { ReactNode } from "react";
+import { useImperativeHandle, useRef, type ReactNode, type Ref } from "react";
 import {
   Pressable,
+  AccessibilityInfo,
+  Platform,
   StyleSheet,
   View,
+  findNodeHandle,
   type PressableProps,
 } from "react-native";
 import { useColors } from "../../hooks/use-colors";
 import { nativeTheme } from "../../lib/native-theme";
 import { Text } from "./text";
 
+export type ButtonHandle = { focus: () => void };
+
 type Props = Omit<PressableProps, "children"> & {
+  ref?: Ref<ButtonHandle>;
   children: ReactNode;
   tone?: "primary" | "secondary" | "outline" | "destructive";
   leading?: ReactNode;
@@ -17,6 +23,7 @@ type Props = Omit<PressableProps, "children"> & {
 };
 
 export function Button({
+  ref,
   children,
   tone = "primary",
   leading,
@@ -25,6 +32,17 @@ export function Button({
   style,
   ...props
 }: Props) {
+  const nativeRef = useRef<View>(null);
+  // A portable handle avoids leaking platform-specific View types to consumers.
+  useImperativeHandle(ref, () => ({
+    focus() {
+      if (Platform.OS === "web") nativeRef.current?.focus();
+      else if (nativeRef.current) {
+        const handle = findNodeHandle(nativeRef.current);
+        if (handle) AccessibilityInfo.setAccessibilityFocus(handle);
+      }
+    },
+  }), []);
   const colors = useColors();
   const backgroundColor =
     tone === "primary"
@@ -43,6 +61,7 @@ export function Button({
 
   return (
     <Pressable
+      ref={nativeRef}
       {...props}
       accessibilityRole="button"
       disabled={disabled}

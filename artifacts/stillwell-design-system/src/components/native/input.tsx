@@ -35,7 +35,7 @@ export function Input({ label, error, style, ...props }: Props) {
         ]}
       />
       {error ? (
-        <Text variant="caption" color={colors.destructive}>
+        <Text variant="caption" color={colors.destructive} accessibilityRole="alert" accessibilityLiveRegion="polite">
           {error}
         </Text>
       ) : null}

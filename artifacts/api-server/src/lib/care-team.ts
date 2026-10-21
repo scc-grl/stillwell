@@ -121,7 +121,7 @@ export class CareTeamService {
       const consentVersion = direction === PATIENT_INVITE ? previous?.consent_version ?? CARE_CONSENT_VERSION : null;
       const consentedAt = direction === PATIENT_INVITE ? previous?.consented_at ?? now : null;
       const { rows: [saved] } = resendId
-        ? await tx.query(`UPDATE care_team_invites SET status='pending',token_hash=$2,sent_at=$3,expires_at=$4,last_resend_at=$3 WHERE id=$1 RETURNING *`, [resendId, hashCareToken(token), now, expiresAt])
+        ? await tx.query(`UPDATE care_team_invites SET status='pending',token_hash=$2,sent_at=$3,expires_at=$4,last_resend_at=$3,cancelled_at=NULL WHERE id=$1 RETURNING *`, [resendId, hashCareToken(token), now, expiresAt])
         : await tx.query(`INSERT INTO care_team_invites(direction,inviter_id,invitee_first_name,invitee_last_name,invitee_email,token_hash,sent_at,expires_at,consent_version,consented_at)
           VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`, [direction, user.id, fields.firstName, fields.lastName, fields.email, hashCareToken(token), now, expiresAt, consentVersion, consentedAt]);
       await tx.query("INSERT INTO care_team_email_sends(inviter_id,direction,suppressed,sent_at) VALUES($1,$2,$3,$4)", [user.id, direction, delivery!.suppressed, now]);
@@ -132,8 +132,33 @@ export class CareTeamService {
     requireRole(user, direction === PATIENT_INVITE ? "patient" : "clinician");
     await transaction(this.deps.pool, async tx => {
       await this.inviterLock(tx, user);
-      const { rows } = await tx.query("UPDATE care_team_invites SET status='cancelled' WHERE id=$1 AND inviter_id=$2 AND direction=$3 AND status='pending' AND expires_at>$4 RETURNING id", [id, user.id, direction, this.now()]);
-      if (!rows.length) fail("not_found", "This pending invite was not found.", 404);
+      const now = this.now();
+      const { rows: [invite] } = await tx.query("SELECT status,expires_at FROM care_team_invites WHERE id=$1 AND inviter_id=$2 AND direction=$3 AND status IN ('pending','expired') FOR UPDATE", [id, user.id, direction]);
+      if (!invite) fail("not_found", "This pending invite was not found.", 404);
+      if (invite.status === "expired" || new Date(invite.expires_at) <= now) {
+        await tx.query("DELETE FROM care_team_invites WHERE id=$1", [id]);
+      } else {
+        await tx.query("UPDATE care_team_invites SET status='cancelled',cancelled_at=$2 WHERE id=$1", [id, now]);
+      }
+    });
+  }
+  async undoCancel(user: Identity, id: string) {
+    requireRole(user, "patient");
+    return patientWrite(this.deps.pool, user.id, async tx => {
+      const now = this.now();
+      await this.expire(tx, user.id, now);
+      const { rows: [invite] } = await tx.query("SELECT * FROM care_team_invites WHERE id=$1 AND inviter_id=$2 AND direction=$3 AND status='cancelled' FOR UPDATE", [id, user.id, PATIENT_INVITE]);
+      if (!invite) fail("not_found", "This cancelled invite was not found.", 404);
+      // The UI offers Undo for 5 seconds; allow in-flight requests 5 more seconds.
+      if (!invite.cancelled_at || now.getTime() - new Date(invite.cancelled_at).getTime() > 10000)
+        fail("undo_expired", "The Undo window has closed. You can send a new invite.", 409);
+      if (new Date(invite.expires_at) <= now) fail("expired", "This invite has expired.", 410);
+      const { rows: duplicate } = await tx.query("SELECT id FROM care_team_invites WHERE inviter_id=$1 AND direction=$2 AND invitee_email=$3 AND status='pending'", [user.id, PATIENT_INVITE, invite.invitee_email]);
+      const { rows: active } = await tx.query("SELECT id FROM care_team_links WHERE patient_id=$1 AND clinician_email=$2 AND status='active'", [user.id, invite.invitee_email]);
+      if (duplicate.length || active.length) fail("already_invited", "You've already invited this email.", 409);
+      await this.capacity(tx, user.id, now);
+      const { rows: [restored] } = await tx.query("UPDATE care_team_invites SET status='pending',cancelled_at=NULL WHERE id=$1 RETURNING *", [id]);
+      return publicInvite(restored);
     });
   }
   private async tokenInvite(tx: SqlClient, token: string, direction: Direction) {
@@ -197,10 +222,15 @@ export class CareTeamService {
   async listTeam(user: Identity) {
     requireRole(user, "patient");
     return patientWrite(this.deps.pool, user.id, async tx => {
-      await this.expire(tx, user.id, this.now());
+      const now = this.now();
+      await this.expire(tx, user.id, now);
       const { rows: invites } = await tx.query("SELECT * FROM care_team_invites WHERE inviter_id=$1 AND direction=$2 AND status IN ('pending','expired') ORDER BY sent_at DESC", [user.id, PATIENT_INVITE]);
       const { rows: links } = await tx.query(`SELECT id,clinician_name AS name,connected_at AS "connectedAt" FROM care_team_links WHERE patient_id=$1 AND status='active' ORDER BY connected_at DESC`, [user.id]);
-      return { pendingInvites: invites.filter(i => i.status === "pending").map(publicInvite), expiredInvites: invites.filter(i => i.status === "expired").map(publicInvite), activeClinicians: links };
+      const dayStart = new Date(now); dayStart.setUTCHours(0, 0, 0, 0);
+      const resetsAt = new Date(dayStart.getTime() + 86400000);
+      const { rows: [emails] } = await tx.query("SELECT count(*) AS count FROM care_team_email_sends WHERE inviter_id=$1 AND direction=$2 AND sent_at >= $3 AND sent_at < $4", [user.id, PATIENT_INVITE, dayStart, resetsAt]);
+      return { pendingInvites: invites.filter(i => i.status === "pending").map(publicInvite), expiredInvites: invites.filter(i => i.status === "expired").map(publicInvite), activeClinicians: links,
+        serverTime: now.toISOString(), inviteEmailQuota: { used: Number(emails.count), limit: 10, resetsAt: resetsAt.toISOString() } };
     });
   }
   async listRequests(user: Identity) {

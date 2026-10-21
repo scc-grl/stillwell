@@ -686,6 +686,14 @@ export interface CareInvite {
   acceptedAt: string | null;
 }
 
+export type CareTeamListInviteEmailQuota = {
+  /** @minimum 0 */
+  used: number;
+  /** @minimum 1 */
+  limit: number;
+  resetsAt: string;
+};
+
 export type CareTeamListActiveCliniciansItem = {
   id: string;
   name: string;
@@ -693,6 +701,8 @@ export type CareTeamListActiveCliniciansItem = {
 };
 
 export interface CareTeamList {
+  serverTime: string;
+  inviteEmailQuota: CareTeamListInviteEmailQuota;
   pendingInvites: CareInvite[];
   expiredInvites: CareInvite[];
   activeClinicians: CareTeamListActiveCliniciansItem[];
@@ -793,6 +803,12 @@ export type ResendPatientCareInvite200 = {
 };
 
 export type ResendPatientCareInviteDefault = {
+  /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
+  code: string;
+  error: string;
+};
+
+export type UndoCancelPatientCareInviteDefault = {
   /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
   code: string;
   error: string;

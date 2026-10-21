@@ -1,4 +1,5 @@
 import { Router, type IRouter, type Request } from "express";
+import { allowedRequestOrigin } from "../lib/request-origin";
 import { getAuth } from "@clerk/express";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { accountRoles, db, recoveryLogs, recoveryProfiles } from "@workspace/db";
@@ -45,17 +46,9 @@ async function stateFor(ownerId: string) {
 
 router.use("/recovery", (req, res, next) => {
   res.setHeader("Cache-Control", "private, no-store");
-  const origin = req.get("origin");
-  if (origin) {
-    try {
-      if (new URL(origin).host !== getClerkProxyHost(req)) {
-        res.status(403).json({ error: "Cross-origin access is not permitted." });
-        return;
-      }
-    } catch {
-      res.status(403).json({ error: "Invalid request origin." });
-      return;
-    }
+  if (!allowedRequestOrigin({ origin: req.get("origin"), host: getClerkProxyHost(req), authorization: req.get("authorization") })) {
+    res.status(403).json({ error: "Cross-origin access is not permitted." });
+    return;
   }
   if (!getAuth(req).userId) {
     res.status(401).json({ error: "Please sign in to access your recovery journal." });

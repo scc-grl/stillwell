@@ -5,6 +5,7 @@ import { careIdentity, careTeamService } from "../lib/care-team-runtime";
 import { CareTeamError, CLINICIAN_REQUEST, PATIENT_INVITE, inviteInput, type Identity } from "../lib/care-team";
 import { getClerkProxyHost } from "../middlewares/clerkProxyMiddleware";
 import { careDeliveryResponse } from "../lib/care-team-email";
+import { allowedRequestOrigin } from "../lib/request-origin";
 
 const router = Router();
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -41,12 +42,8 @@ function endpoint(handler: Handler, status = 200) {
   return async (req: Request, res: Response, next: (error?: unknown) => void) => {
     res.setHeader("Cache-Control", "private, no-store");
     try {
-      const origin = req.get("origin");
-      if (origin) {
-        let allowed = false;
-        try { allowed = new URL(origin).host === getClerkProxyHost(req); } catch { /* Reject malformed origins too. */ }
-        if (!allowed) throw new CareTeamError("cross_origin", "Cross-origin access is not permitted.", 403);
-      }
+      if (!allowedRequestOrigin({ origin: req.get("origin"), host: getClerkProxyHost(req), authorization: req.get("authorization") }))
+        throw new CareTeamError("cross_origin", "Cross-origin access is not permitted.", 403);
       const userId = getAuth(req).userId;
       if (!userId) throw new CareTeamError("sign_in_required", "Please sign in to continue.", 401);
       const result = await handler(req, await careIdentity(userId));
@@ -77,6 +74,7 @@ router.post("/patient/care-team/invites", endpoint(async (req, user) =>
 router.post("/patient/care-team/invites/:id/resend", endpoint(async (req, user) =>
   deliveryResult(await careTeamService.sendInvite(user, PATIENT_INVITE, {}, baseUrl(req), id(req)))));
 router.delete("/patient/care-team/invites/:id", endpoint((req, user) => careTeamService.cancel(user, id(req), PATIENT_INVITE), 204));
+router.post("/patient/care-team/invites/:id/undo-cancel", endpoint((req, user) => careTeamService.undoCancel(user, id(req))));
 router.delete("/patient/care-team/links/:id", endpoint((req, user) => careTeamService.removeClinician(user, id(req)), 204));
 router.get("/patient/care-team/requests/:token", endpoint((req, user) => careTeamService.viewRequest(user, String(req.params.token))));
 router.post("/patient/care-team/requests/:token/respond", endpoint((req, user) => {

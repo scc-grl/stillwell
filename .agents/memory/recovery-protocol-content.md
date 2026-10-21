@@ -49,6 +49,14 @@ When a patient disconnects, the clinician keeps a frozen copy of the shared jour
 
 **How to apply:** Keep snapshot lifetime independent of the live patient profile and journal. Never cascade patient deletion into a clinician-owned snapshot, and never update a former snapshot from current patient data.
 
+## Patient invitation consent
+
+On the patient's phone care-team invite sheet, tapping Send is the sharing consent; do not add a separate consent checkbox.
+
+**Why:** The user explicitly requested Send as consent, with clear disclosure of whole-journal access, read-only access, and the clinician's retained frozen copy after disconnection.
+
+**How to apply:** Keep those disclosures visible before Send and record consent in the API. This does not authorize sharing on draft entry, opening the sheet, or signing in.
+
 ## Whole-check-in voice direction
 
 The user chose a voice-led route for the whole check-in—symptoms, diet/exercise, and reflection—rather than voice only for the personal reflection.

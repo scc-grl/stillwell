@@ -28,6 +28,7 @@ import type {
   AdminClinicianList,
   CancelClinicianCareRequestDefault,
   CancelPatientCareInviteDefault,
+  CareInvite,
   CareInviteInput,
   CareJournal,
   CareTeamList,
@@ -81,7 +82,8 @@ import type {
   RespondToCareRequestDefault,
   ReviewCareRequest200,
   ReviewCareRequestDefault,
-  SharedPatientJournal
+  SharedPatientJournal,
+  UndoCancelPatientCareInviteDefault
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -348,6 +350,81 @@ export const useResendPatientCareInvite = <TError = ErrorType<ResendPatientCareI
         TContext
       > => {
       return useMutation(getResendPatientCareInviteMutationOptions(options));
+    }
+
+export const getUndoCancelPatientCareInviteUrl = (id: string,) => {
+
+
+
+
+  return `/api/patient/care-team/invites/${id}/undo-cancel`
+}
+
+/**
+ * Patient only. Five-second UI Undo with ten-second server grace for network latency. Rechecks expiry, duplicates and capacity.
+ * @summary Restore a recently cancelled invitation without sending email
+ */
+export const undoCancelPatientCareInvite = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<CareInvite> => {
+
+  return customFetch<CareInvite>(getUndoCancelPatientCareInviteUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getUndoCancelPatientCareInviteMutationKey = () => ['undoCancelPatientCareInvite'] as const;
+
+export const getUndoCancelPatientCareInviteMutationOptions = <TError = ErrorType<UndoCancelPatientCareInviteDefault>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof undoCancelPatientCareInvite>>, TError,UndoCancelPatientCareInviteMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof undoCancelPatientCareInvite>>, TError,UndoCancelPatientCareInviteMutationVariables, TContext> => {
+
+const mutationKey = getUndoCancelPatientCareInviteMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof undoCancelPatientCareInvite>>, UndoCancelPatientCareInviteMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  undoCancelPatientCareInvite(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UndoCancelPatientCareInviteMutationResult = NonNullable<Awaited<ReturnType<typeof undoCancelPatientCareInvite>>>
+
+    export type UndoCancelPatientCareInviteMutationError = ErrorType<UndoCancelPatientCareInviteDefault>
+    export type UndoCancelPatientCareInviteMutationVariables = {id: string}
+
+    /**
+ * @summary Restore a recently cancelled invitation without sending email
+ */
+export const useUndoCancelPatientCareInvite = <TError = ErrorType<UndoCancelPatientCareInviteDefault>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof undoCancelPatientCareInvite>>, TError,UndoCancelPatientCareInviteMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof undoCancelPatientCareInvite>>,
+        TError,
+        UndoCancelPatientCareInviteMutationVariables,
+        TContext
+      > => {
+      return useMutation(getUndoCancelPatientCareInviteMutationOptions(options));
     }
 
 export const getCancelPatientCareInviteUrl = (id: string,) => {

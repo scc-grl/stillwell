@@ -35,6 +35,7 @@ export const careTeamInvites = pgTable("care_team_invites", {
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   lastResendAt: timestamp("last_resend_at", { withTimezone: true }),
   acceptedAt: timestamp("accepted_at", { withTimezone: true }),
+  cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
   acceptingUserId: text("accepting_user_id"),
   clinicianId: text("clinician_id"),
 }, t => [

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Alert, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { useClerk } from "@clerk/expo";
 import { useRouter } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -16,6 +16,9 @@ import { Checkbox } from "@workspace/stillwell-design-system/components/native/c
 import { Text } from "@workspace/stillwell-design-system/components/native/text";
 import { usePatientData } from "@/contexts/PatientDataContext";
 import { SafetyNotice } from "@/components/SafetyNotice";
+import { CareTeamCard } from "@/components/careTeam/CareTeamCard";
+import { useConfirm } from "@/components/careTeam/feedback";
+import { careTeamQueryKey } from "@/hooks/useCareTeam";
 import { Screen } from "@/components/Screen";
 import { priorityChoices, recoveryQueryKey } from "@/lib/journal";
 import { clearConsentedDraft, setPendingPatientSignup } from "@/lib/draft";
@@ -34,6 +37,7 @@ export default function AccountScreen() {
   const [supportMode, setSupportMode] =
     useState<RecoveryPreferences["supportMode"] | null>(null);
   const [error, setError] = useState("");
+  const { confirm, element: confirmElement } = useConfirm();
 
   const savedPriorities = priorities ?? recovery?.profile?.priorities ?? [];
   const savedSupportMode =
@@ -70,37 +74,32 @@ export default function AccountScreen() {
     }
   }
 
-  function askDeleteAll() {
-    Alert.alert(
-      "Delete all recovery data?",
-      "This permanently removes your recovery profile and every daily entry. Your Stillwell sign-in account will remain.",
-      [
-        { text: "Keep my data", style: "cancel" },
-        {
-          text: "Delete all recovery data",
-          style: "destructive",
-          onPress: () => {
-            setError("");
-            void deleteRecovery
-              .mutateAsync()
-              .then(async () => {
-                await clearConsentedDraft();
-                setPendingPatientSignup(false);
-                if (userId) {
-                  queryClient.setQueryData(recoveryQueryKey(userId), {
-                    profile: null,
-                    logs: [],
-                  });
-                }
-                router.replace("/quiz");
-              })
-              .catch(() => {
-                setError("Your recovery data could not be deleted. Try again.");
-              });
-          },
-        },
-      ],
-    );
+  async function askDeleteAll() {
+    const agreed = await confirm({
+      title: "Delete all recovery data?",
+      message:
+        "This permanently removes your recovery profile and every daily entry. Your Stillwell sign-in account will remain. Clinicians you’ve shared with keep what you shared up to now, but they won’t see anything new.",
+      cancelLabel: "Keep my data",
+      confirmLabel: "Delete all recovery data",
+      testID: "delete-all-dialog",
+    });
+    if (!agreed) return;
+    setError("");
+    try {
+      await deleteRecovery.mutateAsync();
+      await clearConsentedDraft();
+      setPendingPatientSignup(false);
+      if (userId) {
+        queryClient.removeQueries({ queryKey: careTeamQueryKey(userId) });
+        queryClient.setQueryData(recoveryQueryKey(userId), {
+          profile: null,
+          logs: [],
+        });
+      }
+      router.replace("/quiz");
+    } catch {
+      setError("Your recovery data could not be deleted. Try again.");
+    }
   }
 
   async function logout() {
@@ -225,6 +224,8 @@ export default function AccountScreen() {
         </Card>
       )}
 
+      {recovery?.profile && userId ? <CareTeamCard key={userId} /> : null}
+
       <Card tone="sage">
         <Text variant="heading">Your journal data</Text>
         <Text variant="caption">
@@ -234,7 +235,7 @@ export default function AccountScreen() {
         </Text>
         <Button
           tone="destructive"
-          onPress={askDeleteAll}
+          onPress={() => void askDeleteAll()}
           disabled={deleteRecovery.isPending}
           testID="delete-all-recovery-data"
         >
@@ -253,6 +254,7 @@ export default function AccountScreen() {
       <Button tone="outline" onPress={() => void logout()} testID="sign-out">
         Sign out
       </Button>
+      {confirmElement}
     </Screen>
   );
 }

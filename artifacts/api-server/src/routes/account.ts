@@ -1,4 +1,5 @@
 import { Router, type IRouter, type Request } from "express";
+import { allowedRequestOrigin } from "../lib/request-origin";
 import { clerkClient, getAuth } from "@clerk/express";
 import { eq } from "drizzle-orm";
 import { accountRoles, db, type AccountType } from "@workspace/db";
@@ -15,14 +16,7 @@ import { createAccountRegistrationToken, verifyAccountRegistrationToken } from "
 const router: IRouter = Router();
 
 function sameOrigin(req: Request): boolean {
-  const origin = req.get("origin");
-  if (!origin) return true;
-  try {
-    const expectedHost = getClerkProxyHost(req);
-    return Boolean(expectedHost && new URL(origin).host === expectedHost);
-  } catch {
-    return false;
-  }
+  return allowedRequestOrigin({ origin: req.get("origin"), host: getClerkProxyHost(req), authorization: req.get("authorization") });
 }
 
 async function typeFor(userId: string): Promise<AccountType> {
