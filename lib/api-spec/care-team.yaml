@@ -1,0 +1,365 @@
+openapi: 3.1.0
+info:
+  title: Care team
+  version: 1.0.0
+paths:
+  /patient/care-team:
+    get:
+      operationId: getMyCareTeam
+      tags: [care-team]
+      summary: Patient only. List own pending/expired invitations and active clinicians.
+      responses:
+        "200":
+          description: Private, no-store
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CareTeamList"
+        default:
+          $ref: "#/components/responses/CareError"
+  /patient/care-team/invites:
+    post:
+      operationId: createPatientCareInvite
+      tags: [care-team]
+      summary: Patient only. Explicit consent to share full journal history read-only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/CareInviteInput"
+                - type: object
+                  required: [consentAccepted]
+                  properties:
+                    consentAccepted:
+                      type: boolean
+                      enum: [true]
+      responses:
+        "201":
+          $ref: "#/components/responses/CareDelivery"
+        default:
+          $ref: "#/components/responses/CareError"
+  /patient/care-team/invites/{id}/resend:
+    parameters:
+      - $ref: "#/components/parameters/CareId"
+    post:
+      operationId: resendPatientCareInvite
+      tags: [care-team]
+      summary: Patient owner only. Rotate token, reset expiry; pending or expired invites.
+      responses:
+        "200":
+          $ref: "#/components/responses/CareDelivery"
+        default:
+          $ref: "#/components/responses/CareError"
+  /patient/care-team/invites/{id}:
+    parameters:
+      - $ref: "#/components/parameters/CareId"
+    delete:
+      operationId: cancelPatientCareInvite
+      tags: [care-team]
+      summary: Patient owner only. Cancel a pending invite.
+      responses:
+        "204":
+          description: Cancelled. No patient data shared.
+        default:
+          $ref: "#/components/responses/CareError"
+  /patient/care-team/links/{id}:
+    parameters:
+      - $ref: "#/components/parameters/CareId"
+    delete:
+      operationId: removeCareClinician
+      tags: [care-team]
+      summary: Patient owner only. Immediately disconnect and freeze full history for the clinician.
+      responses:
+        "204":
+          description: Frozen and disconnected.
+        default:
+          $ref: "#/components/responses/CareError"
+  /patient/care-team/requests/{token}:
+    parameters:
+      - $ref: "#/components/parameters/CareToken"
+    get:
+      operationId: reviewCareRequest
+      tags: [care-team]
+      summary: Patient only, verified email match. Returns request details or an explicit state error.
+      responses:
+        "200":
+          description: Request available; no sharing yet.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [state, clinicianName, expiresAt]
+                properties:
+                  state: { type: string, enum: [pending] }
+                  clinicianName: { type: string }
+                  expiresAt: { type: string, format: date-time }
+        default:
+          $ref: "#/components/responses/CareError"
+  /patient/care-team/requests/{token}/respond:
+    parameters:
+      - $ref: "#/components/parameters/CareToken"
+    post:
+      operationId: respondToCareRequest
+      tags: [care-team]
+      summary: Patient only, verified email match. Share records consent; Not now has no side effects.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action: { type: string, enum: [share, not_now] }
+                consentAccepted: { type: boolean }
+      responses:
+        "200":
+          $ref: "#/components/responses/CareAcceptance"
+        default:
+          $ref: "#/components/responses/CareError"
+  /clinician/care-team/invites/{token}/accept:
+    parameters:
+      - $ref: "#/components/parameters/CareToken"
+    post:
+      operationId: acceptPatientCareInvite
+      tags: [care-team]
+      summary: Clinician only, matching verified email. Single-use acceptance.
+      responses:
+        "200":
+          $ref: "#/components/responses/CareAcceptance"
+        default:
+          $ref: "#/components/responses/CareError"
+  /clinician/care-team/patients:
+    get:
+      operationId: getMyCarePatients
+      tags: [care-team]
+      summary: Clinician only. Own active and former patient links.
+      responses:
+        "200":
+          description: Private, no-store
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [active, former]
+                properties:
+                  active:
+                    type: array
+                    items: { $ref: "#/components/schemas/CarePatient" }
+                  former:
+                    type: array
+                    items: { $ref: "#/components/schemas/CarePatient" }
+        default:
+          $ref: "#/components/responses/CareError"
+  /clinician/care-team/patients/{id}:
+    parameters:
+      - $ref: "#/components/parameters/CareId"
+    get:
+      operationId: getCarePatientJournal
+      tags: [care-team]
+      summary: Clinician owner only. Read live history from an active link or the immutable former snapshot.
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 1000000, default: 1 }
+      responses:
+        "200":
+          description: Exactly 20 entries per page; raw stored scores and journal fields, no inference or conversion.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CareJournal" }
+        default:
+          $ref: "#/components/responses/CareError"
+    delete:
+      operationId: removeFormerCarePatient
+      tags: [care-team]
+      summary: Clinician owner only. Permanently delete a former link and its frozen snapshot; active links cannot be deleted here.
+      responses:
+        "204":
+          description: Former link and snapshot removed.
+        default:
+          $ref: "#/components/responses/CareError"
+  /clinician/care-team/requests:
+    get:
+      operationId: getMyCareRequests
+      tags: [care-team]
+      summary: Clinician only. Own outgoing requests.
+      responses:
+        "200":
+          description: Private, no-store
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/CareInvite" }
+        default:
+          $ref: "#/components/responses/CareError"
+    post:
+      operationId: createClinicianCareRequest
+      tags: [care-team]
+      summary: Clinician only. Request patient consent; this does not grant journal access.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CareInviteInput" }
+      responses:
+        "201":
+          $ref: "#/components/responses/CareDelivery"
+        default:
+          $ref: "#/components/responses/CareError"
+  /clinician/care-team/requests/{id}/resend:
+    parameters:
+      - $ref: "#/components/parameters/CareId"
+    post:
+      operationId: resendClinicianCareRequest
+      tags: [care-team]
+      summary: Clinician owner only. Rotate token and reset 14-day expiry.
+      responses:
+        "200":
+          $ref: "#/components/responses/CareDelivery"
+        default:
+          $ref: "#/components/responses/CareError"
+  /clinician/care-team/requests/{id}:
+    parameters:
+      - $ref: "#/components/parameters/CareId"
+    delete:
+      operationId: cancelClinicianCareRequest
+      tags: [care-team]
+      summary: Clinician owner only. Withdraw a pending request.
+      responses:
+        "204":
+          description: Withdrawn.
+        default:
+          $ref: "#/components/responses/CareError"
+components:
+  parameters:
+    CareId:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    CareToken:
+      name: token
+      in: path
+      required: true
+      schema: { type: string, pattern: "^[A-Za-z0-9_-]{43}$" }
+  responses:
+    CareError:
+      description: "Private, no-store. 400 invalid input/consent, 401 signed out, 403 wrong role/email/unverified email, 404 not owned/invalid token, 409 duplicate/full/consumed, 410 expired/withdrawn, 429 cooldown/daily limit, 502 delivery failed, 503 configuration unavailable."
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [code, error]
+            properties:
+              code:
+                type: string
+                description: "Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token."
+              error: { type: string }
+    CareDelivery:
+      description: Invite saved after successful or suppressed delivery. Raw tokens never stored; developmentLink only when suppressed AND NODE_ENV=development.
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [invite, suppressed]
+            properties:
+              invite: { $ref: "#/components/schemas/CareInvite" }
+              suppressed: { type: boolean }
+              developmentLink: { type: string }
+    CareAcceptance:
+      description: Consent recorded and linked, or no-op Not now.
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [state]
+            properties:
+              state: { type: string, enum: [accepted, not_now] }
+              linkId: { type: string, format: uuid }
+  schemas:
+    CareInviteInput:
+      type: object
+      required: [firstName, lastName, email]
+      properties:
+        firstName: { type: string, minLength: 1, maxLength: 100 }
+        lastName: { type: string, minLength: 1, maxLength: 100 }
+        email: { type: string, format: email, maxLength: 254 }
+    CareInvite:
+      type: object
+      required: [id, direction, firstName, lastName, email, status, sentAt, expiresAt, lastResendAt, acceptedAt]
+      properties:
+        id: { type: string, format: uuid }
+        direction: { type: string, enum: [patient_invites_clinician, clinician_requests_patient] }
+        firstName: { type: string }
+        lastName: { type: string }
+        email: { type: string }
+        status: { type: string, enum: [pending, accepted, cancelled, expired] }
+        sentAt: { type: string, format: date-time }
+        expiresAt: { type: string, format: date-time }
+        lastResendAt: { type: [string, "null"], format: date-time }
+        acceptedAt: { type: [string, "null"], format: date-time }
+    CareTeamList:
+      type: object
+      required: [pendingInvites, expiredInvites, activeClinicians]
+      properties:
+        pendingInvites:
+          type: array
+          items: { $ref: "#/components/schemas/CareInvite" }
+        expiredInvites:
+          type: array
+          items: { $ref: "#/components/schemas/CareInvite" }
+        activeClinicians:
+          type: array
+          items:
+            type: object
+            required: [id, name, connectedAt]
+            properties:
+              id: { type: string, format: uuid }
+              name: { type: string }
+              connectedAt: { type: string, format: date-time }
+    CarePatient:
+      type: object
+      required: [id, status, firstName, lastName, connectedAt, disconnectedAt, lastEntryDate]
+      properties:
+        id: { type: string, format: uuid }
+        status: { type: string, enum: [active, former] }
+        firstName: { type: string }
+        lastName: { type: string }
+        connectedAt: { type: string, format: date-time }
+        disconnectedAt: { type: [string, "null"], format: date-time }
+        lastEntryDate: { type: [string, "null"] }
+    CareJournal:
+      type: object
+      required: [linkId, status, firstName, lastName, connectedAt, disconnectedAt, lastUpdated, supportApproach, focusAreas, profileSummary, entries, page, pageSize, total, hasMore]
+      properties:
+        linkId: { type: string, format: uuid }
+        status: { type: string, enum: [active, former] }
+        firstName: { type: string }
+        lastName: { type: string }
+        connectedAt: { type: string, format: date-time }
+        disconnectedAt: { type: [string, "null"], format: date-time }
+        lastUpdated: { type: [string, "null"], format: date-time }
+        supportApproach: {}
+        focusAreas: {}
+        profileSummary: { type: object, additionalProperties: true }
+        entries:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+            description: Original stored daily entry, including all symptoms/ratings, routine statuses, minutes, notes, dailyCheckIn and daily note. Missing data is never inferred.
+            properties:
+              date: { type: string }
+              updatedAt: { type: string }
+        page: { type: integer }
+        pageSize: { type: integer, enum: [20] }
+        total: { type: integer }
+        hasMore: { type: boolean }

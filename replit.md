@@ -40,8 +40,9 @@ _Populate as you build — non-obvious choices a reader couldn't infer from the 
 ## Account types and clinician portal
 
 - `account_roles` is the source of truth for patient vs clinician; legacy accounts without a role default to patient. Both web apps use the same Clerk accounts.
-- Patients use the website or phone journal. Clinicians can sign in on the website or choose the clinician role in the phone app; they can only read or update their own professional profile and cannot open patient journal data. Recovery APIs reject clinician accounts.
-- Patient invitations, journal sharing, clinician matching/directory, licence verification, real-time alerts, and partnership intake are planned, not active. The shared API returns `410` for those routes; no patient journal data is available in the clinician portal.
+- Patients use the website or phone journal. Clinicians can sign in on either, manage their professional profile, and use the new backend-only care-team API for authorized read-only sharing. Patient-owned recovery APIs still reject all clinician accounts.
+- Care-team backend routes live under `/api/patient/care-team` and `/api/clinician/care-team`; UI integration is deferred. Old sharing URLs still return `410` and their obsolete handlers have been removed. Legacy generated hooks remain for source compatibility, not as working sharing APIs.
+- Clinician matching/directory, licence verification, real-time alerts, and partnership intake remain planned and blocked. Care-team acceptance does not verify a clinician's professional credentials.
 - The clinician profile is owned by the authenticated Clerk user. The user can save private preferences for future listing, but those preferences do not create a public listing or patient connection.
 
 ## Product
@@ -59,6 +60,18 @@ Public landing → starting quiz → explicit storage consent → email-based ac
 - Never send health fields, notes, symptom choices, or account identifiers to analytics or logs.
 - A quiz draft is kept in memory before consent; after explicit consent, keep the mobile draft only in secure storage and the website draft only in tab session storage, for up to 30 minutes. Clear it after save, cancellation, logout, or account change.
 - Keep emergency/new-injury boundaries visible. Do not claim HIPAA compliance or end-to-end encryption.
+- Care-team consent grants full journal history read-only. Only a matching verified account email can accept; all ownership comes from Clerk, never request-body owner IDs.
+- Disconnecting or deleting all recovery data freezes the current profile preferences and all entries into clinician-owned snapshots. Later edits/deletions cannot change those snapshots. Reconnecting creates a new link. The clinician alone can delete their former link and snapshot.
+- Journal writes and snapshot capture share a patient-scoped transaction lock. Do not add new journal-write paths without the same lock.
+
+## Care-team backend operations
+
+- Development schema: `care_team_invites`, `care_team_links`, `care_team_snapshots`, and `care_team_email_sends`. The old `patient_clinician_connections` table was empty when checked and is retained inert; no legacy data was removed.
+- Patient limit: 5 pending invitations plus active links; 10 outgoing invite sends/resends per UTC day. Clinician limit: 20 outgoing request sends/resends per UTC day. Resends wait 10 minutes and rotate the token with a fresh 14-day expiry. Email send counters survive cancellation and patient delete-all.
+- Only SHA-256 token digests are stored. All care-team responses are `private, no-store`; token and connection paths are redacted from request logs. No care-team analytics are emitted.
+- Email: optional `EMAIL_API_KEY` enables Resend; then `EMAIL_FROM` and `CARE_TEAM_WEBSITE_URL` (the trusted HTTPS website origin) are required, with optional `EMAIL_REPLY_TO`. No provider key means no delivery and only `invite email suppressed` is logged. Suppressed accept/review links appear in responses only when `NODE_ENV=development`.
+- Website links are `/invite/:token` and `/request/:token`; their pages are intentionally not built in this backend-only phase. Use the generated API hooks or direct API calls in preview until UI integration.
+- `pnpm --filter @workspace/api-server test` includes PostgreSQL integration tests in an isolated temporary schema, removed after the run. It requires the development `DATABASE_URL` and never contacts Clerk or sends real email.
 
 ## User preferences
 

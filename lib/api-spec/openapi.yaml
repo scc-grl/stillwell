@@ -21,6 +21,32 @@ tags:
   - name: admin
     description: Stillwell team review tools
 paths:
+  /patient/care-team:
+    $ref: "./care-team.yaml#/paths/~1patient~1care-team"
+  /patient/care-team/invites:
+    $ref: "./care-team.yaml#/paths/~1patient~1care-team~1invites"
+  /patient/care-team/invites/{id}/resend:
+    $ref: "./care-team.yaml#/paths/~1patient~1care-team~1invites~1{id}~1resend"
+  /patient/care-team/invites/{id}:
+    $ref: "./care-team.yaml#/paths/~1patient~1care-team~1invites~1{id}"
+  /patient/care-team/links/{id}:
+    $ref: "./care-team.yaml#/paths/~1patient~1care-team~1links~1{id}"
+  /patient/care-team/requests/{token}:
+    $ref: "./care-team.yaml#/paths/~1patient~1care-team~1requests~1{token}"
+  /patient/care-team/requests/{token}/respond:
+    $ref: "./care-team.yaml#/paths/~1patient~1care-team~1requests~1{token}~1respond"
+  /clinician/care-team/invites/{token}/accept:
+    $ref: "./care-team.yaml#/paths/~1clinician~1care-team~1invites~1{token}~1accept"
+  /clinician/care-team/patients:
+    $ref: "./care-team.yaml#/paths/~1clinician~1care-team~1patients"
+  /clinician/care-team/patients/{id}:
+    $ref: "./care-team.yaml#/paths/~1clinician~1care-team~1patients~1{id}"
+  /clinician/care-team/requests:
+    $ref: "./care-team.yaml#/paths/~1clinician~1care-team~1requests"
+  /clinician/care-team/requests/{id}/resend:
+    $ref: "./care-team.yaml#/paths/~1clinician~1care-team~1requests~1{id}~1resend"
+  /clinician/care-team/requests/{id}:
+    $ref: "./care-team.yaml#/paths/~1clinician~1care-team~1requests~1{id}"
   /account/registration-intent:
     post:
       operationId: createAccountRegistrationIntent
@@ -198,6 +224,8 @@ paths:
     description: "Planned only. The API currently returns HTTP 410 for this path; patient-to-clinician journal sharing is not active."
     get:
       operationId: listPatientClinicianConnections
+      deprecated: true
+      description: Retired URL; returns 410. Use getMyCareTeam instead.
       tags: [journal-sharing]
       summary: List the signed-in patient's active clinician invitations and connections
       responses:
@@ -213,6 +241,8 @@ paths:
           description: Patient account required
     post:
       operationId: inviteClinicianToJournal
+      deprecated: true
+      description: Retired URL; returns 410. Use createPatientCareInvite instead.
       tags: [journal-sharing]
       summary: Invite a clinician by their connection code and choose shareable journal areas
       requestBody:
@@ -242,6 +272,8 @@ paths:
     description: "Planned only. The API currently returns HTTP 410 for this path; patient-to-clinician journal sharing is not active."
     patch:
       operationId: updateClinicianJournalSharing
+      deprecated: true
+      description: Retired URL; returns 410. The new care-team protocol shares the full journal read-only.
       tags: [journal-sharing]
       summary: Change the journal areas shared with a clinician
       parameters:
@@ -274,6 +306,8 @@ paths:
           description: Patient-owned invitation or connection not found
     delete:
       operationId: revokeClinicianJournalAccess
+      deprecated: true
+      description: Retired URL; returns 410. Use removeCareClinician instead.
       tags: [journal-sharing]
       summary: Revoke a clinician's access to the patient's journal
       parameters:
@@ -298,6 +332,8 @@ paths:
     description: "Planned only. The API currently returns HTTP 410 for this path; patient invitations are not active."
     get:
       operationId: listClinicianJournalInvitations
+      deprecated: true
+      description: Retired URL; returns 410. New invitations are accepted by a verified-email single-use token.
       tags: [journal-sharing]
       summary: List pending patient invitations for the signed-in clinician
       responses:
@@ -315,6 +351,8 @@ paths:
     description: "Planned only. The API currently returns HTTP 410 for this path; patient invitations are not active."
     post:
       operationId: acceptClinicianJournalInvitation
+      deprecated: true
+      description: Retired URL; returns 410. Use acceptPatientCareInvite instead.
       tags: [journal-sharing]
       summary: Accept a patient invitation using the clinician's authenticated account
       parameters:
@@ -343,6 +381,8 @@ paths:
     description: "Planned only. The API currently returns HTTP 410 for this path; clinician access to patient journals is not active."
     get:
       operationId: listConnectedPatients
+      deprecated: true
+      description: Retired URL; returns 410. Use getMyCarePatients instead.
       tags: [journal-sharing]
       summary: List patients who granted journal access to the signed-in clinician
       responses:
@@ -360,6 +400,8 @@ paths:
     description: "Planned only. The API currently returns HTTP 410 for this path; clinician access to patient journals is not active."
     get:
       operationId: getSharedPatientJournal
+      deprecated: true
+      description: Retired URL; returns 410. Use getCarePatientJournal instead.
       tags: [journal-sharing]
       summary: Read only the journal fields currently permitted by the patient
       parameters:

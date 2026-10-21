@@ -4,12 +4,14 @@ import recoveryRouter from "./recovery";
 import newsletterRouter from "./newsletter";
 import accountRouter from "./account";
 import partnersRouter from "./partners";
+import careTeamRouter from "./care-team";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
 router.use(accountRouter);
 router.use(recoveryRouter);
+router.use(careTeamRouter);
 router.use(newsletterRouter);
 router.use((req, res, next) => {
   const plannedFeaturePath =

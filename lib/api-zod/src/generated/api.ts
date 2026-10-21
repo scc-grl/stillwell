@@ -9,6 +9,340 @@ import * as zod from 'zod';
 
 
 /**
+ * @summary Patient only. List own pending/expired invitations and active clinicians.
+ */
+export const GetMyCareTeamResponse = zod.object({
+  "pendingInvites": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "direction": zod.enum(['patient_invites_clinician', 'clinician_requests_patient']),
+  "firstName": zod.string(),
+  "lastName": zod.string(),
+  "email": zod.string(),
+  "status": zod.enum(['pending', 'accepted', 'cancelled', 'expired']),
+  "sentAt": zod.coerce.date(),
+  "expiresAt": zod.coerce.date(),
+  "lastResendAt": zod.coerce.date().nullable(),
+  "acceptedAt": zod.coerce.date().nullable()
+})),
+  "expiredInvites": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "direction": zod.enum(['patient_invites_clinician', 'clinician_requests_patient']),
+  "firstName": zod.string(),
+  "lastName": zod.string(),
+  "email": zod.string(),
+  "status": zod.enum(['pending', 'accepted', 'cancelled', 'expired']),
+  "sentAt": zod.coerce.date(),
+  "expiresAt": zod.coerce.date(),
+  "lastResendAt": zod.coerce.date().nullable(),
+  "acceptedAt": zod.coerce.date().nullable()
+})),
+  "activeClinicians": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "name": zod.string(),
+  "connectedAt": zod.coerce.date()
+}))
+})
+
+
+/**
+ * @summary Patient only. Explicit consent to share full journal history read-only.
+ */
+export const createPatientCareInviteBodyOneFirstNameMax = 100;
+
+export const createPatientCareInviteBodyOneLastNameMax = 100;
+
+export const createPatientCareInviteBodyOneEmailMax = 254;
+
+
+
+export const CreatePatientCareInviteBody = zod.object({
+  "firstName": zod.string().min(1).max(createPatientCareInviteBodyOneFirstNameMax),
+  "lastName": zod.string().min(1).max(createPatientCareInviteBodyOneLastNameMax),
+  "email": zod.string().email().max(createPatientCareInviteBodyOneEmailMax)
+}).and(zod.object({
+  "consentAccepted": zod.literal(true)
+}))
+
+export const CreatePatientCareInviteResponse = zod.object({
+  "invite": zod.object({
+  "id": zod.string().uuid(),
+  "direction": zod.enum(['patient_invites_clinician', 'clinician_requests_patient']),
+  "firstName": zod.string(),
+  "lastName": zod.string(),
+  "email": zod.string(),
+  "status": zod.enum(['pending', 'accepted', 'cancelled', 'expired']),
+  "sentAt": zod.coerce.date(),
+  "expiresAt": zod.coerce.date(),
+  "lastResendAt": zod.coerce.date().nullable(),
+  "acceptedAt": zod.coerce.date().nullable()
+}),
+  "suppressed": zod.boolean(),
+  "developmentLink": zod.string().optional()
+})
+
+
+/**
+ * @summary Patient owner only. Rotate token, reset expiry; pending or expired invites.
+ */
+export const ResendPatientCareInviteParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const ResendPatientCareInviteResponse = zod.object({
+  "invite": zod.object({
+  "id": zod.string().uuid(),
+  "direction": zod.enum(['patient_invites_clinician', 'clinician_requests_patient']),
+  "firstName": zod.string(),
+  "lastName": zod.string(),
+  "email": zod.string(),
+  "status": zod.enum(['pending', 'accepted', 'cancelled', 'expired']),
+  "sentAt": zod.coerce.date(),
+  "expiresAt": zod.coerce.date(),
+  "lastResendAt": zod.coerce.date().nullable(),
+  "acceptedAt": zod.coerce.date().nullable()
+}),
+  "suppressed": zod.boolean(),
+  "developmentLink": zod.string().optional()
+})
+
+
+/**
+ * @summary Patient owner only. Cancel a pending invite.
+ */
+export const CancelPatientCareInviteParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const CancelPatientCareInviteResponse = zod.void()
+
+
+/**
+ * @summary Patient owner only. Immediately disconnect and freeze full history for the clinician.
+ */
+export const RemoveCareClinicianParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const RemoveCareClinicianResponse = zod.void()
+
+
+/**
+ * @summary Patient only, verified email match. Returns request details or an explicit state error.
+ */
+export const reviewCareRequestPathTokenRegExp = new RegExp('^[A-Za-z0-9_-]{43}$');
+
+
+export const ReviewCareRequestParams = zod.object({
+  "token": zod.coerce.string().regex(reviewCareRequestPathTokenRegExp)
+})
+
+export const ReviewCareRequestResponse = zod.object({
+  "state": zod.enum(['pending']),
+  "clinicianName": zod.string(),
+  "expiresAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Patient only, verified email match. Share records consent; Not now has no side effects.
+ */
+export const respondToCareRequestPathTokenRegExp = new RegExp('^[A-Za-z0-9_-]{43}$');
+
+
+export const RespondToCareRequestParams = zod.object({
+  "token": zod.coerce.string().regex(respondToCareRequestPathTokenRegExp)
+})
+
+export const RespondToCareRequestBody = zod.object({
+  "action": zod.enum(['share', 'not_now']),
+  "consentAccepted": zod.boolean().optional()
+})
+
+export const RespondToCareRequestResponse = zod.object({
+  "state": zod.enum(['accepted', 'not_now']),
+  "linkId": zod.string().uuid().optional()
+})
+
+
+/**
+ * @summary Clinician only, matching verified email. Single-use acceptance.
+ */
+export const acceptPatientCareInvitePathTokenRegExp = new RegExp('^[A-Za-z0-9_-]{43}$');
+
+
+export const AcceptPatientCareInviteParams = zod.object({
+  "token": zod.coerce.string().regex(acceptPatientCareInvitePathTokenRegExp)
+})
+
+export const AcceptPatientCareInviteResponse = zod.object({
+  "state": zod.enum(['accepted', 'not_now']),
+  "linkId": zod.string().uuid().optional()
+})
+
+
+/**
+ * @summary Clinician only. Own active and former patient links.
+ */
+export const GetMyCarePatientsResponse = zod.object({
+  "active": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "status": zod.enum(['active', 'former']),
+  "firstName": zod.string(),
+  "lastName": zod.string(),
+  "connectedAt": zod.coerce.date(),
+  "disconnectedAt": zod.coerce.date().nullable(),
+  "lastEntryDate": zod.string().nullable()
+})),
+  "former": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "status": zod.enum(['active', 'former']),
+  "firstName": zod.string(),
+  "lastName": zod.string(),
+  "connectedAt": zod.coerce.date(),
+  "disconnectedAt": zod.coerce.date().nullable(),
+  "lastEntryDate": zod.string().nullable()
+}))
+})
+
+
+/**
+ * @summary Clinician owner only. Read live history from an active link or the immutable former snapshot.
+ */
+export const GetCarePatientJournalParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const getCarePatientJournalQueryPageDefault = 1;
+export const getCarePatientJournalQueryPageMax = 1000000;
+
+
+
+export const GetCarePatientJournalQueryParams = zod.object({
+  "page": zod.coerce.number().int().min(1).max(getCarePatientJournalQueryPageMax).default(getCarePatientJournalQueryPageDefault)
+})
+
+export const GetCarePatientJournalResponse = zod.object({
+  "linkId": zod.string().uuid(),
+  "status": zod.enum(['active', 'former']),
+  "firstName": zod.string(),
+  "lastName": zod.string(),
+  "connectedAt": zod.coerce.date(),
+  "disconnectedAt": zod.coerce.date().nullable(),
+  "lastUpdated": zod.coerce.date().nullable(),
+  "supportApproach": zod.unknown(),
+  "focusAreas": zod.unknown(),
+  "profileSummary": zod.record(zod.string(), zod.unknown()),
+  "entries": zod.array(zod.object({
+  "date": zod.string().optional(),
+  "updatedAt": zod.string().optional()
+}).describe('Original stored daily entry, including all symptoms/ratings, routine statuses, minutes, notes, dailyCheckIn and daily note. Missing data is never inferred.')),
+  "page": zod.number().int(),
+  "pageSize": zod.literal(20),
+  "total": zod.number().int(),
+  "hasMore": zod.boolean()
+})
+
+
+/**
+ * @summary Clinician owner only. Permanently delete a former link and its frozen snapshot; active links cannot be deleted here.
+ */
+export const RemoveFormerCarePatientParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const RemoveFormerCarePatientResponse = zod.void()
+
+
+/**
+ * @summary Clinician only. Own outgoing requests.
+ */
+export const GetMyCareRequestsResponse = zod.object({
+  "items": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "direction": zod.enum(['patient_invites_clinician', 'clinician_requests_patient']),
+  "firstName": zod.string(),
+  "lastName": zod.string(),
+  "email": zod.string(),
+  "status": zod.enum(['pending', 'accepted', 'cancelled', 'expired']),
+  "sentAt": zod.coerce.date(),
+  "expiresAt": zod.coerce.date(),
+  "lastResendAt": zod.coerce.date().nullable(),
+  "acceptedAt": zod.coerce.date().nullable()
+}))
+})
+
+
+/**
+ * @summary Clinician only. Request patient consent; this does not grant journal access.
+ */
+export const createClinicianCareRequestBodyFirstNameMax = 100;
+
+export const createClinicianCareRequestBodyLastNameMax = 100;
+
+export const createClinicianCareRequestBodyEmailMax = 254;
+
+
+
+export const CreateClinicianCareRequestBody = zod.object({
+  "firstName": zod.string().min(1).max(createClinicianCareRequestBodyFirstNameMax),
+  "lastName": zod.string().min(1).max(createClinicianCareRequestBodyLastNameMax),
+  "email": zod.string().email().max(createClinicianCareRequestBodyEmailMax)
+})
+
+export const CreateClinicianCareRequestResponse = zod.object({
+  "invite": zod.object({
+  "id": zod.string().uuid(),
+  "direction": zod.enum(['patient_invites_clinician', 'clinician_requests_patient']),
+  "firstName": zod.string(),
+  "lastName": zod.string(),
+  "email": zod.string(),
+  "status": zod.enum(['pending', 'accepted', 'cancelled', 'expired']),
+  "sentAt": zod.coerce.date(),
+  "expiresAt": zod.coerce.date(),
+  "lastResendAt": zod.coerce.date().nullable(),
+  "acceptedAt": zod.coerce.date().nullable()
+}),
+  "suppressed": zod.boolean(),
+  "developmentLink": zod.string().optional()
+})
+
+
+/**
+ * @summary Clinician owner only. Rotate token and reset 14-day expiry.
+ */
+export const ResendClinicianCareRequestParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const ResendClinicianCareRequestResponse = zod.object({
+  "invite": zod.object({
+  "id": zod.string().uuid(),
+  "direction": zod.enum(['patient_invites_clinician', 'clinician_requests_patient']),
+  "firstName": zod.string(),
+  "lastName": zod.string(),
+  "email": zod.string(),
+  "status": zod.enum(['pending', 'accepted', 'cancelled', 'expired']),
+  "sentAt": zod.coerce.date(),
+  "expiresAt": zod.coerce.date(),
+  "lastResendAt": zod.coerce.date().nullable(),
+  "acceptedAt": zod.coerce.date().nullable()
+}),
+  "suppressed": zod.boolean(),
+  "developmentLink": zod.string().optional()
+})
+
+
+/**
+ * @summary Clinician owner only. Withdraw a pending request.
+ */
+export const CancelClinicianCareRequestParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const CancelClinicianCareRequestResponse = zod.void()
+
+
+/**
  * @summary Create a short-lived signed account-type registration intent before sign-up
  */
 export const CreateAccountRegistrationIntentBody = zod.object({
@@ -238,6 +572,8 @@ export const GetPublicClinicianResponse = zod.object({
 
 
 /**
+ * Retired URL; returns 410. Use getMyCareTeam instead.
+ * @deprecated
  * @summary List the signed-in patient's active clinician invitations and connections
  */
 export const listPatientClinicianConnectionsResponseItemsItemShareAreasMin = 0;
@@ -260,6 +596,8 @@ export const ListPatientClinicianConnectionsResponse = zod.object({
 
 
 /**
+ * Retired URL; returns 410. Use createPatientCareInvite instead.
+ * @deprecated
  * @summary Invite a clinician by their connection code and choose shareable journal areas
  */
 export const inviteClinicianToJournalBodyConnectCodeMin = 12;
@@ -293,6 +631,8 @@ export const InviteClinicianToJournalResponse = zod.object({
 
 
 /**
+ * Retired URL; returns 410. The new care-team protocol shares the full journal read-only.
+ * @deprecated
  * @summary Change the journal areas shared with a clinician
  */
 export const UpdateClinicianJournalSharingParams = zod.object({
@@ -326,6 +666,8 @@ export const UpdateClinicianJournalSharingResponse = zod.object({
 
 
 /**
+ * Retired URL; returns 410. Use removeCareClinician instead.
+ * @deprecated
  * @summary Revoke a clinician's access to the patient's journal
  */
 export const RevokeClinicianJournalAccessParams = zod.object({
@@ -336,6 +678,8 @@ export const RevokeClinicianJournalAccessResponse = zod.void()
 
 
 /**
+ * Retired URL; returns 410. New invitations are accepted by a verified-email single-use token.
+ * @deprecated
  * @summary List pending patient invitations for the signed-in clinician
  */
 export const listClinicianJournalInvitationsResponseItemsItemShareAreasMin = 0;
@@ -353,6 +697,8 @@ export const ListClinicianJournalInvitationsResponse = zod.object({
 
 
 /**
+ * Retired URL; returns 410. Use acceptPatientCareInvite instead.
+ * @deprecated
  * @summary Accept a patient invitation using the clinician's authenticated account
  */
 export const AcceptClinicianJournalInvitationParams = zod.object({
@@ -377,6 +723,8 @@ export const AcceptClinicianJournalInvitationResponse = zod.object({
 
 
 /**
+ * Retired URL; returns 410. Use getMyCarePatients instead.
+ * @deprecated
  * @summary List patients who granted journal access to the signed-in clinician
  */
 export const listConnectedPatientsResponseItemsItemShareAreasMin = 0;
@@ -395,6 +743,8 @@ export const ListConnectedPatientsResponse = zod.object({
 
 
 /**
+ * Retired URL; returns 410. Use getCarePatientJournal instead.
+ * @deprecated
  * @summary Read only the journal fields currently permitted by the patient
  */
 export const GetSharedPatientJournalParams = zod.object({

@@ -638,3 +638,316 @@ export interface ClinicianVerificationResponse {
   verificationStatus: ClinicianVerificationResponseVerificationStatus;
 }
 
+export interface CareInviteInput {
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  firstName: string;
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  lastName: string;
+  /** @maxLength 254 */
+  email: string;
+}
+
+export type CareInviteDirection = typeof CareInviteDirection[keyof typeof CareInviteDirection];
+
+
+export const CareInviteDirection = {
+  patient_invites_clinician: 'patient_invites_clinician',
+  clinician_requests_patient: 'clinician_requests_patient',
+} as const;
+
+export type CareInviteStatus = typeof CareInviteStatus[keyof typeof CareInviteStatus];
+
+
+export const CareInviteStatus = {
+  pending: 'pending',
+  accepted: 'accepted',
+  cancelled: 'cancelled',
+  expired: 'expired',
+} as const;
+
+export interface CareInvite {
+  id: string;
+  direction: CareInviteDirection;
+  firstName: string;
+  lastName: string;
+  email: string;
+  status: CareInviteStatus;
+  sentAt: string;
+  expiresAt: string;
+  /** @nullable */
+  lastResendAt: string | null;
+  /** @nullable */
+  acceptedAt: string | null;
+}
+
+export type CareTeamListActiveCliniciansItem = {
+  id: string;
+  name: string;
+  connectedAt: string;
+};
+
+export interface CareTeamList {
+  pendingInvites: CareInvite[];
+  expiredInvites: CareInvite[];
+  activeClinicians: CareTeamListActiveCliniciansItem[];
+}
+
+export type CarePatientStatus = typeof CarePatientStatus[keyof typeof CarePatientStatus];
+
+
+export const CarePatientStatus = {
+  active: 'active',
+  former: 'former',
+} as const;
+
+export interface CarePatient {
+  id: string;
+  status: CarePatientStatus;
+  firstName: string;
+  lastName: string;
+  connectedAt: string;
+  /** @nullable */
+  disconnectedAt: string | null;
+  /** @nullable */
+  lastEntryDate: string | null;
+}
+
+export type CareJournalStatus = typeof CareJournalStatus[keyof typeof CareJournalStatus];
+
+
+export const CareJournalStatus = {
+  active: 'active',
+  former: 'former',
+} as const;
+
+export type CareJournalProfileSummary = { [key: string]: unknown };
+
+/**
+ * Original stored daily entry, including all symptoms/ratings, routine statuses, minutes, notes, dailyCheckIn and daily note. Missing data is never inferred.
+ */
+export type CareJournalEntriesItem = {
+  date?: string;
+  updatedAt?: string;
+  [key: string]: unknown;
+ };
+
+export type CareJournalPageSize = typeof CareJournalPageSize[keyof typeof CareJournalPageSize];
+
+
+export const CareJournalPageSize = {
+  NUMBER_20: 20,
+} as const;
+
+export interface CareJournal {
+  linkId: string;
+  status: CareJournalStatus;
+  firstName: string;
+  lastName: string;
+  connectedAt: string;
+  /** @nullable */
+  disconnectedAt: string | null;
+  /** @nullable */
+  lastUpdated: string | null;
+  supportApproach: unknown;
+  focusAreas: unknown;
+  profileSummary: CareJournalProfileSummary;
+  entries: CareJournalEntriesItem[];
+  page: number;
+  pageSize: CareJournalPageSize;
+  total: number;
+  hasMore: boolean;
+}
+
+export type GetMyCareTeamDefault = {
+  /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
+  code: string;
+  error: string;
+};
+
+export type CreatePatientCareInviteBody = CareInviteInput & {
+  consentAccepted: true;
+};
+
+export type CreatePatientCareInvite201 = {
+  invite: CareInvite;
+  suppressed: boolean;
+  developmentLink?: string;
+};
+
+export type CreatePatientCareInviteDefault = {
+  /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
+  code: string;
+  error: string;
+};
+
+export type ResendPatientCareInvite200 = {
+  invite: CareInvite;
+  suppressed: boolean;
+  developmentLink?: string;
+};
+
+export type ResendPatientCareInviteDefault = {
+  /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
+  code: string;
+  error: string;
+};
+
+export type CancelPatientCareInviteDefault = {
+  /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
+  code: string;
+  error: string;
+};
+
+export type RemoveCareClinicianDefault = {
+  /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
+  code: string;
+  error: string;
+};
+
+export type ReviewCareRequest200State = typeof ReviewCareRequest200State[keyof typeof ReviewCareRequest200State];
+
+
+export const ReviewCareRequest200State = {
+  pending: 'pending',
+} as const;
+
+export type ReviewCareRequest200 = {
+  state: ReviewCareRequest200State;
+  clinicianName: string;
+  expiresAt: string;
+};
+
+export type ReviewCareRequestDefault = {
+  /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
+  code: string;
+  error: string;
+};
+
+export type RespondToCareRequestBodyAction = typeof RespondToCareRequestBodyAction[keyof typeof RespondToCareRequestBodyAction];
+
+
+export const RespondToCareRequestBodyAction = {
+  share: 'share',
+  not_now: 'not_now',
+} as const;
+
+export type RespondToCareRequestBody = {
+  action: RespondToCareRequestBodyAction;
+  consentAccepted?: boolean;
+};
+
+export type RespondToCareRequest200State = typeof RespondToCareRequest200State[keyof typeof RespondToCareRequest200State];
+
+
+export const RespondToCareRequest200State = {
+  accepted: 'accepted',
+  not_now: 'not_now',
+} as const;
+
+export type RespondToCareRequest200 = {
+  state: RespondToCareRequest200State;
+  linkId?: string;
+};
+
+export type RespondToCareRequestDefault = {
+  /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
+  code: string;
+  error: string;
+};
+
+export type AcceptPatientCareInvite200State = typeof AcceptPatientCareInvite200State[keyof typeof AcceptPatientCareInvite200State];
+
+
+export const AcceptPatientCareInvite200State = {
+  accepted: 'accepted',
+  not_now: 'not_now',
+} as const;
+
+export type AcceptPatientCareInvite200 = {
+  state: AcceptPatientCareInvite200State;
+  linkId?: string;
+};
+
+export type AcceptPatientCareInviteDefault = {
+  /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
+  code: string;
+  error: string;
+};
+
+export type GetMyCarePatients200 = {
+  active: CarePatient[];
+  former: CarePatient[];
+};
+
+export type GetMyCarePatientsDefault = {
+  /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
+  code: string;
+  error: string;
+};
+
+export type GetCarePatientJournalParams = {
+/**
+ * @minimum 1
+ * @maximum 1000000
+ */
+page?: number;
+};
+
+export type GetCarePatientJournalDefault = {
+  /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
+  code: string;
+  error: string;
+};
+
+export type RemoveFormerCarePatientDefault = {
+  /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
+  code: string;
+  error: string;
+};
+
+export type GetMyCareRequests200 = {
+  items: CareInvite[];
+};
+
+export type GetMyCareRequestsDefault = {
+  /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
+  code: string;
+  error: string;
+};
+
+export type CreateClinicianCareRequest201 = {
+  invite: CareInvite;
+  suppressed: boolean;
+  developmentLink?: string;
+};
+
+export type CreateClinicianCareRequestDefault = {
+  /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
+  code: string;
+  error: string;
+};
+
+export type ResendClinicianCareRequest200 = {
+  invite: CareInvite;
+  suppressed: boolean;
+  developmentLink?: string;
+};
+
+export type ResendClinicianCareRequestDefault = {
+  /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
+  code: string;
+  error: string;
+};
+
+export type CancelClinicianCareRequestDefault = {
+  /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
+  code: string;
+  error: string;
+};
+

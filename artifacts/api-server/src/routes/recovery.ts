@@ -13,6 +13,7 @@ import {
 } from "@workspace/api-zod";
 import { getClerkProxyHost } from "../middlewares/clerkProxyMiddleware";
 import { recoveryLogWrite } from "../lib/recovery-log-write";
+import { careIdentity, careTeamService } from "../lib/care-team-runtime";
 
 const router: IRouter = Router();
 const CONSENT_VERSION = "2026-10-08";
@@ -87,6 +88,7 @@ router.post("/recovery/start", async (req, res): Promise<void> => {
   const ownerId = owner(req);
   const { preferences, firstLog } = parsed.data;
   await db.transaction(async (tx) => {
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtextextended(${`patient:${ownerId}`},0))`);
     // A retry or parallel signup callback must not create a second first summary.
     const created = await tx.insert(recoveryProfiles).values({
       ownerId, preferences, consentVersion: CONSENT_VERSION,
@@ -104,8 +106,11 @@ router.put("/recovery/profile", async (req, res): Promise<void> => {
     res.status(400).json({ error: "Choose a support mode and at least one routine priority." });
     return;
   }
-  const [profile] = await db.update(recoveryProfiles).set({ preferences: parsed.data })
-    .where(eq(recoveryProfiles.ownerId, owner(req))).returning();
+  const [profile] = await db.transaction(async tx => {
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtextextended(${`patient:${owner(req)}`},0))`);
+    return tx.update(recoveryProfiles).set({ preferences: parsed.data })
+      .where(eq(recoveryProfiles.ownerId, owner(req))).returning();
+  });
   if (!profile) {
     res.status(404).json({ error: "Complete the starting quiz first." });
     return;
@@ -122,18 +127,16 @@ router.post("/recovery/logs", async (req, res): Promise<void> => {
     return;
   }
   const ownerId = owner(req);
-  const [profile] = await db.select({ ownerId: recoveryProfiles.ownerId }).from(recoveryProfiles)
-    .where(eq(recoveryProfiles.ownerId, ownerId));
-  if (!profile) {
-    res.status(404).json({ error: "Complete the starting quiz first." });
-    return;
-  }
   if (parsed.data.section === "check_in" && !parsed.data.dailyCheckIn) {
     res.status(400).json({ error: "Include the symptom check-in for this update." });
     return;
   }
   const { initial, patch } = recoveryLogWrite(parsed.data);
-  const [saved] = await db.insert(recoveryLogs).values({ ownerId, date: initial.date, data: initial })
+  const saved = await db.transaction(async tx => {
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtextextended(${`patient:${ownerId}`},0))`);
+    const [profile] = await tx.select({ ownerId: recoveryProfiles.ownerId }).from(recoveryProfiles).where(eq(recoveryProfiles.ownerId, ownerId));
+    if (!profile) return null;
+    const [entry] = await tx.insert(recoveryLogs).values({ ownerId, date: initial.date, data: initial })
     .onConflictDoUpdate({
       target: [recoveryLogs.ownerId, recoveryLogs.date],
       set: {
@@ -141,6 +144,12 @@ router.post("/recovery/logs", async (req, res): Promise<void> => {
         updatedAt: new Date(),
       },
     }).returning();
+    return entry;
+  });
+  if (!saved) {
+    res.status(404).json({ error: "Complete the starting quiz first." });
+    return;
+  }
   res.json(SaveRecoveryLogResponse.parse({ ...saved.data, date: saved.date, updatedAt: saved.updatedAt.toISOString() }));
 });
 
@@ -150,13 +159,15 @@ router.delete("/recovery/logs/:date", async (req, res): Promise<void> => {
     res.status(400).json({ error: "Choose a valid calendar date." });
     return;
   }
-  await db.delete(recoveryLogs).where(and(eq(recoveryLogs.ownerId, owner(req)), eq(recoveryLogs.date, parsed.data.date)));
+  await db.transaction(async tx => {
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtextextended(${`patient:${owner(req)}`},0))`);
+    await tx.delete(recoveryLogs).where(and(eq(recoveryLogs.ownerId, owner(req)), eq(recoveryLogs.date, parsed.data.date)));
+  });
   res.sendStatus(204);
 });
 
 router.delete("/recovery", async (req, res): Promise<void> => {
-  // FK cascade deletes only this owner's records together with their profile.
-  await db.delete(recoveryProfiles).where(eq(recoveryProfiles.ownerId, owner(req)));
+  await careTeamService.deleteRecovery(await careIdentity(owner(req)));
   res.sendStatus(204);
 });
 
