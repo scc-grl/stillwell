@@ -2,6 +2,20 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { requestLogPath } from "./request-log-path.ts";
 
+test("case-insensitive Express token routes cannot bypass log redaction",()=>{
+  for(const path of [
+    "/API/CARE-TEAM/REQUESTS/private-token/PREVIEW?email=private",
+    "/Api/Patient/Care-Team/Requests/private-token",
+    "/Api/Clinician/Care-Team/Invites/private-token/accept",
+    "/REQUEST/private-token",
+    "/API/INVITE/private-token",
+  ]) {
+    const result=requestLogPath(path);
+    assert.ok(!result.includes("private-token"));
+    assert.ok(!result.includes("?"));
+  }
+});
+
 test("journal dates and query values never appear in access-log paths", () => {
   assert.equal(requestLogPath("/api/recovery/logs/2026-10-07"), "/api/recovery/logs/:date");
   assert.equal(requestLogPath("/api/recovery/logs/2026-10-08?ownerId=private"), "/api/recovery/logs/:date");

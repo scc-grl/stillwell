@@ -35,6 +35,8 @@ paths:
     $ref: "./care-team.yaml#/paths/~1patient~1care-team~1links~1{id}"
   /patient/care-team/requests/{token}:
     $ref: "./care-team.yaml#/paths/~1patient~1care-team~1requests~1{token}"
+  /care-team/requests/{token}/preview:
+    $ref: "./care-team.yaml#/paths/~1care-team~1requests~1{token}~1preview"
   /patient/care-team/requests/{token}/respond:
     $ref: "./care-team.yaml#/paths/~1patient~1care-team~1requests~1{token}~1respond"
   /clinician/care-team/invites/{token}/accept:

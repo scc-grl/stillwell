@@ -11,12 +11,21 @@ export interface Identity {
   displayName?: string;
   emails: { address: string; verified: boolean }[];
 }
+export interface CareRequestDetails {
+  clinicianName: string; clinicianFirstName: string; clinicianLastName: string;
+  clinicianEmail: string; requestedAt: string | Date; expiresAt: string | Date;
+}
 export class CareTeamError extends Error {
+  request?: CareRequestDetails;
   constructor(public code: string, message: string, public status = 400) { super(message); }
 }
 const fail = (code: string, message: string, status = 400): never => { throw new CareTeamError(code, message, status); };
 export const hashCareToken = (token: string) => createHash("sha256").update(token).digest("hex");
 const normalized = (email: string) => email.trim().toLowerCase();
+export function maskedCareEmail(email: string) {
+  const [local, domain] = normalized(email).split("@");
+  return `${local?.slice(0, 1) ?? ""}•••@${domain}`;
+}
 const fullName = (u: Identity) => u.displayName || `${u.firstName} ${u.lastName}`.trim() || "A Stillwell clinician";
 const publicInvite = (i: any) => ({
   id: i.id, direction: i.direction, firstName: i.invitee_first_name, lastName: i.invitee_last_name,
@@ -176,16 +185,43 @@ export class CareTeamService {
     if (invite.status === "expired" || new Date(invite.expires_at) <= this.now()) fail("expired", "This invite has expired.", 410);
     return invite;
   }
+  private async requestRecord(tx: SqlClient | SqlPool, token: string) {
+    if (!/^[A-Za-z0-9_-]{43}$/.test(token)) fail("invalid_token", "This link is not available.", 404);
+    const { rows: [invite] } = await tx.query("SELECT * FROM care_team_invites WHERE token_hash=$1 AND direction=$2", [hashCareToken(token), CLINICIAN_REQUEST]);
+    if (!invite) fail("invalid_token", "This link is not available.", 404);
+    return invite;
+  }
+  async previewRequest(token: string) {
+    const invite = await this.requestRecord(this.deps.pool, token);
+    const clinician = await this.deps.identity(invite.inviter_id);
+    // Bearer-link metadata only: never return a full recipient email or journal.
+    const state = invite.status === "cancelled" ? "withdrawn"
+      : invite.status === "accepted" ? "accepted"
+      : invite.status === "expired" || new Date(invite.expires_at) <= this.now() ? "expired" : "pending";
+    return { state, clinicianName: fullName(clinician), maskedEmail: maskedCareEmail(invite.invitee_email),
+      requestedAt: invite.sent_at, expiresAt: invite.expires_at };
+  }
   async viewRequest(user: Identity, token: string) {
     requireRole(user, "patient");
     return patientWrite(this.deps.pool, user.id, async tx => {
-      const invite = await this.tokenInvite(tx, token, CLINICIAN_REQUEST);
+      const invite = await this.requestRecord(tx, token);
       requireEmail(user, invite.invitee_email);
       const clinician = await this.deps.identity(invite.inviter_id);
-      const { rows } = await tx.query("SELECT id FROM care_team_links WHERE patient_id=$1 AND clinician_id=$2 AND status='active'", [user.id, clinician.id]);
-      if (rows.length) fail("already_sharing", "You already share your journal with this clinician.", 409);
-      await this.capacity(tx, user.id, this.now(), undefined, fullName(clinician));
-      return { state: "pending", clinicianName: fullName(clinician), expiresAt: invite.expires_at };
+      const details: CareRequestDetails = { clinicianName: fullName(clinician),
+        clinicianFirstName: clinician.firstName, clinicianLastName: clinician.lastName,
+        clinicianEmail: normalized(clinician.emails.find(e => e.verified)?.address ?? ""),
+        requestedAt: invite.sent_at, expiresAt: invite.expires_at };
+      try {
+        const { rows } = await tx.query("SELECT id FROM care_team_links WHERE patient_id=$1 AND clinician_id=$2 AND status='active'", [user.id, clinician.id]);
+        if (invite.status === "accepted" && !rows.length) fail("already_accepted", "This request was already used. Nothing new was shared.", 409);
+        await this.tokenInvite(tx, token, CLINICIAN_REQUEST);
+        if (rows.length) fail("already_sharing", "You already share your journal with this clinician.", 409);
+        await this.capacity(tx, user.id, this.now(), undefined, fullName(clinician));
+        return { state: "pending", ...details };
+      } catch (error) {
+        if (error instanceof CareTeamError) error.request = details;
+        throw error;
+      }
     });
   }
   async accept(user: Identity, token: string, direction: Direction, consentAccepted = false, notNow = false) {

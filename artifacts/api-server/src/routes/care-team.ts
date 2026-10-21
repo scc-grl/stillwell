@@ -32,7 +32,7 @@ function input(req: Request) {
 }
 export function careTeamFailure(error: unknown, res: Response) {
   if (error instanceof CareTeamError) {
-    res.status(error.status).json({ code: error.code, error: error.message });
+    res.status(error.status).json({ code: error.code, error: error.message, ...(error.request ? { request: error.request } : {}) });
     return true;
   }
   return false;
@@ -68,6 +68,11 @@ function baseUrl(req: Request) {
 function deliveryResult(result: { invite: unknown; suppressed: boolean; link: string }) {
   return careDeliveryResponse(result, process.env.NODE_ENV);
 }
+router.get("/care-team/requests/:token/preview", async (req, res, next) => {
+  res.setHeader("Cache-Control", "private, no-store");
+  try { res.json(await careTeamService.previewRequest(String(req.params.token))); }
+  catch (error) { if (!careTeamFailure(error, res)) next(error); }
+});
 router.get("/patient/care-team", endpoint((_req, user) => careTeamService.listTeam(user)));
 router.post("/patient/care-team/invites", endpoint(async (req, user) =>
   deliveryResult(await careTeamService.sendInvite(user, PATIENT_INVITE, input(req), baseUrl(req), undefined, req.body?.consentAccepted === true)), 201));

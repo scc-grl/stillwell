@@ -89,3 +89,33 @@ export function sentLabel(iso: string, now: number) {
 export function fullName(person: { firstName: string; lastName: string }) {
   return `${person.firstName} ${person.lastName}`.trim();
 }
+
+export type DeliveryResult = { suppressed: boolean; developmentLink?: string };
+
+export type DeliveryNotice =
+  | { kind: "sent"; toast: string }
+  | { kind: "dev-preview"; toast: string; link: string | null }
+  | { kind: "not-sent"; error: string };
+
+export const NOT_SENT_MESSAGE =
+  "Your invite was saved, but no email was sent. Try resending it later.";
+
+/**
+ * Decide what to tell the patient after an invite is created or resent.
+ * The preview wording and development link are development-only: in a
+ * production build a suppressed delivery is always reported as "not sent",
+ * and a development link is never surfaced, even if the API supplies one.
+ */
+export function deliveryNotice(
+  result: DeliveryResult,
+  liveText: string,
+  isDevelopment: boolean,
+): DeliveryNotice {
+  if (!result.suppressed) return { kind: "sent", toast: liveText };
+  if (!isDevelopment) return { kind: "not-sent", error: NOT_SENT_MESSAGE };
+  return {
+    kind: "dev-preview",
+    toast: "Preview invite created, no email sent",
+    link: result.developmentLink ?? null,
+  };
+}

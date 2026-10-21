@@ -384,3 +384,60 @@ test("care-team list exposes quota and reset time from the server, including can
   advance(24*60);
   assert.equal((await service.listTeam(patient)).inviteEmailQuota.used,0);
 });
+
+test("public request preview exposes only masked recipient metadata and never shares",async()=>{
+  const sent=await service.sendInvite(clinician,CLINICIAN_REQUEST,fields(patient),baseUrl);
+  const preview=await service.previewRequest(tokenOf(sent));
+  assert.deepEqual(Object.keys(preview).sort(),["state","clinicianName","maskedEmail","requestedAt","expiresAt"].sort());
+  assert.equal(preview.state,"pending");
+  const email=patient.emails[0].address.toLowerCase();
+  assert.equal(preview.maskedEmail,`${email[0]}•••@${email.split("@")[1]}`);
+  assert.ok(!JSON.stringify(preview).includes(email));
+  assert.equal((await pool.query("SELECT count(*) FROM care_team_links")).rows[0].count,"0");
+  assert.equal((await pool.query("SELECT consented_at FROM care_team_invites WHERE id=$1",[sent.invite.id])).rows[0].consented_at,null);
+  await rejects(service.previewRequest("bad"),"invalid_token");
+  const wrongDirection=await invite(other);
+  await rejects(service.previewRequest(tokenOf(wrongDirection)),"invalid_token");
+});
+test("public preview distinguishes expired, withdrawn and consumed request links",async()=>{
+  const sent=await service.sendInvite(clinician,CLINICIAN_REQUEST,fields(patient),baseUrl);
+  await service.cancel(clinician,sent.invite.id,CLINICIAN_REQUEST);
+  assert.equal((await service.previewRequest(tokenOf(sent))).state,"withdrawn");
+  const expiring=await service.sendInvite(clinician,CLINICIAN_REQUEST,fields(patient),baseUrl);
+  advance(14*24*60);
+  assert.equal((await service.previewRequest(tokenOf(expiring))).state,"expired");
+  const accepted=await service.sendInvite(clinician,CLINICIAN_REQUEST,fields(patient),baseUrl);
+  await service.accept(patient,tokenOf(accepted),CLINICIAN_REQUEST,true);
+  assert.equal((await service.previewRequest(tokenOf(accepted))).state,"accepted");
+});
+test("review contact details and expired-invite prefill are available only to the verified recipient",async()=>{
+  const sent=await service.sendInvite(clinician,CLINICIAN_REQUEST,fields(patient),baseUrl);
+  const details=await service.viewRequest(patient,tokenOf(sent));
+  assert.equal(details.clinicianEmail,clinician.emails[0].address.toLowerCase());
+  assert.equal(details.clinicianFirstName,clinician.firstName);
+  assert.equal(details.clinicianLastName,clinician.lastName);
+  const stranger=id("patient",2);
+  await assert.rejects(service.viewRequest(stranger,tokenOf(sent)),error=>error.code==="different_email"&&!error.request);
+  const unverified={...patient,emails:[{address:patient.emails[0].address,verified:false}]};
+  await assert.rejects(service.viewRequest(unverified,tokenOf(sent)),error=>error.code==="unverified_email"&&!error.request);
+  await assert.rejects(service.viewRequest(clinician,tokenOf(sent)),error=>error.code==="clinician_account"&&!error.request);
+  advance(14*24*60);
+  await assert.rejects(service.viewRequest(patient,tokenOf(sent)),error=>error.code==="expired"&&error.request?.clinicianEmail===details.clinicianEmail);
+  await assert.rejects(service.viewRequest(stranger,tokenOf(sent)),error=>error.code==="different_email"&&!error.request);
+});
+test("request review alone and Not now never share; only explicit Share connects, and removal is not already-sharing",async()=>{
+  const sent=await service.sendInvite(clinician,CLINICIAN_REQUEST,fields(patient),baseUrl);
+  await service.viewRequest(patient,tokenOf(sent));
+  await service.accept(patient,tokenOf(sent),CLINICIAN_REQUEST,false,true);
+  assert.equal((await service.listTeam(patient)).activeClinicians.length,0);
+  assert.equal((await service.listTeam(patient)).pendingInvites.length,0);
+  await rejects(service.accept(patient,tokenOf(sent),CLINICIAN_REQUEST),"consent_required");
+  const linked=await service.accept(patient,tokenOf(sent),CLINICIAN_REQUEST,true);
+  await assert.rejects(service.viewRequest(patient,tokenOf(sent)),error=>error.code==="already_sharing"&&Boolean(error.request));
+  await service.removeClinician(patient,linked.linkId);
+  await rejects(service.viewRequest(patient,tokenOf(sent)),"already_accepted");
+});
+test("public request preview paths redact tokens and query strings",()=>{
+  const secret="sensitive-token";
+  assert.equal(requestLogPath(`/api/care-team/requests/${secret}/preview?email=private`),"/api/care-team/requests/:redacted/preview");
+});

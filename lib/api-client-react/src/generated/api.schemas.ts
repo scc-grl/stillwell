@@ -638,6 +638,18 @@ export interface ClinicianVerificationResponse {
   verificationStatus: ClinicianVerificationResponseVerificationStatus;
 }
 
+/**
+ * Returned only after patient role and matching verified email checks, including request edge states.
+ */
+export interface CareRequestDetails {
+  clinicianName: string;
+  clinicianFirstName: string;
+  clinicianLastName: string;
+  clinicianEmail: string;
+  requestedAt: string;
+  expiresAt: string;
+}
+
 export interface CareInviteInput {
   /**
      * @minLength 1
@@ -778,6 +790,7 @@ export type GetMyCareTeamDefault = {
   /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
   code: string;
   error: string;
+  request?: CareRequestDetails;
 };
 
 export type CreatePatientCareInviteBody = CareInviteInput & {
@@ -794,6 +807,7 @@ export type CreatePatientCareInviteDefault = {
   /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
   code: string;
   error: string;
+  request?: CareRequestDetails;
 };
 
 export type ResendPatientCareInvite200 = {
@@ -806,24 +820,28 @@ export type ResendPatientCareInviteDefault = {
   /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
   code: string;
   error: string;
+  request?: CareRequestDetails;
 };
 
 export type UndoCancelPatientCareInviteDefault = {
   /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
   code: string;
   error: string;
+  request?: CareRequestDetails;
 };
 
 export type CancelPatientCareInviteDefault = {
   /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
   code: string;
   error: string;
+  request?: CareRequestDetails;
 };
 
 export type RemoveCareClinicianDefault = {
   /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
   code: string;
   error: string;
+  request?: CareRequestDetails;
 };
 
 export type ReviewCareRequest200State = typeof ReviewCareRequest200State[keyof typeof ReviewCareRequest200State];
@@ -833,16 +851,40 @@ export const ReviewCareRequest200State = {
   pending: 'pending',
 } as const;
 
-export type ReviewCareRequest200 = {
+export type ReviewCareRequest200 = CareRequestDetails & {
   state: ReviewCareRequest200State;
-  clinicianName: string;
-  expiresAt: string;
 };
 
 export type ReviewCareRequestDefault = {
   /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
   code: string;
   error: string;
+  request?: CareRequestDetails;
+};
+
+export type PreviewCareRequest200State = typeof PreviewCareRequest200State[keyof typeof PreviewCareRequest200State];
+
+
+export const PreviewCareRequest200State = {
+  pending: 'pending',
+  expired: 'expired',
+  withdrawn: 'withdrawn',
+  accepted: 'accepted',
+} as const;
+
+export type PreviewCareRequest200 = {
+  state: PreviewCareRequest200State;
+  clinicianName: string;
+  maskedEmail: string;
+  requestedAt: string;
+  expiresAt: string;
+};
+
+export type PreviewCareRequestDefault = {
+  /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
+  code: string;
+  error: string;
+  request?: CareRequestDetails;
 };
 
 export type RespondToCareRequestBodyAction = typeof RespondToCareRequestBodyAction[keyof typeof RespondToCareRequestBodyAction];
@@ -875,6 +917,7 @@ export type RespondToCareRequestDefault = {
   /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
   code: string;
   error: string;
+  request?: CareRequestDetails;
 };
 
 export type AcceptPatientCareInvite200State = typeof AcceptPatientCareInvite200State[keyof typeof AcceptPatientCareInvite200State];
@@ -894,6 +937,7 @@ export type AcceptPatientCareInviteDefault = {
   /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
   code: string;
   error: string;
+  request?: CareRequestDetails;
 };
 
 export type GetMyCarePatients200 = {
@@ -905,6 +949,7 @@ export type GetMyCarePatientsDefault = {
   /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
   code: string;
   error: string;
+  request?: CareRequestDetails;
 };
 
 export type GetCarePatientJournalParams = {
@@ -919,12 +964,14 @@ export type GetCarePatientJournalDefault = {
   /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
   code: string;
   error: string;
+  request?: CareRequestDetails;
 };
 
 export type RemoveFormerCarePatientDefault = {
   /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
   code: string;
   error: string;
+  request?: CareRequestDetails;
 };
 
 export type GetMyCareRequests200 = {
@@ -935,6 +982,7 @@ export type GetMyCareRequestsDefault = {
   /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
   code: string;
   error: string;
+  request?: CareRequestDetails;
 };
 
 export type CreateClinicianCareRequest201 = {
@@ -947,6 +995,7 @@ export type CreateClinicianCareRequestDefault = {
   /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
   code: string;
   error: string;
+  request?: CareRequestDetails;
 };
 
 export type ResendClinicianCareRequest200 = {
@@ -959,11 +1008,13 @@ export type ResendClinicianCareRequestDefault = {
   /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
   code: string;
   error: string;
+  request?: CareRequestDetails;
 };
 
 export type CancelClinicianCareRequestDefault = {
   /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
   code: string;
   error: string;
+  request?: CareRequestDetails;
 };
 

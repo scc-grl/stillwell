@@ -92,6 +92,29 @@ paths:
           description: Frozen and disconnected.
         default:
           $ref: "#/components/responses/CareError"
+  /care-team/requests/{token}/preview:
+    parameters:
+      - $ref: "#/components/parameters/CareToken"
+    get:
+      operationId: previewCareRequest
+      tags: [care-team]
+      summary: Public bearer-link metadata only. No full recipient email, user identifiers, or journal data. Private no-store.
+      responses:
+        "200":
+          description: Minimal request context for sign-in.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [state, clinicianName, maskedEmail, requestedAt, expiresAt]
+                properties:
+                  state: { type: string, enum: [pending, expired, withdrawn, accepted] }
+                  clinicianName: { type: string }
+                  maskedEmail: { type: string }
+                  requestedAt: { type: string, format: date-time }
+                  expiresAt: { type: string, format: date-time }
+        default:
+          $ref: "#/components/responses/CareError"
   /patient/care-team/requests/{token}:
     parameters:
       - $ref: "#/components/parameters/CareToken"
@@ -105,12 +128,12 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                required: [state, clinicianName, expiresAt]
-                properties:
-                  state: { type: string, enum: [pending] }
-                  clinicianName: { type: string }
-                  expiresAt: { type: string, format: date-time }
+                allOf:
+                  - $ref: "#/components/schemas/CareRequestDetails"
+                  - type: object
+                    required: [state]
+                    properties:
+                      state: { type: string, enum: [pending] }
         default:
           $ref: "#/components/responses/CareError"
   /patient/care-team/requests/{token}/respond:
@@ -279,6 +302,8 @@ components:
                 type: string
                 description: "Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token."
               error: { type: string }
+              request:
+                $ref: "#/components/schemas/CareRequestDetails"
     CareDelivery:
       description: Invite saved after successful or suppressed delivery. Raw tokens never stored; developmentLink only when suppressed AND NODE_ENV=development.
       content:
@@ -301,6 +326,17 @@ components:
               state: { type: string, enum: [accepted, not_now] }
               linkId: { type: string, format: uuid }
   schemas:
+    CareRequestDetails:
+      type: object
+      description: Returned only after patient role and matching verified email checks, including request edge states.
+      required: [clinicianName, clinicianFirstName, clinicianLastName, clinicianEmail, requestedAt, expiresAt]
+      properties:
+        clinicianName: { type: string }
+        clinicianFirstName: { type: string }
+        clinicianLastName: { type: string }
+        clinicianEmail: { type: string, format: email }
+        requestedAt: { type: string, format: date-time }
+        expiresAt: { type: string, format: date-time }
     CareInviteInput:
       type: object
       required: [firstName, lastName, email]

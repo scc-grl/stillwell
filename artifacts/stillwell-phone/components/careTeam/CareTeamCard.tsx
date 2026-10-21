@@ -24,6 +24,7 @@ import { spacing } from "@/lib/layout";
 import { ensureOnline } from "@/lib/network";
 import {
   CARE_TEAM_LIMIT,
+  deliveryNotice,
   OFFLINE_MESSAGE,
   UNDO_WINDOW_MS,
   errorCode,
@@ -34,6 +35,7 @@ import {
 import { CareTeamRow, statusLine, type CareTeamEntry } from "./CareTeamRow";
 import { InviteSheet } from "./InviteSheet";
 import { Toast, useConfirm, useToast } from "./feedback";
+import { usePendingRequest, type InvitePrefill } from "@/contexts/PendingRequestContext";
 
 type PreviewLink = { name: string; link: string };
 
@@ -70,7 +72,19 @@ export function CareTeamCard() {
   const { query, now } = team;
   const data = query.data as CareTeamList | undefined;
 
+  const pendingRequest = usePendingRequest();
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [sheetPrefill, setSheetPrefill] = useState<InvitePrefill | null>(null);
+  const invitePrefill = pendingRequest.invitePrefill;
+  const setInvitePrefill = pendingRequest.setInvitePrefill;
+  // Expired request → "Invite Dr. X": open the sheet once, prefilled from
+  // authenticated request details only. Nothing is sent until the patient taps Send.
+  useEffect(() => {
+    if (!invitePrefill || !data) return;
+    setInvitePrefill(null);
+    setSheetPrefill(invitePrefill);
+    setSheetOpen(true);
+  }, [data, invitePrefill, setInvitePrefill]);
   const [preview, setPreview] = useState<PreviewLink | null>(null);
   const [actionError, setActionError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -139,19 +153,24 @@ export function CareTeamCard() {
     name: string,
     liveText: string,
   ) {
-    if (result.suppressed) {
-      showToast({ text: "Preview invite created, no email sent" });
-      setPreview(
-        result.developmentLink ? { name, link: result.developmentLink } : null,
-      );
+    // Hard production guard: preview wording and development links are
+    // only ever shown in __DEV__ builds.
+    const notice = deliveryNotice(result, liveText, __DEV__);
+    if (notice.kind === "dev-preview") {
+      showToast({ text: notice.toast });
+      setPreview(notice.link ? { name, link: notice.link } : null);
+    } else if (notice.kind === "not-sent") {
+      setPreview(null);
+      setActionError(notice.error);
     } else {
       setPreview(null);
-      showToast({ text: liveText });
+      showToast({ text: notice.toast });
     }
   }
 
   function onSent(result: CreatePatientCareInvite201) {
     setSheetOpen(false);
+    setSheetPrefill(null);
     setActionError("");
     queryClient.setQueryData<CareTeamList>(team.queryKey, (current) =>
       current
@@ -166,7 +185,7 @@ export function CareTeamCard() {
     );
     void team.refresh();
     if (Platform.OS !== "web") {
-      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
     }
     handleDelivery(
       result,
@@ -417,7 +436,7 @@ export function CareTeamCard() {
   return (
     <Card testID="care-team-card">
       {body}
-      {preview ? (
+      {__DEV__ && preview ? (
         <View
           testID="care-team-preview"
           style={[styles.preview, { borderColor: colors.border, borderRadius: colors.radius }]}
@@ -464,8 +483,10 @@ export function CareTeamCard() {
         ownEmails={ownEmails}
         pendingInvites={data?.pendingInvites ?? []}
         activeEmails={activeEmails}
+        initialValues={sheetPrefill}
         onClose={() => {
           setSheetOpen(false);
+          setSheetPrefill(null);
           focusInviteButton();
         }}
         onSubmit={(values) =>

@@ -5,10 +5,9 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { CareRequestDetails } from './careRequestDetails';
 import type { ReviewCareRequest200State } from './reviewCareRequest200State';
 
-export type ReviewCareRequest200 = {
+export type ReviewCareRequest200 = CareRequestDetails & {
   state: ReviewCareRequest200State;
-  clinicianName: string;
-  expiresAt: Date;
 };

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { resendState, isValidEmail, normalizeEmail, fullName, sentLabel, formatLong, errorCode, isOffline, OfflineError, UNDO_WINDOW_MS, TOAST_MS } from "./care-team.ts";
+import { resendState, isValidEmail, normalizeEmail, fullName, sentLabel, formatLong, errorCode, isOffline, OfflineError, UNDO_WINDOW_MS, TOAST_MS, deliveryNotice, NOT_SENT_MESSAGE } from "./care-team.ts";
 const sentAt="2026-10-21T12:00:00.000Z";
 const invite={sentAt,lastResendAt:null};
 const start=new Date(sentAt).getTime();
@@ -39,4 +39,17 @@ test("only structured API error codes are read; offline has a dedicated message"
 });
 test("Undo lasts five seconds and ordinary success toast lasts four",()=>{
   assert.equal(UNDO_WINDOW_MS,5000);assert.equal(TOAST_MS,4000);
+});
+test("production suppressed delivery never surfaces preview wording, development links or false sent claims",()=>{
+  const response={suppressed:true,developmentLink:"https://private.example/invite/test-token"};
+  const result=deliveryNotice(response,"Invite sent to clinician@example.com",false);
+  assert.deepEqual(result,{kind:"not-sent",error:NOT_SENT_MESSAGE});
+  assert.ok(!JSON.stringify(result).includes("Preview"));
+  assert.ok(!JSON.stringify(result).includes(response.developmentLink));
+});
+test("only development suppressed delivery includes preview link and wording; real sends use normal copy",()=>{
+  assert.deepEqual(deliveryNotice({suppressed:true,developmentLink:"dev-link"},"sent",true),
+    {kind:"dev-preview",toast:"Preview invite created, no email sent",link:"dev-link"});
+  assert.deepEqual(deliveryNotice({suppressed:false,developmentLink:"must-not-surface"},"Invite resent",false),
+    {kind:"sent",toast:"Invite resent"});
 });

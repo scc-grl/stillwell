@@ -170,8 +170,32 @@ export const ReviewCareRequestParams = zod.object({
 })
 
 export const ReviewCareRequestResponse = zod.object({
-  "state": zod.enum(['pending']),
   "clinicianName": zod.string(),
+  "clinicianFirstName": zod.string(),
+  "clinicianLastName": zod.string(),
+  "clinicianEmail": zod.string().email(),
+  "requestedAt": zod.coerce.date(),
+  "expiresAt": zod.coerce.date()
+}).describe('Returned only after patient role and matching verified email checks, including request edge states.').and(zod.object({
+  "state": zod.enum(['pending'])
+}))
+
+
+/**
+ * @summary Public bearer-link metadata only. No full recipient email, user identifiers, or journal data. Private no-store.
+ */
+export const previewCareRequestPathTokenRegExp = new RegExp('^[A-Za-z0-9_-]{43}$');
+
+
+export const PreviewCareRequestParams = zod.object({
+  "token": zod.coerce.string().regex(previewCareRequestPathTokenRegExp)
+})
+
+export const PreviewCareRequestResponse = zod.object({
+  "state": zod.enum(['pending', 'expired', 'withdrawn', 'accepted']),
+  "clinicianName": zod.string(),
+  "maskedEmail": zod.string(),
+  "requestedAt": zod.coerce.date(),
   "expiresAt": zod.coerce.date()
 })
 

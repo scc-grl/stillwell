@@ -57,6 +57,12 @@ On the patient's phone care-team invite sheet, tapping Send is the sharing conse
 
 **How to apply:** Keep those disclosures visible before Send and record consent in the API. This does not authorize sharing on draft entry, opening the sheet, or signing in.
 
+The user approved the invitation-restored/removed toasts, the in-flight close guard, and the cooldown fallback and asked to keep them.
+
+**Why:** The user explicitly confirmed Phase 2a looked good and requested these additions be preserved.
+
+**How to apply:** Retain these behaviors in later care-team iterations. Development link panels and “Preview invite created, no email sent” wording must never appear in production builds; missing delivery must still be described honestly.
+
 ## Whole-check-in voice direction
 
 The user chose a voice-led route for the whole check-in—symptoms, diet/exercise, and reflection—rather than voice only for the personal reflection.

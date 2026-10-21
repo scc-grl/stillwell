@@ -50,6 +50,8 @@ type Props = {
   }) => Promise<CreatePatientCareInvite201>;
   onSent: (result: CreatePatientCareInvite201) => void;
   onResendInstead: (inviteId: string) => void;
+  /** Optional prefill, e.g. from an expired clinician request. */
+  initialValues?: { firstName: string; lastName: string; email: string } | null;
 };
 
 export function InviteSheet(props: Props) {
@@ -65,13 +67,14 @@ function InviteSheetBody({
   onSubmit,
   onSent,
   onResendInstead,
+  initialValues,
 }: Props) {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { confirm, element: confirmElement } = useConfirm();
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
+  const [firstName, setFirstName] = useState(initialValues?.firstName ?? "");
+  const [lastName, setLastName] = useState(initialValues?.lastName ?? "");
+  const [email, setEmail] = useState(initialValues?.email ?? "");
   const [errors, setErrors] = useState<Errors>({});
   const [duplicateInviteId, setDuplicateInviteId] = useState<string | null>(null);
   const [banner, setBanner] = useState("");

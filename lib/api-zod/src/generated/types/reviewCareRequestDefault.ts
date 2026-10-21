@@ -5,9 +5,11 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { CareRequestDetails } from './careRequestDetails';
 
 export type ReviewCareRequestDefault = {
   /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
   code: string;
   error: string;
+  request?: CareRequestDetails;
 };

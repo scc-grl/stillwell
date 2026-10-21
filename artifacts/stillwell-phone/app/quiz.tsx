@@ -33,6 +33,7 @@ import {
   emptyLog,
   priorityChoices,
 } from "@/lib/journal";
+import { requestHref, usePendingRequest } from "@/contexts/PendingRequestContext";
 
 export default function StartingQuizScreen() {
   const router = useRouter();
@@ -50,6 +51,26 @@ export default function StartingQuizScreen() {
     refreshRecovery,
   } = usePatientData();
   const startRecovery = useStartRecovery();
+  const pendingRequest = usePendingRequest();
+  const requestToken = pendingRequest.token;
+  const setReadyHandoff = pendingRequest.setReadyHandoff;
+  // After the first save, a pending share request opens its "ready" state;
+  // nothing is accepted until the patient chooses.
+  const hasInvitePrefill = Boolean(pendingRequest.invitePrefill);
+  function afterFirstSave() {
+    if (requestToken) {
+      setReadyHandoff(true);
+      router.replace(requestHref(requestToken));
+    } else if (hasInvitePrefill) {
+      // Expired request → "Invite Dr. X": the Account invite sheet opens
+      // prefilled; nothing is sent until the patient taps Send.
+      router.replace("/(tabs)/account");
+    } else {
+      router.replace("/(tabs)/today");
+    }
+  }
+  const afterFirstSaveRef = useRef(afterFirstSave);
+  afterFirstSaveRef.current = afterFirstSave;
   const handoffStarted = useRef(false);
   const [supportMode, setSupportMode] =
     useState<RecoveryPreferences["supportMode"]>("self_guided");
@@ -100,7 +121,7 @@ export default function StartingQuizScreen() {
             [...getGetRecoveryQueryKey(), userId],
             saved,
           );
-          router.replace("/(tabs)/today");
+          afterFirstSaveRef.current();
         } catch {
           setHandoffError(true);
           setError("Your saved setup could not be added to this journal yet.");
@@ -163,7 +184,17 @@ export default function StartingQuizScreen() {
     );
   }
   if (isSignedIn && recovery?.profile) {
-    return <Redirect href="/(tabs)/today" />;
+    return (
+      <Redirect
+        href={
+          requestToken
+            ? requestHref(requestToken)
+            : hasInvitePrefill
+              ? "/(tabs)/account"
+              : "/(tabs)/today"
+        }
+      />
+    );
   }
   if (saving) {
     return (
@@ -253,7 +284,7 @@ export default function StartingQuizScreen() {
         [...getGetRecoveryQueryKey(), userId],
         saved,
       );
-      router.replace("/(tabs)/today");
+      afterFirstSave();
     } catch {
       setError(
         "Your setup could not be saved yet. It remains on this device so you can retry or clear it.",
@@ -266,6 +297,7 @@ export default function StartingQuizScreen() {
   async function cancelSetup() {
     await clearConsentedDraft();
     setPendingPatientSignup(false);
+    pendingRequest.clear();
     router.replace(isSignedIn ? "/(tabs)/account" : "/");
   }
 
@@ -273,6 +305,16 @@ export default function StartingQuizScreen() {
     <Screen>
       <Text variant="display">{setupCopy.title}</Text>
       <Text variant="body">{setupCopy.intro}</Text>
+      {hasInvitePrefill && !requestToken ? (
+        <Card tone="sage" testID="quiz-invite-notice">
+          <Text variant="heading">Set up your journal first</Text>
+          <Text variant="body">
+            Inviting a clinician needs a journal to share. After you save your
+            first summary, we’ll open the invite in Account with her details
+            filled in. Nothing is sent until you choose.
+          </Text>
+        </Card>
+      ) : null}
 
       <Card>
         <Text variant="heading">Your first daily summary</Text>

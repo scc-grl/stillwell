@@ -22,6 +22,7 @@ import {
   isPendingPatientSignup,
   setPendingPatientSignup,
 } from "@/lib/draft";
+import { requestHref, usePendingRequest } from "@/contexts/PendingRequestContext";
 
 type AuthMode = "sign-in" | "sign-up";
 
@@ -43,7 +44,10 @@ export default function AuthScreen() {
         ? ClinicianPracticeType.clinic
         : ClinicianPracticeType.individual,
     );
-  const [emailAddress, setEmailAddress] = useState("");
+  const pendingRequest = usePendingRequest();
+  const requestToken = pendingRequest.token;
+  const afterSignIn: Href = requestToken ? requestHref(requestToken) : "/";
+  const [emailAddress, setEmailAddress] = useState(pendingRequest.emailPrefill);
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [code, setCode] = useState("");
@@ -200,7 +204,7 @@ export default function AuthScreen() {
             );
             return;
           }
-          router.replace(decorateUrl("/") as Href);
+          router.replace(decorateUrl(String(afterSignIn)) as Href);
         },
       });
       return;
@@ -248,18 +252,19 @@ export default function AuthScreen() {
           );
           return;
         }
-        router.replace(decorateUrl("/") as Href);
+        router.replace(decorateUrl(String(afterSignIn)) as Href);
       },
     });
   }
 
   async function cancel() {
     setPendingPatientSignup(false);
+    pendingRequest.clear();
     await clearConsentedDraft();
     router.replace("/");
   }
 
-  if (isSignedIn && mode === "sign-in") return <Redirect href="/" />;
+  if (isSignedIn && mode === "sign-in") return <Redirect href={afterSignIn} />;
 
   return (
     <Screen>

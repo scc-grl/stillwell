@@ -18,6 +18,7 @@ import { setAuthTokenGetter, setBaseUrl } from "@workspace/api-client-react";
 import { useStillwellFonts } from "@workspace/stillwell-design-system/hooks/use-fonts";
 import { useColors } from "@workspace/stillwell-design-system/hooks/use-colors";
 import { PatientDataProvider } from "@/contexts/PatientDataContext";
+import { PendingRequestProvider } from "@/contexts/PendingRequestContext";
 import {
   clearConsentedDraft,
   isPendingPatientSignup,
@@ -46,6 +47,7 @@ function RootLayoutNav() {
   return (
     <Stack screenOptions={{ headerShown: false, headerBackTitle: "Back" }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="request/[token]" options={{ headerShown: false }} />
     </Stack>
   );
 }
@@ -80,7 +82,7 @@ function SessionLifecycle({ children }: { children: ReactNode }) {
 
   return (
     <PatientDataProvider>
-      {children}
+      <PendingRequestProvider>{children}</PendingRequestProvider>
       {!isLoaded ? (
         <View
           accessibilityLabel="Loading Stillwell"

@@ -63,6 +63,8 @@ import type {
   PartnerRequestList,
   PatientClinicianConnection,
   PatientClinicianConnectionList,
+  PreviewCareRequest200,
+  PreviewCareRequestDefault,
   PublicClinician,
   PublicClinicianList,
   RecoveryLog,
@@ -640,6 +642,83 @@ export function useReviewCareRequest<TData = Awaited<ReturnType<typeof reviewCar
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getReviewCareRequestQueryOptions(token,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getPreviewCareRequestUrl = (token: string,) => {
+
+
+
+
+  return `/api/care-team/requests/${token}/preview`
+}
+
+/**
+ * @summary Public bearer-link metadata only. No full recipient email, user identifiers, or journal data. Private no-store.
+ */
+export const previewCareRequest = async (token: string, options?: Parameters<typeof customFetch>[1]): Promise<PreviewCareRequest200> => {
+
+  return customFetch<PreviewCareRequest200>(getPreviewCareRequestUrl(token),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getPreviewCareRequestQueryKey = (token: string,) => {
+    return [
+    `/api/care-team/requests/${token}/preview`
+    ] as const;
+    }
+
+
+export const getPreviewCareRequestQueryOptions = <TData = Awaited<ReturnType<typeof previewCareRequest>>, TError = ErrorType<PreviewCareRequestDefault>>(token: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof previewCareRequest>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPreviewCareRequestQueryKey(token);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof previewCareRequest>>> = ({ signal }) => previewCareRequest(token, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: token !== null && token !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof previewCareRequest>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type PreviewCareRequestQueryResult = NonNullable<Awaited<ReturnType<typeof previewCareRequest>>>
+export type PreviewCareRequestQueryError = ErrorType<PreviewCareRequestDefault>
+
+
+/**
+ * @summary Public bearer-link metadata only. No full recipient email, user identifiers, or journal data. Private no-store.
+ */
+
+export function usePreviewCareRequest<TData = Awaited<ReturnType<typeof previewCareRequest>>, TError = ErrorType<PreviewCareRequestDefault>>(
+ token: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof previewCareRequest>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getPreviewCareRequestQueryOptions(token,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

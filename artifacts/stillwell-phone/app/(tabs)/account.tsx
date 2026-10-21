@@ -20,6 +20,7 @@ import { CareTeamCard } from "@/components/careTeam/CareTeamCard";
 import { useConfirm } from "@/components/careTeam/feedback";
 import { careTeamQueryKey } from "@/hooks/useCareTeam";
 import { Screen } from "@/components/Screen";
+import { requestHref, usePendingRequest } from "@/contexts/PendingRequestContext";
 import { priorityChoices, recoveryQueryKey } from "@/lib/journal";
 import { clearConsentedDraft, setPendingPatientSignup } from "@/lib/draft";
 import { spacing } from "@/lib/layout";
@@ -38,6 +39,7 @@ export default function AccountScreen() {
     useState<RecoveryPreferences["supportMode"] | null>(null);
   const [error, setError] = useState("");
   const { confirm, element: confirmElement } = useConfirm();
+  const pendingRequest = usePendingRequest();
 
   const savedPriorities = priorities ?? recovery?.profile?.priorities ?? [];
   const savedSupportMode =
@@ -223,6 +225,26 @@ export default function AccountScreen() {
           </Button>
         </Card>
       )}
+
+      {pendingRequest.returnToRequest && pendingRequest.token ? (
+        <Card tone="sage" testID="request-resume">
+          <Text variant="label">SHARE REQUEST</Text>
+          <Text variant="heading">A share request is waiting</Text>
+          <Text variant="caption">
+            Nothing has been shared. After you make room on your care team,
+            return to review the request.
+          </Text>
+          <Button
+            onPress={() => {
+              const token = pendingRequest.token;
+              pendingRequest.setReturnToRequest(false);
+              if (token) router.push(requestHref(token));
+            }}
+          >
+            Return to the request
+          </Button>
+        </Card>
+      ) : null}
 
       {recovery?.profile && userId ? <CareTeamCard key={userId} /> : null}
 
