@@ -3,7 +3,7 @@ import { test } from "node:test";
 import { requestLogPath, careLinkSecurityHeaders } from "./request-log-path.ts";
 
 test("care-link HTML prevents referrer leaks, caching, indexing and off-origin analytics",()=>{
-  for(const path of ["/invite/private-token","/request/private-token?return=ignored","/INVITE/private-token/nested"]) {
+  for(const path of ["/invite/private-token","/request/private-token?return=ignored","/INVITE/private-token/nested", "/clinician/portal", "/clinician/patients/private-id/days/2026-10-20"]) {
     const headers=careLinkSecurityHeaders(path);
     assert.equal(headers["Content-Security-Policy"],"connect-src 'self'");
     assert.equal(headers["Referrer-Policy"],"no-referrer");
@@ -33,6 +33,12 @@ test("journal dates and query values never appear in access-log paths", () => {
   assert.equal(requestLogPath("/api/recovery/logs/2026-10-07"), "/api/recovery/logs/:date");
   assert.equal(requestLogPath("/api/recovery/logs/2026-10-08?ownerId=private"), "/api/recovery/logs/:date");
   assert.equal(requestLogPath("/api/recovery?ownerId=private"), "/api/recovery");
+});
+
+test("clinician journal page URLs redact both connection IDs and calendar dates", () => {
+  assert.equal(requestLogPath("/clinician/patients/private-id?email=private"), "/clinician/patients/:id");
+  assert.equal(requestLogPath("/CLINICIAN/PATIENTS/private-id/days/2026-10-20"), "/clinician/patients/:id/days/:date");
+  assert.equal(requestLogPath("/clinician/patients/private-id/unknown"), "/clinician/patients/:id");
 });
 
 test("auth proxy resources do not expose identifiers", () => {

@@ -49,7 +49,7 @@ export const ACCEPTED_INVITE_TTL_MS = 2 * 60 * 1000;
 /** Backend tokens: exactly 43 URL-safe base64 characters (32 random bytes). */
 const TOKEN_PATTERN = /^[A-Za-z0-9_-]{43}$/;
 const PATH_PATTERN = /\/(invite|request)\/([^/?#]+)\/?$/;
-const SENSITIVE_PATTERN = /\/(?:invite|request)\/[^/?#]+/i;
+const SENSITIVE_PATTERN = /\/(?:(?:invite|request)\/[^/?#]+|clinician\/(?:portal|patients)(?:[/?#]|$))/i;
 
 export function isPlausibleCareToken(token: unknown): token is string {
   return typeof token === "string" && TOKEN_PATTERN.test(token);
@@ -72,7 +72,7 @@ export function parseCareLinkPath(pathname: string): { kind: CareLinkKind; token
   }
 }
 
-/** True for any token-bearing link path or string (analytics/referrer guard). */
+/** Privacy guard for bearer links and clinician journal routes, including IDs/dates. */
 export function containsCareLinkToken(value: string): boolean {
   return SENSITIVE_PATTERN.test(value);
 }

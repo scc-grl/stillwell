@@ -1,6 +1,8 @@
 export function requestLogPath(url: string | undefined): string | undefined {
   const path = url?.split("?")[0];
   const lowerPath = path?.toLowerCase();
+  if (/^\/clinician\/patients\/[^/]+\/days\/[^/]+\/?$/i.test(path ?? "")) return "/clinician/patients/:id/days/:date";
+  if (/^\/clinician\/patients\/[^/]+(?:\/.*)?$/i.test(path ?? "")) return "/clinician/patients/:id";
   if (/^\/(?:api\/)?invite\/[^/]+(?:\/.*)?$/i.test(path ?? "")) return lowerPath?.startsWith("/api/") ? "/api/invite/:token" : "/invite/:token";
   if (/^\/(?:api\/)?request\/[^/]+(?:\/.*)?$/i.test(path ?? "")) return lowerPath?.startsWith("/api/") ? "/api/request/:token" : "/request/:token";
   if (/^\/api\/(?:(?:patient|clinician)\/)?care-team(?:\/|$)/i.test(path ?? "")) {
@@ -20,7 +22,7 @@ export function requestLogPath(url: string | undefined): string | undefined {
 
 /** Block off-origin analytics on bearer-link HTML, independent of script order. */
 export function careLinkSecurityHeaders(url: string | undefined, clerkHost?: string): Record<string, string> {
-  if (!/^\/(?:invite|request)\/[^/]+(?:\/.*)?$/i.test(url?.split("?")[0] ?? "")) return {};
+  if (!/^\/(?:(?:invite|request)\/[^/]+(?:\/.*)?|clinician\/(?:portal|patients)(?:\/.*)?)$/i.test(url?.split("?")[0] ?? "")) return {};
   return {
     "Cache-Control": "private, no-store",
     "Referrer-Policy": "no-referrer",

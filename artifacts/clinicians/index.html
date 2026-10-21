@@ -12,7 +12,7 @@
        * Once applied it stays for this document; a fresh public document is unaffected.
        */
       (function () {
-        var tokenPath = /\/(?:invite|request)\/[^/?#]+/i;
+        var tokenPath = /\/(?:(?:invite|request)\/[^/?#]+|clinician\/(?:portal|patients)(?:[/?#]|$))/i;
         var applied = false;
         function pending() {
           try {

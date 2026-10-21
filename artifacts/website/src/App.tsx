@@ -23,9 +23,12 @@ import { trackEvent } from "@/lib/analytics";
 import InviteRoute from "@/pages/InvitePage";
 import RequestRoute from "@/pages/RequestPage";
 import { careMemory, pendingLink } from "@/lib/care-link";
+import { CarePortal } from "@workspace/clinician-care-portal";
 
 const clerkPubKey = publishableKeyFromHost(window.location.hostname, import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
 const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
+/** Exact match: /clinician/portal, /clinician/patients/:id, /clinician/patients/:id/days/:date. */
+const CARE_PORTAL_ROUTE = /^\/clinician\/(?:portal|patients\/(?<id>[^/]+)(?:\/days\/(?<date>[^/]+))?)\/?$/;
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 function stripBase(path: string) {
   return basePath && path.startsWith(basePath) ? path.slice(basePath.length) || "/" : path;
@@ -320,7 +323,6 @@ function Routes() {
     const metadata: Record<string, { title: string; description: string }> = {
       "/clinician/sign-in": { title: "Clinician sign in", description: "Sign in to the Stillwell clinician portal. Patient journal data is not available to clinician accounts." },
       "/clinician/sign-up": { title: "Clinician account", description: "Continue to the Stillwell clinician portal to create an account and private professional profile." },
-      "/clinician/portal": { title: "Clinician portal", description: "Sign in to the Stillwell clinician portal. Patient journal data is not available to clinician accounts." },
       "/partners": { title: "For clinicians, programs & researchers", description: "Explore the Stillwell clinician portal. Program, research, directory, and patient-connection features are planned." },
       "/partners/join": { title: "Create a clinician account", description: "Create an account and private professional profile in the Stillwell clinician portal." },
       "/partners/request": { title: "Programs and research", description: "Program and research partnership intake is planned and not available yet." },
@@ -339,7 +341,7 @@ function Routes() {
       "/partners/care-areas": { title: "Care areas", description: "Placeholder information about care areas Stillwell may describe, including diet and gut health." },
       "/partners/physiotherapy-mobility": { title: "Physiotherapy & mobility", description: "Placeholder information for organizations interested in physiotherapy and mobility." },
     };
-    if (location.startsWith("/invite/") || location.startsWith("/request/")) {
+    if (location.startsWith("/invite/") || location.startsWith("/request/") || location === "/clinician/portal" || location.startsWith("/clinician/patients/")) {
       document.title = "Stillwell";
       document.querySelector('meta[name="description"]')?.setAttribute("content", "A private, self-guided journal for concussion and post-concussive recovery.");
       return;
@@ -365,7 +367,8 @@ function Routes() {
       <Route path="/sign-up/patient/*?" component={PatientSignUpPage}/>
       <Route path="/clinician/sign-up/*?"><Redirect to="/clinicians/join"/></Route>
       <Route path="/sign-up/*?" component={SignUpPage}/>
-      <Route path="/clinician/portal"><Redirect to="/clinicians/dashboard"/></Route>
+      {/* One route for all canonical care URLs keeps CarePortal (and its toast provider) mounted across portal/patient/day navigation. */}
+      <Route path={CARE_PORTAL_ROUTE}>{(params: { id?: string; date?: string }) => <CarePortal patientId={params.id || undefined} date={params.date || undefined}/>}</Route>
       <Route path="/quiz" component={QuizRoute}/>
       <Route path="/dashboard" component={PrivateDashboard}/>
       <Route path="/invite/:token">{(params) => <InviteRoute token={params.token}/>}</Route>

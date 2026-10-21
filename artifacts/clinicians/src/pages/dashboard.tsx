@@ -7,7 +7,7 @@ import { Card, CardContent } from '@workspace/stillwell-design-system/components
 import { useAccountType, useClinicianProfile } from '@/hooks/use-clinician-account';
 import { sendPatientToDashboard } from '@/lib/config';
 import { Footer, PortalHeader } from '@/components/portal-shell';
-import { AcceptedInviteToast, useOwnCarePatients } from '@/components/accepted-invite-toast';
+import { useOwnCarePatients } from '@/components/accepted-invite-toast';
 
 export default function DashboardPage() {
   const { isLoaded, isSignedIn } = useAuth();
@@ -22,6 +22,8 @@ export default function DashboardPage() {
   useEffect(() => {
     if (isLoaded && !isSignedIn) setLocation('/sign-in');
     if (account.data?.accountType === 'patient') sendPatientToDashboard();
+    // The care portal now lives at the canonical website URL.
+    if (account.data?.accountType === 'clinician') window.location.replace('/clinician/portal');
   }, [isLoaded, isSignedIn, account.data?.accountType, setLocation]);
 
   const savedProfile = profile.data?.profile;
@@ -37,7 +39,7 @@ export default function DashboardPage() {
     ].filter(Boolean).length;
   }, [savedProfile]);
 
-  if (!isLoaded || (isSignedIn && (account.isLoading || account.data?.accountType === 'clinician' && profile.isLoading))) {
+  if (!isLoaded || (isSignedIn && (account.isLoading || account.data?.accountType === 'clinician'))) {
     return (
       <main className="min-h-[100dvh] animate-pulse space-y-5 bg-background px-6 py-12" aria-label="Loading clinician dashboard" data-testid="status-dashboard-loading">
         <div className="mx-auto h-10 max-w-7xl rounded-full bg-secondary" />
@@ -67,7 +69,6 @@ export default function DashboardPage() {
   return (
     <div className="min-h-[100dvh] bg-background">
       <PortalHeader dashboard />
-      <AcceptedInviteToast />
       <main className="mx-auto max-w-7xl px-6 py-10 md:py-14">
         <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
           <div>

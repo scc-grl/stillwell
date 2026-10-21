@@ -57,7 +57,7 @@ export default defineConfig({
         'attached_assets',
       ),
     },
-    dedupe: ['react', 'react-dom'],
+    dedupe: ['react', 'react-dom', '@clerk/react', '@tanstack/react-query', 'wouter', 'lucide-react'],
   },
   root: path.resolve(import.meta.dirname),
   build: {

@@ -188,7 +188,7 @@ function RequestScreen({ token: rawToken }: { token: string }) {
     body={`Requests last 14 days. Nothing was shared. If you’d still like ${dr} to see your journal, you can invite her yourself.`}>
     {mode === "none" ? null : <Button onClick={mode === "signed-out" ? () => setLocation("/sign-in") : inviteInstead} data-testid="button-request-invite">{`Invite ${dr}`}</Button>}
     {mode === "signed-out" ? <p className="text-xs text-muted-foreground">You’ll sign in first.</p>
-      : mode === "invite" && !hasJournal ? <p className="text-xs text-muted-foreground">You’ll set up your journal first, then invite her from Account.</p> : null}
+      : mode === "invite" && !hasJournal ? <p className="text-xs text-muted-foreground">You’ll set up your journal first, then invite her from Dashboard → Your care team.</p> : null}
     {todayButton(mode === "none")}
   </EdgeCard>);
   const clinicianEdge = shell(<EdgeCard icon={Briefcase} heading="This request is for a patient journal" testId="request-clinician"

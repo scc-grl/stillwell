@@ -1,0 +1,30 @@
+{
+  "name": "@workspace/clinician-care-portal",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@workspace/api-client-react": "workspace:*",
+    "@workspace/recovery-journal": "workspace:*",
+    "@workspace/stillwell-design-system": "workspace:*"
+  },
+  "peerDependencies": {
+    "@clerk/react": "^6.17.6",
+    "@tanstack/react-query": "^5.90.21",
+    "lucide-react": "^0.545.0",
+    "react": ">=19",
+    "wouter": "^3.3.5"
+  },
+  "devDependencies": {
+    "@clerk/react": "^6.17.6",
+    "@tanstack/react-query": "catalog:",
+    "@types/react": "catalog:",
+    "lucide-react": "catalog:",
+    "react": "catalog:",
+    "vite": "catalog:",
+    "wouter": "^3.3.5"
+  }
+}

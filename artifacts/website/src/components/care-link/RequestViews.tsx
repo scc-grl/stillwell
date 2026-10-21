@@ -30,7 +30,7 @@ export function SharedView({ dr, onToday, onCareTeam }: { dr: string; onToday: (
       <p className="flex-1 text-sm">Connected today · at her request</p>
       <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-3 py-1 text-xs text-secondary-foreground"><Check className="size-3.5" aria-hidden />Connected</span>
     </Card>
-    <p className="text-xs text-muted-foreground">To stop sharing, go to Account → Your care team.</p>
+    <p className="text-xs text-muted-foreground">To stop sharing, go to Dashboard → Your care team.</p>
     <div className="flex flex-col gap-3">
       <Button onClick={onToday} data-testid="button-request-go-today">Go to today</Button>
       <Button variant="outline" onClick={onCareTeam} data-testid="button-request-care-team">View your care team</Button>
@@ -125,7 +125,7 @@ export function ReviewView({ dr, request, busy, error, onShare, onNotNow }: {
     <Card className="space-y-3 border-secondary bg-secondary p-5 text-sm leading-6 text-secondary-foreground">
       <h2 className="text-lg font-semibold">She’ll see your whole journal</h2>
       <p>Every daily entry, symptom ratings, routine logs, notes and your routine focus areas, including past entries.</p>
-      <p>She won’t see your sign-in details or anything you delete. Read-only; stop sharing anytime in Account.</p>
+      <p>She won’t see your sign-in details or anything you delete. Read-only; stop sharing anytime in Dashboard → Your care team.</p>
       <p>If you stop sharing later, she keeps what you shared up to then but sees nothing new.</p>
     </Card>
     <p className="flex items-start gap-2 text-xs leading-5 text-muted-foreground"><Info className="mt-0.5 size-4 shrink-0" aria-hidden />Stillwell doesn’t verify clinicians. Only share if you know {dr}.</p>

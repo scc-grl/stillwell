@@ -32,7 +32,8 @@ import {
 } from "@/lib/care-link";
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
-const PORTAL = "/clinicians/dashboard";
+const PORTAL = "/clinician/portal";
+const goJournal = (linkId: string) => window.location.assign(`/clinician/patients/${encodeURIComponent(linkId)}`);
 const goPortal = () => window.location.assign(PORTAL);
 
 /** Keyed by token + account so no state survives a different invite or account. */
@@ -95,8 +96,8 @@ function InviteScreen({ token }: { token: string }) {
       onSuccess: (result) => {
         if (!mounted.current) return;
         pendingLink.clear(token);
-        if (result.linkId) handOffAcceptedInvite(result.linkId);
-        goPortal();
+        if (result.linkId) { handOffAcceptedInvite(result.linkId); goJournal(result.linkId); }
+        else goPortal();
       },
       onError: (error) => {
         if (!mounted.current) return;
@@ -241,8 +242,8 @@ function InviteScreen({ token }: { token: string }) {
     const owned = [...patients.data.active, ...patients.data.former].some((patient) => patient.id === ownedId);
     if (!owned) return used;
     return shell(<EdgeCard icon={CheckCheck} heading="You’ve already accepted this invite" testId="invite-already-accepted"
-      body={`${firstName}’s journal is in your clinician portal.`}>
-      <Button onClick={exitToPortal} data-testid="button-open-journal">Open {firstName}’s journal</Button>
+      body={`${firstName}’s journal is in your patient list.`}>
+      <Button onClick={() => { pendingLink.clear(token); queryClient.removeQueries({ queryKey: review.queryKey }); goJournal(ownedId); }} data-testid="button-open-journal">Open {firstName}’s journal</Button>
     </EdgeCard>);
   }
 

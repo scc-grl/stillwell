@@ -31,11 +31,11 @@ The user wants an eventual way for a patient to connect their account with a cli
 
 ## Clinician and partner onboarding boundaries
 
-The user later requested working clinician account creation, professional profiles, partnership requests, and an admin-only review path. Licence verification is manual, and clinician listings must remain hidden until verified and explicitly opted into the directory. No mail service is connected, so partnership requests are stored for manual follow-up without sending notifications. The current data model does not support patient-to-clinician invitations or journal sharing; an optional invite code may be stored on a clinician profile, but it does not connect accounts or reveal patient data.
+The user requested working clinician account creation and private professional profiles. Licence details are information only, not proof of verification; any future public directory must wait for verification and explicit opt-in. Do not advertise partnership notification emails without a connected mail service. An optional profile invite code does not itself connect accounts or reveal patient data; sharing requires the separate consent-controlled care-team journeys below.
 
 The user later expanded the phone app to let people choose patient or clinician sign-in. Clinicians can create/sign into their account and use a private profile/home in the phone app, while the patient journal remains patient-only.
 
-**Why:** The user explicitly approved implementing the onboarding and request flows while deferring email delivery and patient linking, then requested the clinician role switch and screens in the phone app.
+**Why:** The user approved clinician onboarding and the phone role switch, while keeping directory/credential claims limited; they subsequently authorized patient-controlled care-team linking.
 
 **How to apply:** Keep clinician tools clearly planned where they are not implemented. Do not present profile invite codes as connections. Clinician sessions must never use patient-owned recovery endpoints; any care-team reads must use the separate, authorized sharing routes described below. Configure authorized Stillwell admins separately; never infer admin access from a notification email address.
 
