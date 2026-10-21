@@ -46,7 +46,7 @@ export function InviteSignedOut({
           {firstName} invited you to view their recovery journal
         </h1>
         <p className="text-base leading-7 text-secondary-foreground">
-          Stillwell is a private, self-guided journal for concussion recovery. {firstName} has chosen to share theirs with you.
+          Stillwell is a private, self-guided recovery journal. {firstName} has chosen to share theirs with you.
         </p>
         <div className="grid gap-3 sm:grid-cols-2">
           <Card className="space-y-2 p-5">

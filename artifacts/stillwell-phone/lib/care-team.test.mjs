@@ -1,7 +1,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { expiredInviteCopy } from "./care-team.ts";
 import { resendState, isValidEmail, normalizeEmail, fullName, sentLabel, formatLong, errorCode, isOffline, OfflineError, UNDO_WINDOW_MS, TOAST_MS, deliveryNotice, NOT_SENT_MESSAGE } from "./care-team.ts";
 const sentAt="2026-10-21T12:00:00.000Z";
+test("expired invite rows include the status and expiry date visibly and for screen readers",()=>{
+  const expiresAt="2026-11-04T12:00:00.000Z";
+  assert.equal(expiredInviteCopy(expiresAt).line,`Not accepted within 14 days · expired ${new Intl.DateTimeFormat(undefined,{month:"short",day:"numeric"}).format(new Date(expiresAt))}`);
+  assert.equal(expiredInviteCopy(expiresAt).a11y,`Expired ${formatLong(expiresAt)}, not accepted within 14 days`);
+});
 const invite={sentAt,lastResendAt:null};
 const start=new Date(sentAt).getTime();
 

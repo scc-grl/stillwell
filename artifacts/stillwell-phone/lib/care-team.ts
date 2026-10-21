@@ -72,6 +72,13 @@ export function formatLong(iso: string) {
   return longDate.format(new Date(iso));
 }
 
+export function expiredInviteCopy(expiresAt: string) {
+  return {
+    line: `Not accepted within 14 days · expired ${formatShort(expiresAt)}`,
+    a11y: `Expired ${formatLong(expiresAt)}, not accepted within 14 days`,
+  };
+}
+
 export function isSameDay(iso: string, now: number) {
   const a = new Date(iso);
   const b = new Date(now);

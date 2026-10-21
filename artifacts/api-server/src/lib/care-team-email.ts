@@ -22,14 +22,14 @@ export function renderCareEmail(input: CareEmail) {
   const subject = patientInvite ? `${first} invited you to view their Stillwell journal` : `${clinician} asked you to share your Stillwell journal`;
   const heading = patientInvite ? `${first} invited you to view their recovery journal` : `${clinician} asked you to share your recovery journal`;
   const body = patientInvite
-    ? `Hi ${input.recipientFirstName}, ${first} uses Stillwell, a private journal for concussion recovery, and would like you to be able to read it.`
+    ? `Hi ${input.recipientFirstName}, ${first} uses Stillwell, a private recovery journal, and would like you to be able to read it.`
     : `Hi ${input.recipientFirstName}, ${clinician} would like to be able to read your Stillwell journal, a private place to note how you're feeling day to day.`;
   const box = patientInvite ? null : `You decide. Nothing is shared unless you agree, and you can stop sharing anytime. Stillwell doesn't verify clinicians, so only agree if you know ${clinician}.`;
   const button = patientInvite ? "Accept invite" : "Review the request";
   const note = patientInvite
     ? `Read-only: you can't change anything, and ${first} can remove access at any time. Accept by signing in with this email address. The invite expires on ${date}.`
     : `New to Stillwell? You'll set up your private journal first, then decide about sharing. This request expires on ${date}.`;
-  const ignore = "Didn't expect this? You can ignore this email. Nothing is shared unless you accept.";
+  const ignore = `Didn't expect this? You can ignore this email. Nothing is shared unless you ${patientInvite ? "accept" : "agree"}.`;
   const footer = `Stillwell is an educational recovery journal. It does not diagnose or replace clinical care.${patientInvite ? "" : " It's not for emergencies."} You're receiving this because a Stillwell user entered your email address.`;
   const text = [heading, body, box, `${button}: ${input.link}`, note, ignore, footer].filter(Boolean).join("\n\n");
   const p = (v: string) => `<p>${escapeHtml(v)}</p>`;

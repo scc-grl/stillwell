@@ -3,7 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Text } from "@workspace/stillwell-design-system/components/native/text";
 import { useColors } from "@workspace/stillwell-design-system/hooks/use-colors";
 import { spacing } from "@/lib/layout";
-import { formatLong, formatShort, sentLabel } from "@/lib/care-team";
+import { expiredInviteCopy, formatLong, formatShort, sentLabel } from "@/lib/care-team";
 
 export type CareTeamEntry =
   | { kind: "pending"; id: string; name: string; email: string; sentAt: string; expiresAt: string; lastResendAt: string | null }
@@ -15,7 +15,7 @@ export function statusLine(entry: CareTeamEntry, now: number) {
     return `${sentLabel(entry.sentAt, now)} · expires ${formatShort(entry.expiresAt)}`;
   }
   if (entry.kind === "active") return `Connected since ${formatShort(entry.connectedAt)}`;
-  return "Not accepted within 14 days";
+  return expiredInviteCopy(entry.expiresAt).line;
 }
 
 export function CareTeamRow({
@@ -53,7 +53,7 @@ export function CareTeamRow({
         : {
             icon: "time-outline" as const,
             text: "Expired",
-            a11y: "Expired, not accepted within 14 days",
+            a11y: expiredInviteCopy(entry.expiresAt).a11y,
             line: statusLine(entry, now),
             bg: colors.muted,
             border: colors.muted,

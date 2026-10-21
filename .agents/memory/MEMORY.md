@@ -12,3 +12,4 @@
 - [Shared native control types](shared-native-control-types.md) — portable imperative handles avoid incompatible native View ref types across workspace peer instances.
 - [Care-link privacy on static hosting](care-link-static-privacy.md) — injected analytics can run before React; API-only headers do not protect static link documents.
 - [Workspace validation memory](workspace-validation-memory.md) — run full workspace validation serially to avoid memory exhaustion interrupting previews.
+- [Clerk test cleanup](clerk-test-cleanup.md) — database fixture cleanup does not guarantee synthetic Clerk account removal.

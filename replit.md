@@ -62,7 +62,7 @@ Public landing → starting quiz → explicit storage consent → email-based ac
 ## Health-data safety
 
 - **Why consistent reads matter:** edits, deletions and profile changes can happen between queries or pages without changing the entry count or latest timestamp. Keep authorization, profile, totals and entries in one database snapshot per page, and compare the complete version fingerprint across pages.
-- Public sharing disclosures are in the website landing page and `/privacy`; new care-team privacy text is marked `FOUNDER LEGAL REVIEW` in source. Send/Share consent, whole-history sharing, the five-clinician limit and retained former copies must stay consistent with the API. Patient invite emails use first names only; clinician requests identify the clinician by professional name, never the patient's last name or journal content.
+- Public sharing disclosures are in the website landing page and `/privacy`; new care-team privacy text is marked `FOUNDER LEGAL REVIEW` in source. Send/Share consent, whole-history sharing, the five-clinician limit and retained former copies must stay consistent with the API. Patient invite emails use first names only and do not name the condition; clinician requests identify the clinician by the name the clinician entered on their account (Stillwell doesn't verify it), never the patient's last name or journal content.
 
 - Personalization means user-chosen educational routines, not diagnosis or prescribed treatment. No supplement doses or individualized exercise intensity/progression.
 - Every recovery API derives ownership from the authenticated Clerk user; never trust a client-supplied owner.

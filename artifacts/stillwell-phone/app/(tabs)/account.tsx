@@ -80,7 +80,7 @@ export default function AccountScreen() {
     const agreed = await confirm({
       title: "Delete all recovery data?",
       message:
-        "This permanently removes your recovery profile and every daily entry. Your Stillwell sign-in account will remain. Clinicians you’ve shared with keep what you shared up to now, but they won’t see anything new.",
+        "This permanently removes your recovery profile and every daily entry. Your Stillwell sign-in account will remain. Clinicians you share with now, and any you've stopped sharing with, keep a read-only copy of what you shared up to now. They won't see anything new.",
       cancelLabel: "Keep my data",
       confirmLabel: "Delete all recovery data",
       testID: "delete-all-dialog",

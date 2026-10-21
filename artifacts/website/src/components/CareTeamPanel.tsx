@@ -97,6 +97,12 @@ export function CareTeamPanel() {
           </li>;
         })}
       </ul> : null}
+      {data && data.expiredInvites.length > 0 ? <ul className="divide-y divide-border" aria-label="Expired invites">
+        {data.expiredInvites.map((invite) => <li key={invite.id} className="py-3" data-testid={`row-care-expired-${invite.id}`}>
+          <p className="text-sm font-semibold">{`${invite.firstName} ${invite.lastName}`.trim()}</p>
+          <p className="text-xs text-muted-foreground">Expired {formatLinkDate(invite.expiresAt)} · Not accepted within 14 days</p>
+        </li>)}
+      </ul> : null}
       {confirm ? <Card role="alertdialog" aria-labelledby="care-confirm-title" className="space-y-3 border-destructive p-4">
         <h3 id="care-confirm-title" className="text-sm font-semibold">{confirm.kind === "remove" ? `Stop sharing with ${confirm.name}?` : `Cancel your invite to ${confirm.name}?`}</h3>
         <p className="text-sm leading-6 text-muted-foreground">{confirm.kind === "remove" ? `${confirm.name} keeps what you’ve already shared but won’t see any new entries.` : "The invite link will stop working."}</p>

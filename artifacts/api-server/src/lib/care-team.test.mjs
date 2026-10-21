@@ -370,7 +370,7 @@ test("both plain-text email templates exactly preserve the approved subjects and
   assert.equal(invitation.subject, "Jordan invited you to view their Stillwell journal");
   assert.equal(invitation.text, [
     "Jordan invited you to view their recovery journal",
-    "Hi Alex, Jordan uses Stillwell, a private journal for concussion recovery, and would like you to be able to read it.",
+    "Hi Alex, Jordan uses Stillwell, a private recovery journal, and would like you to be able to read it.",
     "Accept invite: https://stillwell.example/invite/EXAMPLE",
     "Read-only: you can't change anything, and Jordan can remove access at any time. Accept by signing in with this email address. The invite expires on November 4, 2026.",
     "Didn't expect this? You can ignore this email. Nothing is shared unless you accept.",
@@ -387,9 +387,13 @@ test("both plain-text email templates exactly preserve the approved subjects and
     "You decide. Nothing is shared unless you agree, and you can stop sharing anytime. Stillwell doesn't verify clinicians, so only agree if you know Dr. Morgan.",
     "Review the request: https://stillwell.example/request/EXAMPLE",
     "New to Stillwell? You'll set up your private journal first, then decide about sharing. This request expires on November 4, 2026.",
-    "Didn't expect this? You can ignore this email. Nothing is shared unless you accept.",
+    "Didn't expect this? You can ignore this email. Nothing is shared unless you agree.",
     "Stillwell is an educational recovery journal. It does not diagnose or replace clinical care. It's not for emergencies. You're receiving this because a Stillwell user entered your email address.",
   ].join("\n\n"));
+  assert.match(invitation.html, /a private recovery journal/);
+  assert.doesNotMatch(invitation.html + invitation.text, /concussion/i);
+  assert.match(request.html, /Nothing is shared unless you agree/);
+  assert.doesNotMatch(request.html + request.text, /unless you accept/);
 });
 test("token routes, link identifiers and query strings are redacted from request logs",()=>{
   const secret="private-token";
@@ -525,6 +529,56 @@ test("request review alone and Not now never share; only explicit Share connects
   await assert.rejects(service.viewRequest(patient,tokenOf(sent)),error=>error.code==="already_sharing"&&Boolean(error.request));
   await service.removeClinician(patient,linked.linkId);
   await rejects(service.viewRequest(patient,tokenOf(sent)),"already_accepted");
+});
+test("request-created connections appear on both sides and patient removal freezes all future access",async()=>{
+  await log();
+  const sent=await service.sendInvite(clinician,CLINICIAN_REQUEST,fields(patient),baseUrl);
+  const linked=await service.accept(patient,tokenOf(sent),CLINICIAN_REQUEST,true);
+  const team=await service.listTeam(patient);
+  assert.ok(team.activeClinicians.some(item=>item.id===linked.linkId));
+  assert.ok((await service.listPatients(clinician)).active.some(item=>item.id===linked.linkId));
+  assert.equal((await service.readPatient(clinician,linked.linkId)).status,"active");
+  await service.removeClinician(patient,linked.linkId);
+  const frozen=await service.readPatient(clinician,linked.linkId);
+  assert.equal(frozen.status,"former");
+  assert.equal((await service.listTeam(patient)).activeClinicians.length,0);
+  assert.ok((await service.listPatients(clinician)).former.some(item=>item.id===linked.linkId));
+  await log("2026-10-20","Changed after removal");
+  await log("2026-10-21","New day after removal");
+  assert.deepEqual(await service.readPatient(clinician,linked.linkId),frozen);
+});
+test("Not now keeps a request reusable until exactly fourteen days, then acceptance expires",async()=>{
+  const sent=await service.sendInvite(clinician,CLINICIAN_REQUEST,fields(patient),baseUrl);
+  const token=tokenOf(sent);
+  const record=(await pool.query("SELECT * FROM care_team_invites WHERE id=$1",[sent.invite.id])).rows[0];
+  assert.equal(record.expires_at-record.sent_at,14*86400000);
+  await service.accept(patient,token,CLINICIAN_REQUEST,false,true);
+  assert.equal((await service.listPatients(clinician)).active.length,0);
+  assert.equal(deliveries.length,1);
+  advance(14*24*60-1);
+  await service.viewRequest(patient,token);
+  const linked=await service.accept(patient,token,CLINICIAN_REQUEST,true);
+  assert.ok(linked.linkId);
+  const second=await service.sendInvite(other,CLINICIAN_REQUEST,fields(patient),baseUrl);
+  await service.accept(patient,tokenOf(second),CLINICIAN_REQUEST,false,true);
+  advance(14*24*60);
+  assert.equal((await service.previewRequest(tokenOf(second))).state,"expired");
+  await rejects(service.accept(patient,tokenOf(second),CLINICIAN_REQUEST,true),"expired");
+});
+test("delete-all invalidates incoming requests for every verified email, but not other recipients",async()=>{
+  const secondary="second@example.com";
+  const patientWithSecondary={...patient,emails:[...patient.emails,{address:secondary,verified:true}]};
+  users.set(patient.id,patientWithSecondary);
+  const a=await service.sendInvite(clinician,CLINICIAN_REQUEST,fields(patient),baseUrl);
+  const b=await service.sendInvite(other,CLINICIAN_REQUEST,{...fields(patient),email:secondary.toUpperCase()},baseUrl);
+  const unrelated=await service.sendInvite(clinician,CLINICIAN_REQUEST,{firstName:"Other",lastName:"Recipient",email:"other@example.com"},baseUrl);
+  await service.deleteRecovery(patientWithSecondary);
+  await rejects(service.viewRequest(patientWithSecondary,tokenOf(a)),"invalid_token");
+  await rejects(service.viewRequest(patientWithSecondary,tokenOf(b)),"invalid_token");
+  await setupJournal();
+  await rejects(service.accept(patientWithSecondary,tokenOf(a),CLINICIAN_REQUEST,true),"invalid_token");
+  assert.equal((await service.previewRequest(tokenOf(unrelated))).state,"pending");
+  assert.equal(Number((await pool.query("SELECT count(*) AS n FROM care_team_invites WHERE status='pending' AND invitee_email=ANY($1::text[])",[[patient.emails[0].address,secondary]])).rows[0].n),0);
 });
 test("public request preview paths redact tokens and query strings",()=>{
   const secret="sensitive-token";

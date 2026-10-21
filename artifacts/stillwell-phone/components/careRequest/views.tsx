@@ -258,7 +258,7 @@ export function ReviewView({
             areas, including past entries.
           </Text>
           <Text variant="body">
-            She won’t see your sign-in details or anything you delete. Read-only; stop
+            She won't see your password or sign-in methods. Entries you delete disappear from what she sees while you're sharing. Read-only; stop
             sharing anytime in Account.
           </Text>
           <Text variant="body">

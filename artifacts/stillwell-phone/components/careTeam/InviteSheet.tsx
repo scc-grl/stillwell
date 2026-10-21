@@ -377,7 +377,7 @@ function InviteSheetBody({
                   routine focus areas, including past entries.
                 </Text>
                 <Text variant="caption" color={colors.secondaryForeground}>
-                  They won’t see your sign-in details or anything you delete.
+                  They won't see your password or sign-in methods. Entries you delete disappear from what they see while you're sharing.
                   Read-only; remove access anytime.
                 </Text>
                 <Text variant="caption" color={colors.secondaryForeground}>
