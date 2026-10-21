@@ -4,6 +4,7 @@ import {
   type ErrorInfo,
   type ReactNode,
 } from 'react';
+import { inPrivateLinkFlow } from '@/lib/care-link';
 
 export interface ErrorFallbackProps {
   error: Error;
@@ -75,6 +76,10 @@ export class ErrorBoundary extends Component<
   }
 
   componentDidCatch(error: unknown, info: ErrorInfo): void {
+    if (inPrivateLinkFlow()) {
+      console.error('ErrorBoundary caught an error on a care-link page.');
+      return;
+    }
     console.error(
       'ErrorBoundary caught an error:',
       toError(error),

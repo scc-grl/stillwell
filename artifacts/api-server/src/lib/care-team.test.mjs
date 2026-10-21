@@ -38,6 +38,7 @@ before(async () => {
     await pool.query(`CREATE TABLE ${schema}.${table} (LIKE public.${table} INCLUDING ALL)`);
   await pool.query(`ALTER TABLE ${schema}.recovery_logs ADD FOREIGN KEY(owner_id) REFERENCES ${schema}.recovery_profiles(owner_id) ON DELETE CASCADE`);
   await pool.query(`ALTER TABLE ${schema}.care_team_snapshots ADD FOREIGN KEY(link_id) REFERENCES ${schema}.care_team_links(id) ON DELETE CASCADE`);
+  await pool.query(`ALTER TABLE ${schema}.care_team_invites ADD FOREIGN KEY(accepted_link_id) REFERENCES ${schema}.care_team_links(id) ON DELETE SET NULL`);
 });
 after(async () => {
   await pool?.end();
@@ -440,4 +441,57 @@ test("request review alone and Not now never share; only explicit Share connects
 test("public request preview paths redact tokens and query strings",()=>{
   const secret="sensitive-token";
   assert.equal(requestLogPath(`/api/care-team/requests/${secret}/preview?email=private`),"/api/care-team/requests/:redacted/preview");
+});
+test("public clinician invite preview reveals only first name, masked email, expiry and state",async()=>{
+  const sent=await invite();
+  const preview=await service.previewInvite(tokenOf(sent));
+  assert.deepEqual(Object.keys(preview).sort(),["state","patientFirstName","maskedEmail","expiresAt"].sort());
+  assert.equal(preview.state,"pending");
+  assert.equal(preview.patientFirstName,patient.firstName);
+  assert.ok(!JSON.stringify(preview).includes(clinician.emails[0].address));
+  assert.equal((await pool.query("SELECT count(*) FROM care_team_links")).rows[0].count,"0");
+  const wrongDirection=await service.sendInvite(clinician,CLINICIAN_REQUEST,fields(patient),baseUrl);
+  await rejects(service.previewInvite(tokenOf(wrongDirection)),"invalid_token");
+  await rejects(service.previewInvite("not-a-token"),"invalid_token");
+});
+test("invite review checks clinician role and matching email before disclosing verification details",async()=>{
+  const sent=await invite();
+  await assert.rejects(service.viewInvite(patient,tokenOf(sent)),error=>error.code==="patient_account"&&!error.emailToVerify);
+  await assert.rejects(service.viewInvite(other,tokenOf(sent)),error=>error.code==="different_email"&&!error.emailToVerify);
+  const unverified={...clinician,emails:[{address:clinician.emails[0].address.toUpperCase(),verified:false}]};
+  await assert.rejects(service.viewInvite(unverified,tokenOf(sent)),error=>error.code==="unverified_email"&&error.emailToVerify===clinician.emails[0].address.toLowerCase());
+  const secondary={...clinician,emails:[{address:"another@example.com",verified:true},{address:clinician.emails[0].address.toUpperCase(),verified:true}]};
+  assert.deepEqual(await service.viewInvite(secondary,tokenOf(sent)),{state:"pending",linkId:null});
+  assert.equal((await pool.query("SELECT status FROM care_team_invites WHERE id=$1",[sent.invite.id])).rows[0].status,"pending");
+});
+test("consumed invite review only identifies an owned link, including retained former snapshots",async()=>{
+  const sent=await invite();
+  const accepted=await service.accept(clinician,tokenOf(sent),PATIENT_INVITE);
+  assert.deepEqual(await service.viewInvite(clinician,tokenOf(sent)),{state:"accepted",linkId:accepted.linkId});
+  const sameEmailDifferentAccount={...other,emails:clinician.emails};
+  await rejects(service.viewInvite(sameEmailDifferentAccount,tokenOf(sent)),"already_used");
+  await service.removeClinician(patient,accepted.linkId);
+  assert.equal((await service.viewInvite(clinician,tokenOf(sent))).linkId,accepted.linkId);
+  const reconnected=await invite();
+  const fresh=await service.accept(clinician,tokenOf(reconnected),PATIENT_INVITE);
+  assert.notEqual(fresh.linkId,accepted.linkId);
+  assert.equal((await service.viewInvite(clinician,tokenOf(sent))).linkId,accepted.linkId);
+  await service.removeFormer(clinician,accepted.linkId);
+  assert.equal((await pool.query("SELECT accepted_link_id FROM care_team_invites WHERE id=$1",[sent.invite.id])).rows[0].accepted_link_id,null);
+  assert.deepEqual(await service.viewInvite(clinician,tokenOf(sent)),{state:"accepted",linkId:null});
+  assert.equal((await service.previewInvite(tokenOf(sent))).state,"accepted");
+});
+test("invite preview and review distinguish cancellation, expiry and tokens voided by resend",async()=>{
+  const sent=await invite();
+  advance(10);
+  const resent=await service.sendInvite(patient,PATIENT_INVITE,{},baseUrl,sent.invite.id);
+  await rejects(service.previewInvite(tokenOf(sent)),"invalid_token");
+  await rejects(service.viewInvite(clinician,tokenOf(sent)),"invalid_token");
+  await service.cancel(patient,resent.invite.id,PATIENT_INVITE);
+  assert.equal((await service.previewInvite(tokenOf(resent))).state,"cancelled");
+  await rejects(service.viewInvite(clinician,tokenOf(resent)),"cancelled");
+  const expiring=await invite();
+  advance(14*24*60);
+  assert.equal((await service.previewInvite(tokenOf(expiring))).state,"expired");
+  await rejects(service.viewInvite(clinician,tokenOf(expiring)),"expired");
 });

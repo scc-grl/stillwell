@@ -17,3 +17,14 @@ export function requestLogPath(url: string | undefined): string | undefined {
   if (lowerPath?.startsWith("/api/__clerk/")) return "/api/__clerk/:resource";
   return path;
 }
+
+/** Block off-origin analytics on bearer-link HTML, independent of script order. */
+export function careLinkSecurityHeaders(url: string | undefined, clerkHost?: string): Record<string, string> {
+  if (!/^\/(?:invite|request)\/[^/]+(?:\/.*)?$/i.test(url?.split("?")[0] ?? "")) return {};
+  return {
+    "Cache-Control": "private, no-store",
+    "Referrer-Policy": "no-referrer",
+    "Content-Security-Policy": `connect-src 'self'${clerkHost && /^[a-z0-9.-]+$/i.test(clerkHost) ? ` https://${clerkHost}` : ""}`,
+    "X-Robots-Tag": "noindex, nofollow, noarchive",
+  };
+}

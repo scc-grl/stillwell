@@ -182,6 +182,40 @@ export const ReviewCareRequestResponse = zod.object({
 
 
 /**
+ * @summary Public bearer-link context only; first name, masked recipient email, expiry and state. Private no-store.
+ */
+export const previewCareInvitePathTokenRegExp = new RegExp('^[A-Za-z0-9_-]{43}$');
+
+
+export const PreviewCareInviteParams = zod.object({
+  "token": zod.coerce.string().regex(previewCareInvitePathTokenRegExp)
+})
+
+export const PreviewCareInviteResponse = zod.object({
+  "state": zod.enum(['pending', 'expired', 'cancelled', 'accepted']),
+  "patientFirstName": zod.string(),
+  "maskedEmail": zod.string(),
+  "expiresAt": zod.coerce.date()
+})
+
+
+/**
+ * @summary Clinician-only invitation review with matching verified email. Never grants access or consumes the token.
+ */
+export const reviewCareInvitePathTokenRegExp = new RegExp('^[A-Za-z0-9_-]{43}$');
+
+
+export const ReviewCareInviteParams = zod.object({
+  "token": zod.coerce.string().regex(reviewCareInvitePathTokenRegExp)
+})
+
+export const ReviewCareInviteResponse = zod.object({
+  "state": zod.enum(['pending', 'accepted']),
+  "linkId": zod.string().uuid().nullable()
+})
+
+
+/**
  * @summary Public bearer-link metadata only. No full recipient email, user identifiers, or journal data. Private no-store.
  */
 export const previewCareRequestPathTokenRegExp = new RegExp('^[A-Za-z0-9_-]{43}$');

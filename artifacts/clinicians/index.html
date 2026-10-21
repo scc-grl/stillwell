@@ -3,6 +3,69 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <script>
+      /*
+       * Care-link privacy guard. Runs before any other script. On /invite/<token>,
+       * /request/<token>, or while this tab holds a pending care link, the document gets
+       * no-referrer, noindex, and a connect-src limited to this origin (plus Clerk's
+       * frontend API in development), so no third-party request can carry the URL.
+       * Once applied it stays for this document; a fresh public document is unaffected.
+       */
+      (function () {
+        var tokenPath = /\/(?:invite|request)\/[^/?#]+/i;
+        var applied = false;
+        function pending() {
+          try {
+            var raw = sessionStorage.getItem("stillwell.pending-care-link");
+            if (!raw) return false;
+            var link = JSON.parse(raw);
+            return Boolean(link && typeof link.token === "string" && link.expiresAt > Date.now());
+          } catch (e) { return false; }
+        }
+        function clerkOrigin() {
+          try {
+            var key = "%VITE_CLERK_PUBLISHABLE_KEY%".split("_")[2] || "";
+            var host = atob(key).replace(/\$$/, "");
+            return /^[a-z0-9.-]+$/i.test(host) ? " https://" + host : "";
+          } catch (e) { return ""; }
+        }
+        function addMeta(attr, name, content) {
+          var meta = document.createElement("meta");
+          meta.setAttribute(attr, name);
+          meta.content = content;
+          document.head.insertBefore(meta, document.head.firstChild);
+        }
+        function apply() {
+          if (applied) return;
+          applied = true;
+          var dev = "%MODE%" === "development" ? " ws: wss:" : "";
+          addMeta("http-equiv", "Content-Security-Policy", "connect-src 'self'" + clerkOrigin() + dev);
+          addMeta("name", "referrer", "no-referrer");
+          addMeta("name", "robots", "noindex, nofollow");
+          function noindex() {
+            var robots = document.querySelectorAll('meta[name="robots"]');
+            for (var i = 0; i < robots.length; i++) robots[i].content = "noindex, nofollow";
+          }
+          noindex();
+          if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", noindex);
+        }
+        function check(url) {
+          try {
+            var path = url == null ? location.pathname : new URL(String(url), location.href).pathname;
+            if (tokenPath.test(path) || pending()) apply();
+          } catch (e) { apply(); }
+        }
+        check();
+        ["pushState", "replaceState"].forEach(function (name) {
+          var original = history[name];
+          history[name] = function (state, title, url) {
+            check(url);
+            return original.apply(this, arguments);
+          };
+        });
+        addEventListener("popstate", function () { check(); });
+      })();
+    </script>
     <title>Stillwell Clinician &amp; Partner Portal</title>
     <meta name="description" content="A private Stillwell account and professional profile for clinicians. Patient journal sharing is planned, not active." />
     <meta name="robots" content="index, follow" />

@@ -7,6 +7,7 @@ import { Card, CardContent } from '@workspace/stillwell-design-system/components
 import { useAccountType, useClinicianProfile } from '@/hooks/use-clinician-account';
 import { sendPatientToDashboard } from '@/lib/config';
 import { Footer, PortalHeader } from '@/components/portal-shell';
+import { AcceptedInviteToast, useOwnCarePatients } from '@/components/accepted-invite-toast';
 
 export default function DashboardPage() {
   const { isLoaded, isSignedIn } = useAuth();
@@ -15,6 +16,8 @@ export default function DashboardPage() {
   const account = useAccountType(isLoaded && Boolean(isSignedIn));
   const clinician = isSignedIn && account.data?.accountType === 'clinician';
   const profile = useClinicianProfile(Boolean(clinician));
+  const carePatients = useOwnCarePatients(Boolean(clinician));
+  const connectedCount = carePatients.data?.active.length ?? 0;
 
   useEffect(() => {
     if (isLoaded && !isSignedIn) setLocation('/sign-in');
@@ -64,6 +67,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-[100dvh] bg-background">
       <PortalHeader dashboard />
+      <AcceptedInviteToast />
       <main className="mx-auto max-w-7xl px-6 py-10 md:py-14">
         <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
           <div>
@@ -72,8 +76,8 @@ export default function DashboardPage() {
               {savedProfile?.firstName ? `Welcome, ${savedProfile.firstName}.` : 'Welcome to your Stillwell account.'}
             </h1>
             <p className="mt-3 max-w-2xl leading-7 text-muted-foreground">
-              Your professional space is ready. Patient journal sharing is
-              planned, not active.
+              Your professional space is ready. Patients can choose to share
+              their journal with you, read-only.
             </p>
           </div>
           <Button asChild variant="outline" data-testid="button-dashboard-edit-profile">
@@ -164,11 +168,25 @@ export default function DashboardPage() {
             <div className="flex items-start gap-4">
               <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-secondary text-secondary-foreground"><BookOpen size={21} aria-hidden="true" /></span>
               <div>
-                <h2 className="font-serif text-2xl text-foreground">No patient journals are connected</h2>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-                  Patient sharing is planned and not active. This clinician
-                  portal does not fetch or display patient journals.
-                </p>
+                {connectedCount > 0 ? (
+                  <>
+                    <h2 className="font-serif text-2xl text-foreground" data-testid="text-connected-journals">
+                      {connectedCount === 1 ? '1 patient journal is connected' : `${connectedCount} patient journals are connected`}
+                    </h2>
+                    <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+                      Your connection is saved. A journal viewer is coming in the next
+                      phase; this portal doesn’t display patient entries yet.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <h2 className="font-serif text-2xl text-foreground">No patient journals are connected</h2>
+                    <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+                      When a patient shares their journal with you, the connection
+                      will appear here. This portal doesn’t display patient entries yet.
+                    </p>
+                  </>
+                )}
               </div>
             </div>
             <span className="inline-flex w-fit items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-semibold text-muted-foreground">

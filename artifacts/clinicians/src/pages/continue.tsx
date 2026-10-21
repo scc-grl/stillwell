@@ -7,6 +7,15 @@ import { Card, CardContent } from '@workspace/stillwell-design-system/components
 import { useAccountType, useClinicianProfile, useCompleteRegistration } from '@/hooks/use-clinician-account';
 import { sendPatientToDashboard } from '@/lib/config';
 import { Brand } from '@/components/portal-shell';
+import { pendingInviteReturnPath } from '@/lib/care-link';
+
+/** A pending patient invite wins over the normal next step. */
+function returnToInvite(): boolean {
+  const path = pendingInviteReturnPath();
+  if (!path) return false;
+  window.location.assign(path);
+  return true;
+}
 
 export default function ContinuePage() {
   const { isLoaded, isSignedIn } = useAuth();
@@ -30,6 +39,7 @@ export default function ContinuePage() {
       { data: { registrationToken: token } },
       {
         onSuccess: (result) => {
+          if (returnToInvite()) return;
           if (result.accountType === 'patient') sendPatientToDashboard();
           else setLocation('/profile');
         },
@@ -42,6 +52,11 @@ export default function ContinuePage() {
 
   useEffect(() => {
     if (!isLoaded || !isSignedIn || token || !account.data || routed.current) return;
+    if (pendingInviteReturnPath()) {
+      routed.current = true;
+      returnToInvite();
+      return;
+    }
     if (account.data.accountType === 'patient') {
       routed.current = true;
       sendPatientToDashboard();
@@ -60,6 +75,7 @@ export default function ContinuePage() {
         { data: { registrationToken: token } },
         {
           onSuccess: (result) => {
+            if (returnToInvite()) return;
             if (result.accountType === 'patient') sendPatientToDashboard();
             else setLocation('/profile');
           },

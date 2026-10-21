@@ -10,3 +10,4 @@
 - [Expo preview auth testing](expo-preview-auth-testing.md) — a successful Clerk test login on the root host does not prove the separate Expo preview is signed in.
 - [Codegen and preview watchers](codegen-preview-watchers.md) — shared API regeneration can leave Metro with stale missing-module or SHA-1 errors; restart affected previews after generation finishes.
 - [Shared native control types](shared-native-control-types.md) — portable imperative handles avoid incompatible native View ref types across workspace peer instances.
+- [Care-link privacy on static hosting](care-link-static-privacy.md) — injected analytics can run before React; API-only headers do not protect static link documents.

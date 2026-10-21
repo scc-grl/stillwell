@@ -37,6 +37,7 @@ export const careTeamInvites = pgTable("care_team_invites", {
   acceptedAt: timestamp("accepted_at", { withTimezone: true }),
   cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
   acceptingUserId: text("accepting_user_id"),
+  acceptedLinkId: uuid("accepted_link_id").references(() => careTeamLinks.id, { onDelete: "set null" }),
   clinicianId: text("clinician_id"),
 }, t => [
   check("care_team_invite_direction", sql`${t.direction} IN ('patient_invites_clinician', 'clinician_requests_patient')`),

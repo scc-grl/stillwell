@@ -1,3 +1,4 @@
+import { inPrivateLinkFlow } from '@/lib/care-link';
 type AnalyticsData = Record<string, string | number | boolean>;
 
 declare global {
@@ -10,6 +11,8 @@ declare global {
 
 export function trackEvent(name: string, data?: AnalyticsData): void {
   if (typeof window === 'undefined') return;
+  // Never send analytics from, or during, a private care-link flow.
+  if (inPrivateLinkFlow()) return;
 
   try {
     window.umami?.track(name, data);

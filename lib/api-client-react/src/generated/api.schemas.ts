@@ -790,6 +790,8 @@ export type GetMyCareTeamDefault = {
   /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
   code: string;
   error: string;
+  /** Present only for an unverified invited address already on the authenticated clinician account. */
+  emailToVerify?: string;
   request?: CareRequestDetails;
 };
 
@@ -807,6 +809,8 @@ export type CreatePatientCareInviteDefault = {
   /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
   code: string;
   error: string;
+  /** Present only for an unverified invited address already on the authenticated clinician account. */
+  emailToVerify?: string;
   request?: CareRequestDetails;
 };
 
@@ -820,6 +824,8 @@ export type ResendPatientCareInviteDefault = {
   /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
   code: string;
   error: string;
+  /** Present only for an unverified invited address already on the authenticated clinician account. */
+  emailToVerify?: string;
   request?: CareRequestDetails;
 };
 
@@ -827,6 +833,8 @@ export type UndoCancelPatientCareInviteDefault = {
   /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
   code: string;
   error: string;
+  /** Present only for an unverified invited address already on the authenticated clinician account. */
+  emailToVerify?: string;
   request?: CareRequestDetails;
 };
 
@@ -834,6 +842,8 @@ export type CancelPatientCareInviteDefault = {
   /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
   code: string;
   error: string;
+  /** Present only for an unverified invited address already on the authenticated clinician account. */
+  emailToVerify?: string;
   request?: CareRequestDetails;
 };
 
@@ -841,6 +851,8 @@ export type RemoveCareClinicianDefault = {
   /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
   code: string;
   error: string;
+  /** Present only for an unverified invited address already on the authenticated clinician account. */
+  emailToVerify?: string;
   request?: CareRequestDetails;
 };
 
@@ -859,6 +871,56 @@ export type ReviewCareRequestDefault = {
   /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
   code: string;
   error: string;
+  /** Present only for an unverified invited address already on the authenticated clinician account. */
+  emailToVerify?: string;
+  request?: CareRequestDetails;
+};
+
+export type PreviewCareInvite200State = typeof PreviewCareInvite200State[keyof typeof PreviewCareInvite200State];
+
+
+export const PreviewCareInvite200State = {
+  pending: 'pending',
+  expired: 'expired',
+  cancelled: 'cancelled',
+  accepted: 'accepted',
+} as const;
+
+export type PreviewCareInvite200 = {
+  state: PreviewCareInvite200State;
+  patientFirstName: string;
+  maskedEmail: string;
+  expiresAt: string;
+};
+
+export type PreviewCareInviteDefault = {
+  /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
+  code: string;
+  error: string;
+  /** Present only for an unverified invited address already on the authenticated clinician account. */
+  emailToVerify?: string;
+  request?: CareRequestDetails;
+};
+
+export type ReviewCareInvite200State = typeof ReviewCareInvite200State[keyof typeof ReviewCareInvite200State];
+
+
+export const ReviewCareInvite200State = {
+  pending: 'pending',
+  accepted: 'accepted',
+} as const;
+
+export type ReviewCareInvite200 = {
+  state: ReviewCareInvite200State;
+  linkId: string | null;
+};
+
+export type ReviewCareInviteDefault = {
+  /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
+  code: string;
+  error: string;
+  /** Present only for an unverified invited address already on the authenticated clinician account. */
+  emailToVerify?: string;
   request?: CareRequestDetails;
 };
 
@@ -884,6 +946,8 @@ export type PreviewCareRequestDefault = {
   /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
   code: string;
   error: string;
+  /** Present only for an unverified invited address already on the authenticated clinician account. */
+  emailToVerify?: string;
   request?: CareRequestDetails;
 };
 
@@ -917,6 +981,8 @@ export type RespondToCareRequestDefault = {
   /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
   code: string;
   error: string;
+  /** Present only for an unverified invited address already on the authenticated clinician account. */
+  emailToVerify?: string;
   request?: CareRequestDetails;
 };
 
@@ -937,6 +1003,8 @@ export type AcceptPatientCareInviteDefault = {
   /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
   code: string;
   error: string;
+  /** Present only for an unverified invited address already on the authenticated clinician account. */
+  emailToVerify?: string;
   request?: CareRequestDetails;
 };
 
@@ -949,6 +1017,8 @@ export type GetMyCarePatientsDefault = {
   /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
   code: string;
   error: string;
+  /** Present only for an unverified invited address already on the authenticated clinician account. */
+  emailToVerify?: string;
   request?: CareRequestDetails;
 };
 
@@ -964,6 +1034,8 @@ export type GetCarePatientJournalDefault = {
   /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
   code: string;
   error: string;
+  /** Present only for an unverified invited address already on the authenticated clinician account. */
+  emailToVerify?: string;
   request?: CareRequestDetails;
 };
 
@@ -971,6 +1043,8 @@ export type RemoveFormerCarePatientDefault = {
   /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
   code: string;
   error: string;
+  /** Present only for an unverified invited address already on the authenticated clinician account. */
+  emailToVerify?: string;
   request?: CareRequestDetails;
 };
 
@@ -982,6 +1056,8 @@ export type GetMyCareRequestsDefault = {
   /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
   code: string;
   error: string;
+  /** Present only for an unverified invited address already on the authenticated clinician account. */
+  emailToVerify?: string;
   request?: CareRequestDetails;
 };
 
@@ -995,6 +1071,8 @@ export type CreateClinicianCareRequestDefault = {
   /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
   code: string;
   error: string;
+  /** Present only for an unverified invited address already on the authenticated clinician account. */
+  emailToVerify?: string;
   request?: CareRequestDetails;
 };
 
@@ -1008,6 +1086,8 @@ export type ResendClinicianCareRequestDefault = {
   /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
   code: string;
   error: string;
+  /** Present only for an unverified invited address already on the authenticated clinician account. */
+  emailToVerify?: string;
   request?: CareRequestDetails;
 };
 
@@ -1015,6 +1095,8 @@ export type CancelClinicianCareRequestDefault = {
   /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
   code: string;
   error: string;
+  /** Present only for an unverified invited address already on the authenticated clinician account. */
+  emailToVerify?: string;
   request?: CareRequestDetails;
 };
 

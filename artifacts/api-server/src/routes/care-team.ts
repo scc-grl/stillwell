@@ -6,6 +6,7 @@ import { CareTeamError, CLINICIAN_REQUEST, PATIENT_INVITE, inviteInput, type Ide
 import { getClerkProxyHost } from "../middlewares/clerkProxyMiddleware";
 import { careDeliveryResponse } from "../lib/care-team-email";
 import { allowedRequestOrigin } from "../lib/request-origin";
+import { logger } from "../lib/logger";
 
 const router = Router();
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -32,10 +33,16 @@ function input(req: Request) {
 }
 export function careTeamFailure(error: unknown, res: Response) {
   if (error instanceof CareTeamError) {
-    res.status(error.status).json({ code: error.code, error: error.message, ...(error.request ? { request: error.request } : {}) });
+    res.status(error.status).json({ code: error.code, error: error.message,
+      ...(error.request ? { request: error.request } : {}),
+      ...(error.emailToVerify ? { emailToVerify: error.emailToVerify } : {}) });
     return true;
   }
-  return false;
+  // Provider/SQL errors can contain identifiers. Do not forward their objects,
+  // messages or stacks to the general error logger.
+  logger.error("care-team operation failed");
+  res.status(503).json({ code: "temporarily_unavailable", error: "We couldn't complete that request. Try again." });
+  return true;
 }
 type Handler = (req: Request, user: Identity) => Promise<unknown>;
 function endpoint(handler: Handler, status = 200) {
@@ -73,6 +80,13 @@ router.get("/care-team/requests/:token/preview", async (req, res, next) => {
   try { res.json(await careTeamService.previewRequest(String(req.params.token))); }
   catch (error) { if (!careTeamFailure(error, res)) next(error); }
 });
+router.get("/care-team/invites/:token/preview", async (req, res, next) => {
+  res.setHeader("Cache-Control", "private, no-store");
+  try { res.json(await careTeamService.previewInvite(String(req.params.token))); }
+  catch (error) { if (!careTeamFailure(error, res)) next(error); }
+});
+router.get("/clinician/care-team/invites/:token", endpoint((req, user) =>
+  careTeamService.viewInvite(user, String(req.params.token))));
 router.get("/patient/care-team", endpoint((_req, user) => careTeamService.listTeam(user)));
 router.post("/patient/care-team/invites", endpoint(async (req, user) =>
   deliveryResult(await careTeamService.sendInvite(user, PATIENT_INVITE, input(req), baseUrl(req), undefined, req.body?.consentAccepted === true)), 201));

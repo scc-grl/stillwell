@@ -17,6 +17,7 @@ export interface CareRequestDetails {
 }
 export class CareTeamError extends Error {
   request?: CareRequestDetails;
+  emailToVerify?: string;
   constructor(public code: string, message: string, public status = 400) { super(message); }
 }
 const fail = (code: string, message: string, status = 400): never => { throw new CareTeamError(code, message, status); };
@@ -185,11 +186,42 @@ export class CareTeamService {
     if (invite.status === "expired" || new Date(invite.expires_at) <= this.now()) fail("expired", "This invite has expired.", 410);
     return invite;
   }
-  private async requestRecord(tx: SqlClient | SqlPool, token: string) {
+  private async requestRecord(tx: SqlClient | SqlPool, token: string, direction: Direction = CLINICIAN_REQUEST) {
     if (!/^[A-Za-z0-9_-]{43}$/.test(token)) fail("invalid_token", "This link is not available.", 404);
-    const { rows: [invite] } = await tx.query("SELECT * FROM care_team_invites WHERE token_hash=$1 AND direction=$2", [hashCareToken(token), CLINICIAN_REQUEST]);
+    const { rows: [invite] } = await tx.query("SELECT * FROM care_team_invites WHERE token_hash=$1 AND direction=$2", [hashCareToken(token), direction]);
     if (!invite) fail("invalid_token", "This link is not available.", 404);
     return invite;
+  }
+  async previewInvite(token: string) {
+    const invite = await this.requestRecord(this.deps.pool, token, PATIENT_INVITE);
+    const patient = await this.deps.identity(invite.inviter_id);
+    const state = invite.status === "cancelled" ? "cancelled"
+      : invite.status === "accepted" ? "accepted"
+      : invite.status === "expired" || new Date(invite.expires_at) <= this.now() ? "expired" : "pending";
+    return { state, patientFirstName: patient.firstName || "A Stillwell user",
+      maskedEmail: maskedCareEmail(invite.invitee_email), expiresAt: invite.expires_at };
+  }
+  async viewInvite(user: Identity, token: string) {
+    requireRole(user, "clinician");
+    return transaction(this.deps.pool, async tx => {
+      const invite = await this.requestRecord(tx, token, PATIENT_INVITE);
+      try { requireEmail(user, invite.invitee_email); }
+      catch (error) {
+        // Only disclose an address that is already on this authenticated account.
+        if (error instanceof CareTeamError && error.code === "unverified_email")
+          error.emailToVerify = invite.invitee_email;
+        throw error;
+      }
+      if (invite.status === "accepted") {
+        if (invite.accepting_user_id !== user.id)
+          fail("already_used", "This invite was already used. Nothing new was shared.", 409);
+        const { rows } = await tx.query("SELECT id FROM care_team_links WHERE id=$1 AND clinician_id=$2",
+          [invite.accepted_link_id ?? null, user.id]);
+        return { state: "accepted", linkId: rows[0]?.id ?? null };
+      }
+      await this.tokenInvite(tx, token, PATIENT_INVITE);
+      return { state: "pending", linkId: null };
+    });
   }
   async previewRequest(token: string) {
     const invite = await this.requestRecord(this.deps.pool, token);
@@ -249,9 +281,9 @@ export class CareTeamService {
         VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`, [patient.id, clinician.id, patient.firstName || (direction === CLINICIAN_REQUEST ? invite.invitee_first_name : "Stillwell patient"), patient.lastName || (direction === CLINICIAN_REQUEST ? invite.invitee_last_name : ""),
         direction === CLINICIAN_REQUEST ? invite.invitee_email : normalized(patient.emails[0]?.address ?? ""),
         fullName(clinician), direction === PATIENT_INVITE ? invite.invitee_email : normalized(clinician.emails[0]?.address ?? ""), now]);
-      await tx.query(`UPDATE care_team_invites SET status='accepted',accepted_at=$2,accepting_user_id=$3,clinician_id=$4,
+      await tx.query(`UPDATE care_team_invites SET status='accepted',accepted_at=$2,accepting_user_id=$3,clinician_id=$4,accepted_link_id=$6,
         consent_version=COALESCE(consent_version,$5),consented_at=COALESCE(consented_at,$2) WHERE id=$1`,
-      [invite.id, now, user.id, clinician.id, CARE_CONSENT_VERSION]);
+      [invite.id, now, user.id, clinician.id, CARE_CONSENT_VERSION, link.id]);
       return { state: "accepted", linkId: link.id };
     });
   }

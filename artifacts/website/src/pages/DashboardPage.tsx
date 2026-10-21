@@ -16,7 +16,10 @@ import type {
   RecoveryPreferences,
   RecoveryState,
 } from "@workspace/api-client-react";
+import { careLinkPath } from "@workspace/recovery-journal/care-link-handoff";
 import { Button } from "@workspace/stillwell-design-system/components/ui/button";
+import { CareTeamPanel } from "@/components/CareTeamPanel";
+import { pendingLink } from "@/lib/care-link";
 import { Card } from "@workspace/stillwell-design-system/components/ui/card";
 import { Checkbox } from "@workspace/stillwell-design-system/components/ui/checkbox";
 import {
@@ -133,6 +136,8 @@ export default function DashboardPage() {
         queryClient.setQueryData(recoveryKey, state);
         clearDraft();
         setMessage("Your first daily summary is ready. You can edit it whenever you like.");
+        const link = pendingLink.read();
+        if (link?.kind === "request" && pendingLink.update(link.token, { ready: true })) setLocation(careLinkPath("request", link.token));
       },
       onError: () => setMessage("Your consented setup is still kept in this tab. We couldn’t save it yet; try again when you’re ready."),
     });
@@ -280,9 +285,10 @@ export default function DashboardPage() {
       <Card className="space-y-2 p-5 sm:p-6" aria-labelledby="clinician-support-note">
         <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Clinician support</p>
         <h2 id="clinician-support-note" className="font-serif text-2xl font-medium">Your journal stays yours.</h2>
-        <p className="max-w-3xl text-sm leading-6 text-muted-foreground">Patient invitations and in-app journal sharing are planned, but not available yet. You can bring your own reflections to a clinician outside Stillwell if you choose.</p>
-        <p className="text-xs text-muted-foreground">Nothing is shared with a clinician through Stillwell today.</p>
+        <p className="max-w-3xl text-sm leading-6 text-muted-foreground">You decide who can read your journal. A clinician can only see it after you share it with them, and you can stop sharing at any time. You can also bring your own reflections to a clinician outside Stillwell if you choose.</p>
       </Card>
+
+      <CareTeamPanel />
 
       {!recoveryQuery.isLoading && profile && <>
         <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">

@@ -11,5 +11,7 @@ export type UndoCancelPatientCareInviteDefault = {
   /** Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token. */
   code: string;
   error: string;
+  /** Present only for an unverified invited address already on the authenticated clinician account. */
+  emailToVerify?: string;
   request?: CareRequestDetails;
 };

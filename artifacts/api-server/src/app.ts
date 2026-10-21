@@ -3,12 +3,18 @@ import cors from "cors";
 import pinoHttp from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
-import { requestLogPath } from "./lib/request-log-path";
+import { requestLogPath, careLinkSecurityHeaders } from "./lib/request-log-path";
 import { clerkMiddleware } from "@clerk/express";
-import { publishableKeyFromHost } from "@clerk/shared/keys";
+import { publishableKeyFromHost, parsePublishableKey } from "@clerk/shared/keys";
 import { CLERK_PROXY_PATH, clerkProxyMiddleware, getClerkProxyHost } from "./middlewares/clerkProxyMiddleware";
 
 const app: Express = express();
+
+app.use((req, res, next) => {
+  const clerkHost = parsePublishableKey(process.env.CLERK_PUBLISHABLE_KEY)?.frontendApi;
+  for (const [name, value] of Object.entries(careLinkSecurityHeaders(req.url, clerkHost))) res.setHeader(name, value);
+  next();
+});
 
 app.use(
   pinoHttp({

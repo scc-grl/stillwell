@@ -92,6 +92,48 @@ paths:
           description: Frozen and disconnected.
         default:
           $ref: "#/components/responses/CareError"
+  /care-team/invites/{token}/preview:
+    parameters:
+      - $ref: "#/components/parameters/CareToken"
+    get:
+      operationId: previewCareInvite
+      tags: [care-team]
+      summary: Public bearer-link context only; first name, masked recipient email, expiry and state. Private no-store.
+      responses:
+        "200":
+          description: Minimal invitation context; no journal data or full recipient email.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [state, patientFirstName, maskedEmail, expiresAt]
+                properties:
+                  state: { type: string, enum: [pending, expired, cancelled, accepted] }
+                  patientFirstName: { type: string }
+                  maskedEmail: { type: string }
+                  expiresAt: { type: string, format: date-time }
+        default:
+          $ref: "#/components/responses/CareError"
+  /clinician/care-team/invites/{token}:
+    parameters:
+      - $ref: "#/components/parameters/CareToken"
+    get:
+      operationId: reviewCareInvite
+      tags: [care-team]
+      summary: Clinician-only invitation review with matching verified email. Never grants access or consumes the token.
+      responses:
+        "200":
+          description: Pending invitation, or a consumed invitation owned by this clinician. A removed former link returns null.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [state, linkId]
+                properties:
+                  state: { type: string, enum: [pending, accepted] }
+                  linkId: { type: string, format: uuid, nullable: true }
+        default:
+          $ref: "#/components/responses/CareError"
   /care-team/requests/{token}/preview:
     parameters:
       - $ref: "#/components/parameters/CareToken"
@@ -302,6 +344,10 @@ components:
                 type: string
                 description: "Stable state code including expired, cancelled, withdrawn, already_accepted, different_email, unverified_email, patient_account, clinician_account, already_sharing, care_team_full, resend_cooldown, daily_limit, invalid_token."
               error: { type: string }
+              emailToVerify:
+                type: string
+                format: email
+                description: Present only for an unverified invited address already on the authenticated clinician account.
               request:
                 $ref: "#/components/schemas/CareRequestDetails"
     CareDelivery:

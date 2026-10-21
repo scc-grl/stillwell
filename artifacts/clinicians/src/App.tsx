@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
 import { ClerkProvider, SignIn, SignUp, useClerk } from '@clerk/react';
 import { publishableKeyFromHost } from '@clerk/react/internal';
@@ -18,6 +18,7 @@ import {
   useLocation,
   Router as WouterRouter,
 } from 'wouter';
+import { pendingInviteEmail, reconcileCareLink } from '@/lib/care-link';
 
 const queryClient = new QueryClient();
 const clerkPubKey = publishableKeyFromHost(
@@ -86,6 +87,7 @@ const clerkAppearance = {
 };
 
 function SignInPage() {
+  const [prefillEmail] = useState(pendingInviteEmail);
   return (
     <main className="grid min-h-[100dvh] place-items-center bg-background px-5 py-10">
       <SignIn
@@ -93,6 +95,7 @@ function SignInPage() {
         path={`${BASE_PATH}/sign-in`}
         signUpUrl={`${BASE_PATH}/sign-up`}
         forceRedirectUrl={`${BASE_PATH}/account/continue`}
+        initialValues={prefillEmail ? { emailAddress: prefillEmail } : undefined}
       />
     </main>
   );
@@ -121,6 +124,7 @@ function ClerkQueryClientCacheInvalidator() {
       const userId = user?.id ?? null;
       if (prevUserIdRef.current !== undefined && prevUserIdRef.current !== userId) {
         queryClient.clear();
+        reconcileCareLink(prevUserIdRef.current, userId);
       }
       prevUserIdRef.current = userId;
     });
@@ -136,6 +140,7 @@ function Router() {
   return (
     <RoutedErrorBoundary>
       <ClerkProvider
+        telemetry={{ disabled: true }}
         publishableKey={clerkPubKey}
         proxyUrl={clerkProxyUrl}
         appearance={clerkAppearance}

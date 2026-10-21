@@ -1,6 +1,19 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { requestLogPath } from "./request-log-path.ts";
+import { requestLogPath, careLinkSecurityHeaders } from "./request-log-path.ts";
+
+test("care-link HTML prevents referrer leaks, caching, indexing and off-origin analytics",()=>{
+  for(const path of ["/invite/private-token","/request/private-token?return=ignored","/INVITE/private-token/nested"]) {
+    const headers=careLinkSecurityHeaders(path);
+    assert.equal(headers["Content-Security-Policy"],"connect-src 'self'");
+    assert.equal(headers["Referrer-Policy"],"no-referrer");
+    assert.equal(headers["Cache-Control"],"private, no-store");
+    assert.match(headers["X-Robots-Tag"],/noindex/);
+    assert.ok(!JSON.stringify(headers).includes("private-token"));
+  }
+  assert.deepEqual(careLinkSecurityHeaders("/"),{});
+  assert.deepEqual(careLinkSecurityHeaders("/privacy"),{});
+});
 
 test("case-insensitive Express token routes cannot bypass log redaction",()=>{
   for(const path of [

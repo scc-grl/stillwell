@@ -63,6 +63,8 @@ import type {
   PartnerRequestList,
   PatientClinicianConnection,
   PatientClinicianConnectionList,
+  PreviewCareInvite200,
+  PreviewCareInviteDefault,
   PreviewCareRequest200,
   PreviewCareRequestDefault,
   PublicClinician,
@@ -82,6 +84,8 @@ import type {
   RespondToCareRequest200,
   RespondToCareRequestBody,
   RespondToCareRequestDefault,
+  ReviewCareInvite200,
+  ReviewCareInviteDefault,
   ReviewCareRequest200,
   ReviewCareRequestDefault,
   SharedPatientJournal,
@@ -642,6 +646,160 @@ export function useReviewCareRequest<TData = Awaited<ReturnType<typeof reviewCar
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getReviewCareRequestQueryOptions(token,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getPreviewCareInviteUrl = (token: string,) => {
+
+
+
+
+  return `/api/care-team/invites/${token}/preview`
+}
+
+/**
+ * @summary Public bearer-link context only; first name, masked recipient email, expiry and state. Private no-store.
+ */
+export const previewCareInvite = async (token: string, options?: Parameters<typeof customFetch>[1]): Promise<PreviewCareInvite200> => {
+
+  return customFetch<PreviewCareInvite200>(getPreviewCareInviteUrl(token),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getPreviewCareInviteQueryKey = (token: string,) => {
+    return [
+    `/api/care-team/invites/${token}/preview`
+    ] as const;
+    }
+
+
+export const getPreviewCareInviteQueryOptions = <TData = Awaited<ReturnType<typeof previewCareInvite>>, TError = ErrorType<PreviewCareInviteDefault>>(token: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof previewCareInvite>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getPreviewCareInviteQueryKey(token);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof previewCareInvite>>> = ({ signal }) => previewCareInvite(token, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: token !== null && token !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof previewCareInvite>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type PreviewCareInviteQueryResult = NonNullable<Awaited<ReturnType<typeof previewCareInvite>>>
+export type PreviewCareInviteQueryError = ErrorType<PreviewCareInviteDefault>
+
+
+/**
+ * @summary Public bearer-link context only; first name, masked recipient email, expiry and state. Private no-store.
+ */
+
+export function usePreviewCareInvite<TData = Awaited<ReturnType<typeof previewCareInvite>>, TError = ErrorType<PreviewCareInviteDefault>>(
+ token: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof previewCareInvite>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getPreviewCareInviteQueryOptions(token,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getReviewCareInviteUrl = (token: string,) => {
+
+
+
+
+  return `/api/clinician/care-team/invites/${token}`
+}
+
+/**
+ * @summary Clinician-only invitation review with matching verified email. Never grants access or consumes the token.
+ */
+export const reviewCareInvite = async (token: string, options?: Parameters<typeof customFetch>[1]): Promise<ReviewCareInvite200> => {
+
+  return customFetch<ReviewCareInvite200>(getReviewCareInviteUrl(token),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getReviewCareInviteQueryKey = (token: string,) => {
+    return [
+    `/api/clinician/care-team/invites/${token}`
+    ] as const;
+    }
+
+
+export const getReviewCareInviteQueryOptions = <TData = Awaited<ReturnType<typeof reviewCareInvite>>, TError = ErrorType<ReviewCareInviteDefault>>(token: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof reviewCareInvite>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getReviewCareInviteQueryKey(token);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof reviewCareInvite>>> = ({ signal }) => reviewCareInvite(token, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: token !== null && token !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof reviewCareInvite>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ReviewCareInviteQueryResult = NonNullable<Awaited<ReturnType<typeof reviewCareInvite>>>
+export type ReviewCareInviteQueryError = ErrorType<ReviewCareInviteDefault>
+
+
+/**
+ * @summary Clinician-only invitation review with matching verified email. Never grants access or consumes the token.
+ */
+
+export function useReviewCareInvite<TData = Awaited<ReturnType<typeof reviewCareInvite>>, TError = ErrorType<ReviewCareInviteDefault>>(
+ token: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof reviewCareInvite>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getReviewCareInviteQueryOptions(token,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
