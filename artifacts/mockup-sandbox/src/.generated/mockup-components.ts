@@ -7,10 +7,10 @@ export const modules: ModuleMap = {
   "./components/mockups/patient-care-protocol/PatientCareProtocolBuilder.tsx": () => import("../components/mockups/patient-care-protocol/PatientCareProtocolBuilder.tsx"),
   "./components/mockups/patient-care-protocol/PatientCareProtocolRoadmap.tsx": () => import("../components/mockups/patient-care-protocol/PatientCareProtocolRoadmap.tsx"),
   "./components/mockups/patient-care-protocol/PatientDashboardJournal.tsx": () => import("../components/mockups/patient-care-protocol/PatientDashboardJournal.tsx"),
-  "./components/mockups/stillwell-progress-atlas/PatientProgressAtlas.tsx": () => import("../components/mockups/stillwell-progress-atlas/PatientProgressAtlas.tsx"),
-  "./components/mockups/stillwell-progress-atlas/PatientProgressDaybook.tsx": () => import("../components/mockups/stillwell-progress-atlas/PatientProgressDaybook.tsx"),
+  "./components/mockups/recovery-flow/Current.tsx": () => import("../components/mockups/recovery-flow/Current.tsx"),
   "./components/mockups/stillwell-orientation/RecoveryCompass.tsx": () => import("../components/mockups/stillwell-orientation/RecoveryCompass.tsx"),
   "./components/mockups/stillwell-orientation/RecoveryCompassMobile.tsx": () => import("../components/mockups/stillwell-orientation/RecoveryCompassMobile.tsx"),
-  "./components/mockups/recovery-flow/Current.tsx": () => import("../components/mockups/recovery-flow/Current.tsx"),
+  "./components/mockups/stillwell-progress-atlas/PatientProgressAtlas.tsx": () => import("../components/mockups/stillwell-progress-atlas/PatientProgressAtlas.tsx"),
+  "./components/mockups/stillwell-progress-atlas/PatientProgressDaybook.tsx": () => import("../components/mockups/stillwell-progress-atlas/PatientProgressDaybook.tsx"),
   "./components/mockups/templates/MindfulnessAppLanding-WGCeX5/Lp11.tsx": () => import("../components/mockups/templates/MindfulnessAppLanding-WGCeX5/Lp11.tsx")
 };
