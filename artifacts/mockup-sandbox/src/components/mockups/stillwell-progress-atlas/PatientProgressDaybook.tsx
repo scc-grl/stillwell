@@ -131,7 +131,8 @@ function SafetyNote() {
   </Card>;
 }
 
-function JournalContent() {
+function JournalContent({ audience = "patient" }: { audience?: "patient" | "clinician" }) {
+  const isClinician = audience === "clinician";
   const [selectedDate, setSelectedDate] = useState(entries[entries.length - 1].date);
   const [period, setPeriod] = useState<"30" | "all">("all");
 
@@ -167,14 +168,21 @@ function JournalContent() {
     setSelectedDate(visibleEntries[nextIndex].date);
   }
 
-  return <section className="space-y-6" aria-label="Journal entries">
+  return <section className="space-y-6" aria-label={isClinician ? "Jane Smith's shared journal entries" : "Journal entries"}>
     <section className="space-y-2">
       <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-secondary-foreground">
-        <span className="h-px w-6 bg-primary/50" />Your private journal · design preview
+        <span className="h-px w-6 bg-primary/50" />{isClinician ? "Shared journal · design preview" : "Your private journal · design preview"}
       </p>
-      <h1 className="font-serif text-4xl font-medium leading-tight sm:text-5xl">Your past check-ins</h1>
-      <p className="max-w-2xl text-sm leading-6 text-muted-foreground">Revisit the days you chose to record. No values are filled in between entries.</p>
-      <p className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-2 text-xs text-secondary-foreground"><ShieldCheck aria-hidden="true" className="size-4" />Illustrative entries only · not connected to records</p>
+      {isClinician ? <>
+        <h1 className="font-serif text-4xl font-medium leading-tight sm:text-5xl">Jane Smith</h1>
+        <p className="text-lg font-medium text-foreground">Past check-ins</p>
+        <p className="max-w-2xl text-sm leading-6 text-muted-foreground">A read-only view of Jane’s recorded responses. No values are filled in between entries.</p>
+        <p className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-2 text-xs text-secondary-foreground"><ShieldCheck aria-hidden="true" className="size-4" />Fictional patient · illustrative preview</p>
+      </> : <>
+        <h1 className="font-serif text-4xl font-medium leading-tight sm:text-5xl">Your past check-ins</h1>
+        <p className="max-w-2xl text-sm leading-6 text-muted-foreground">Revisit the days you chose to record. No values are filled in between entries.</p>
+        <p className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-2 text-xs text-secondary-foreground"><ShieldCheck aria-hidden="true" className="size-4" />Illustrative entries only · not connected to records</p>
+      </>}
     </section>
 
     <section className="grid gap-5 lg:grid-cols-3">
@@ -182,7 +190,7 @@ function JournalContent() {
         <CardHeader className="gap-4 pb-4">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Journal index</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{isClinician ? "Jane’s journal" : "Journal index"}</p>
               <CardTitle className="mt-1 font-serif text-2xl font-medium">Choose a day</CardTitle>
             </div>
             <span className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary text-primary" aria-hidden="true"><CalendarDays size={19} /></span>
@@ -191,7 +199,7 @@ function JournalContent() {
             <Button type="button" size="sm" className="min-h-11 flex-1" variant={period === "30" ? "secondary" : "ghost"} aria-pressed={period === "30"} onClick={() => selectPeriod("30")} data-testid="filter-journal-30-days">30 days</Button>
             <Button type="button" size="sm" className="min-h-11 flex-1" variant={period === "all" ? "secondary" : "ghost"} aria-pressed={period === "all"} onClick={() => selectPeriod("all")} data-testid="filter-journal-all">All dates</Button>
           </div>
-          <p className="text-xs leading-5 text-muted-foreground">Each entry opens one day of your recorded responses and words.</p>
+          <p className="text-xs leading-5 text-muted-foreground">{isClinician ? "Each entry opens one day of Jane’s recorded responses and words." : "Each entry opens one day of your recorded responses and words."}</p>
         </CardHeader>
         <CardContent className="space-y-5">
           {Object.entries(monthGroups).map(([month, monthEntries]) => <section key={month} aria-label={month}>
@@ -234,9 +242,9 @@ function JournalContent() {
         <Card className="overflow-hidden">
           <CardHeader className="flex-row items-center justify-between gap-4 border-b border-border bg-card pb-5">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Daily check-in</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{isClinician ? "Patient-reported check-in" : "Daily check-in"}</p>
               <CardTitle className="mt-1 font-serif text-3xl font-medium sm:text-4xl">{formatDate(activeEntry.date, { month: "long", day: "numeric", year: "numeric" })}</CardTitle>
-              <p className="mt-2 text-sm text-muted-foreground">Illustrative entry · fictional preview</p>
+              <p className="mt-2 text-sm text-muted-foreground">{isClinician ? "Jane’s recorded entry · fictional preview" : "Illustrative entry · fictional preview"}</p>
             </div>
             <div className="flex shrink-0 items-center gap-2">
               <Button variant="outline" size="icon" type="button" aria-label="Previous saved check-in" disabled={selectedIndex <= 0} onClick={() => moveDate(-1)} data-testid="button-journal-previous"><ArrowLeft /></Button>
@@ -246,8 +254,8 @@ function JournalContent() {
           <CardContent className="pt-5">
             <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className="text-lg font-semibold">Symptom check-in</h2>
-                <p className="mt-1 text-sm text-muted-foreground">Four patient-reported choices, shown as words.</p>
+                <h2 className="text-lg font-semibold">{isClinician ? "Symptom ratings" : "Symptom check-in"}</h2>
+                <p className="mt-1 text-sm text-muted-foreground">{isClinician ? "Jane’s four patient-reported choices, shown as words." : "Four patient-reported choices, shown as words."}</p>
               </div>
               <span className="rounded-full bg-muted px-3 py-1.5 text-xs text-secondary-foreground">{Object.values(activeEntry.ratings).filter((rating) => rating !== null).length} of 6 recorded</span>
             </div>
@@ -280,8 +288,8 @@ function JournalContent() {
 
         <Card>
           <CardHeader className="pb-3">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Your note</p>
-            <CardTitle className="font-serif text-xl font-medium">A few words for this day</CardTitle>
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{isClinician ? "Note shared with you" : "Your note"}</p>
+            <CardTitle className="font-serif text-xl font-medium">{isClinician ? "Jane’s note for this day" : "A few words for this day"}</CardTitle>
           </CardHeader>
           <CardContent>
             {activeEntry.reflection
@@ -294,8 +302,8 @@ function JournalContent() {
 
     <SafetyNote />
     <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4 text-xs text-muted-foreground">
-      <span className="flex items-center gap-2"><Clock3 aria-hidden="true" className="size-4" />No streaks. No prescribed progression.</span>
-      <span>Sample interface only · not a clinical record</span>
+      <span className="flex items-center gap-2"><Clock3 aria-hidden="true" className="size-4" />{isClinician ? "Read-only view · no interpretation added." : "No streaks. No prescribed progression."}</span>
+      <span>{isClinician ? "Patient-reported journal · not a clinical record" : "Sample interface only · not a clinical record"}</span>
     </div>
   </section>;
 }
@@ -323,7 +331,7 @@ function PlaceholderView({ view, onJournal }: { view: PatientWorkspaceView; onJo
 export function PatientProgressDaybook({ embedded = false }: { embedded?: boolean }) {
   const [activeView, setActiveView] = useState<PatientWorkspaceView>("journal");
   const content = activeView === "journal"
-    ? <JournalContent />
+    ? <JournalContent audience={embedded ? "patient" : "clinician"} />
     : <PlaceholderView view={activeView} onJournal={() => setActiveView("journal")} />;
 
   if (embedded) return content;
@@ -334,7 +342,7 @@ export function PatientProgressDaybook({ embedded = false }: { embedded?: boolea
           <img src={stillwellMark} alt="" aria-hidden="true" className="size-9 shrink-0" />
           <span className="font-serif text-xl font-semibold tracking-tight">stillwell</span>
         </div>
-        <PatientWorkspaceNavigation active={activeView} onNavigate={setActiveView} />
+        <span className="rounded-full bg-secondary px-3 py-2 text-xs font-medium text-secondary-foreground">Clinician portal · design preview</span>
       </div>
     </header>
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-8 sm:py-8">{content}</div>
