@@ -1,3 +1,5 @@
-<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect width="180" height="180" rx="36" fill="#FF3C00"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36" role="img" aria-label="Stillwell mark">
+  <circle cx="18" cy="18" r="17.5" fill="#e6eee7" stroke="#b7c9bd" stroke-width="1"></circle>
+  <circle cx="18" cy="18" r="8.5" fill="none" stroke="#537566" stroke-width="1"></circle>
+  <circle cx="25" cy="10" r="3" fill="#bd705c"></circle>
 </svg>
