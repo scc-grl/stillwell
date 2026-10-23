@@ -28,12 +28,17 @@ import {
   CalendarDays,
   CircleAlert,
   Clock3,
+  LayoutDashboard,
   LogOut,
+  NotebookPen,
+  Settings2,
   ShieldCheck,
   Trash2,
+  UsersRound,
 } from "lucide-react";
 import { ActivitiesEditor } from "@/components/ActivitiesEditor";
 import { DailyCheckInFlow } from "@/components/DailyCheckInFlow";
+import { PatientProgressChart } from "@/components/PatientProgressChart";
 import { clearDraft, emptyLog, localDate, priorityChoices, readDraft, routinePrompts, type DraftEnvelope } from "@/lib/recovery";
 import {
   activityChoices,
@@ -52,6 +57,42 @@ function Brand() {
     <span className="brand-mark" aria-hidden="true" />
     <span className="font-serif text-xl font-semibold tracking-tight">stillwell</span>
   </Link>;
+}
+
+type PatientSection = "dashboard" | "journal" | "care-team" | "account";
+const patientNavigation: { id: PatientSection; label: string; path: string; icon: typeof LayoutDashboard }[] = [
+  { id: "dashboard", label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+  { id: "journal", label: "Journal", path: "/dashboard/journal", icon: NotebookPen },
+  { id: "care-team", label: "Care team", path: "/dashboard/care-team", icon: UsersRound },
+  { id: "account", label: "Account", path: "/dashboard/account", icon: Settings2 },
+];
+
+function sectionForPath(path: string): PatientSection {
+  if (path.startsWith("/dashboard/journal")) return "journal";
+  if (path.startsWith("/dashboard/care-team")) return "care-team";
+  if (path.startsWith("/dashboard/account")) return "account";
+  return "dashboard";
+}
+
+function PatientDashboardNav({ section }: { section: PatientSection }) {
+  return <header className="sticky top-0 z-20 border-b border-border bg-background/95 shadow-sm backdrop-blur">
+    <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:px-8 md:flex-row md:items-center md:justify-between">
+      <Brand />
+      <nav aria-label="Patient journal" className="grid grid-cols-2 gap-1 sm:grid-cols-4 md:flex md:items-center">
+        {patientNavigation.map(({ id, label, path, icon: Icon }) => <Button
+          key={id}
+          variant={section === id ? "secondary" : "ghost"}
+          size="sm"
+          className="min-h-11 justify-start"
+          asChild
+        >
+          <Link href={path} aria-current={section === id ? "page" : undefined} data-testid={`link-patient-${id}`}>
+            <Icon className="size-4" />{label}
+          </Link>
+        </Button>)}
+      </nav>
+    </div>
+  </header>;
 }
 
 function activityStatusLabel(status: RecoveryLog["dietStatus"]) {
@@ -96,7 +137,7 @@ export default function DashboardPage() {
   const { user } = useUser();
   const { signOut } = useClerk();
   const queryClient = useQueryClient();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const userId = user?.id ?? "";
   const recoveryKey = useMemo(() => [...getGetRecoveryQueryKey(), userId], [userId]);
   const recoveryQuery = useGetRecovery({ query: { enabled: Boolean(userId), queryKey: recoveryKey, retry: false } });
@@ -105,6 +146,7 @@ export default function DashboardPage() {
   const saveRecoveryLog = useSaveRecoveryLog();
   const deleteRecoveryLog = useDeleteRecoveryLog();
   const profile = recoveryQuery.data?.profile;
+  const section = sectionForPath(location);
   const logs = useMemo(() => [...(recoveryQuery.data?.logs ?? [])].sort((a, b) => b.date.localeCompare(a.date)), [recoveryQuery.data?.logs]);
   const today = localDate();
   const todayLog = logs.find((item) => item.date === today);
@@ -239,60 +281,78 @@ export default function DashboardPage() {
   };
 
   return <main className="min-h-[100dvh] bg-background pb-12">
-    <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-8">
-        <Brand />
-        <div className="flex items-center gap-2">
-          <span className="hidden text-xs text-muted-foreground sm:inline">Your private journal</span>
-          <Button variant="outline" size="sm" asChild><Link href="/privacy"><ShieldCheck />Privacy</Link></Button>
-          <Button variant="ghost" size="sm" onClick={() => void logout()} data-testid="button-sign-out"><LogOut /><span className="hidden sm:inline">Sign out</span></Button>
-        </div>
-      </div>
-    </header>
+    <PatientDashboardNav section={section} />
     <div className="mx-auto max-w-6xl space-y-6 px-4 pt-7 sm:px-8 sm:pt-10">
-      <section className="rounded-3xl bg-primary p-6 text-primary-foreground sm:p-9">
+      {section === "dashboard" && <section className="rounded-3xl bg-primary p-6 text-primary-foreground sm:p-9">
         <div className="grid gap-6 sm:grid-cols-[1fr_auto] sm:items-end">
           <div className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-widest opacity-80">Your space, your pace</p>
-            <h1 className="max-w-2xl font-serif text-4xl font-medium leading-tight sm:text-5xl">Make room for what today is.</h1>
-            <p className="max-w-xl text-sm leading-6 opacity-90">A personal journal for noticing patterns and choosing gentle routines. Nothing here is a diagnosis or treatment prescription.</p>
+            <p className="text-xs font-semibold uppercase tracking-widest opacity-80">Your dashboard</p>
+            <h1 className="max-w-2xl font-serif text-4xl font-medium leading-tight sm:text-5xl">Your recovery, at your pace.</h1>
+            <p className="max-w-xl text-sm leading-6 opacity-90">Review the check-ins you chose to save, your routine plan, and who can read your journal.</p>
           </div>
-          {profile && <Button variant="secondary" onClick={() => { setSelectedHistory(null); setActivitiesOpen(false); document.getElementById("daily-check-in")?.scrollIntoView({ behavior: "smooth" }); }}>Today’s check-in</Button>}
+          {profile && <Button variant="secondary" onClick={() => setLocation("/dashboard/journal")} data-testid="button-open-journal">Open journal</Button>}
         </div>
-      </section>
+      </section>}
+      {section === "journal" && <section>
+        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Your personal record</p>
+        <h1 className="mt-2 font-serif text-4xl font-medium sm:text-5xl">Journal</h1>
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">A daily check-in, your routine notes, and the days you chose to keep.</p>
+      </section>}
+      {section === "account" && <section>
+        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Your settings</p>
+        <h1 className="mt-2 font-serif text-4xl font-medium sm:text-5xl">Account</h1>
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">Your Stillwell sign-in and private data controls.</p>
+      </section>}
 
-      <Card className="flex gap-3 border-accent bg-accent/30 p-4 text-sm leading-6">
+      {(section === "dashboard" || section === "journal") && <Card className="flex gap-3 border-accent bg-accent/30 p-4 text-sm leading-6">
         <CircleAlert className="mt-0.5 size-5 shrink-0 text-accent-foreground" />
         <p><strong className="font-semibold">A safety note.</strong> Stillwell is not for a new injury or emergency. If symptoms are worsening, contact a clinician. Severe or urgent symptoms need emergency care now.</p>
-      </Card>
+      </Card>}
       {message && <Card role="status" className="border-secondary bg-secondary p-4 text-sm leading-6 text-secondary-foreground" data-testid="status-dashboard-feedback">{message}</Card>}
-      {recoveryQuery.isLoading && <Card aria-label="Loading your journal" className="animate-pulse space-y-4 p-6"><div className="h-4 w-40 rounded bg-muted" /><div className="h-24 rounded-xl bg-muted" /><div className="h-16 rounded-xl bg-muted" /></Card>}
-      {recoveryQuery.isError && <Card className="space-y-4 p-6"><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">We couldn’t open your journal</p><h2 className="font-serif text-3xl">Your notes haven’t gone anywhere.</h2><p className="text-sm leading-6 text-muted-foreground">Check your connection, then try loading the private journal again.</p><Button variant="outline" onClick={() => void recoveryQuery.refetch()}>Try again <ArrowRight /></Button></Card>}
-      {!recoveryQuery.isLoading && !recoveryQuery.isError && !profile && !readDraft() && <Card className="space-y-4 p-6 sm:p-9">
+      {(section === "dashboard" || section === "journal") && recoveryQuery.isLoading && <Card aria-label="Loading your journal" className="animate-pulse space-y-4 p-6"><div className="h-4 w-40 rounded bg-muted" /><div className="h-24 rounded-xl bg-muted" /><div className="h-16 rounded-xl bg-muted" /></Card>}
+      {(section === "dashboard" || section === "journal") && recoveryQuery.isError && <Card className="space-y-4 p-6"><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">We couldn’t open your journal</p><h2 className="font-serif text-3xl">Your notes haven’t gone anywhere.</h2><p className="text-sm leading-6 text-muted-foreground">Check your connection, then try loading the private journal again.</p><Button variant="outline" onClick={() => void recoveryQuery.refetch()} data-testid="button-retry-journal">Try again <ArrowRight /></Button></Card>}
+      {(section === "dashboard" || section === "journal") && !recoveryQuery.isLoading && !recoveryQuery.isError && !profile && !readDraft() && <Card className="space-y-4 p-6 sm:p-9">
         <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">A beginning, not a blank template</p>
         <h2 className="max-w-xl font-serif text-4xl font-medium">Choose what you want this space to hold.</h2>
         <p className="max-w-xl text-sm leading-7 text-muted-foreground">Start with a few optional preferences and a first daily reflection. You decide what belongs here. Your setup is not sent until you consent and sign in.</p>
         <Button className="w-fit" onClick={() => setLocation("/quiz")}>Set up my journal <ArrowRight /></Button>
         <p className="text-xs text-muted-foreground">No profile or recovery history is displayed until you create it.</p>
       </Card>}
-      {!recoveryQuery.isLoading && !recoveryQuery.isError && !profile && !!readDraft() && <Card className="space-y-4 p-6">
+      {(section === "dashboard" || section === "journal") && !recoveryQuery.isLoading && !recoveryQuery.isError && !profile && !!readDraft() && <Card className="space-y-4 p-6">
         <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Saved setup, ready to retry</p>
         <h2 className="font-serif text-3xl">Your first summary is waiting.</h2>
         <p className="text-sm leading-6 text-muted-foreground">We couldn’t finish saving the setup yet. It remains in this tab temporarily, and your existing preferences have not been replaced.</p>
         <Button className="w-fit" disabled={startRecovery.isPending} onClick={() => { const draft = readDraft(); if (draft) persistDraft(draft); else setMessage("This setup has expired. Start a new quiz to continue."); }}>{startRecovery.isPending ? "Trying…" : "Try again"} <ArrowRight /></Button>
       </Card>}
 
-      <Card className="space-y-2 p-5 sm:p-6" aria-labelledby="clinician-support-note">
+      {section === "journal" && <Card className="space-y-2 p-5 sm:p-6" aria-labelledby="clinician-support-note">
         <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Clinician support</p>
         <h2 id="clinician-support-note" className="font-serif text-2xl font-medium">Your journal stays yours.</h2>
         <p className="max-w-3xl text-sm leading-6 text-muted-foreground">You decide who can read your journal. A clinician can only see it after you share it with them, and you can stop sharing at any time. You can also bring your own reflections to a clinician outside Stillwell if you choose.</p>
-      </Card>
+      </Card>}
 
-      <CareTeamPanel />
+      {section === "care-team" && <>
+        {recoveryQuery.isError && <Card role="status" className="p-4 text-sm text-muted-foreground">Your journal profile could not be checked right now. Try again before inviting a clinician.</Card>}
+        <CareTeamPanel hasJournal={Boolean(profile)} />
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card className="space-y-3 p-5">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Planned</p>
+            <h2 className="font-serif text-2xl font-medium">Find a clinician</h2>
+            <p className="text-sm leading-6 text-muted-foreground">A clinician directory and matching are not available yet. You can invite a clinician you already know to read your journal.</p>
+            <Button variant="outline" asChild data-testid="button-find-clinician-planned"><Link href="/find-your-clinician">About future matching <ArrowRight /></Link></Button>
+          </Card>
+          <Card className="space-y-3 p-5">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Planned</p>
+            <h2 className="font-serif text-2xl font-medium">Clinician feedback</h2>
+            <p className="text-sm leading-6 text-muted-foreground">Clinicians can read only what you choose to share. Leaving feedback in Stillwell is not available yet; you can bring your journal to a visit.</p>
+          </Card>
+        </div>
+      </>}
 
-      {!recoveryQuery.isLoading && profile && <>
-        <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
-          <Card className="space-y-5 p-5 sm:p-6">
+      {!recoveryQuery.isLoading && !recoveryQuery.isError && profile && (section === "dashboard" || section === "journal") && <>
+        {section === "dashboard" && <PatientProgressChart logs={logs} today={today} />}
+        <div className="space-y-5">
+          {section === "dashboard" && <Card className="space-y-5 p-5 sm:p-6">
             <div className="flex items-start justify-between gap-3">
               <div><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Your chosen routine</p><h2 className="mt-2 font-serif text-2xl font-medium">{supportModes.find((mode) => mode.value === profile.supportMode)?.title}</h2></div>
               <Button variant="outline" size="sm" onClick={() => { setRoutineOpen((value) => !value); setActivitiesOpen(false); }}>{routineOpen ? "Close" : "Edit routine"}</Button>
@@ -327,16 +387,27 @@ export default function DashboardPage() {
               </div></fieldset>
               <div className="flex flex-wrap gap-2"><Button disabled={priorities.length === 0 || updateProfile.isPending} onClick={() => void saveRoutine()}>{updateProfile.isPending ? "Saving…" : "Save routine"}</Button><Button variant="outline" onClick={() => { setPriorities([...profile.priorities]); setSupportMode(profile.supportMode); setRoutineOpen(false); }}>Cancel</Button></div>
             </div>}
-          </Card>
+          </Card>}
 
-          <Card id="daily-check-in" className="space-y-5 p-5 sm:p-6">
+          {section === "dashboard" && <Card className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+            <div className="flex items-start gap-3">
+              <UsersRound className="mt-1 size-5 shrink-0 text-primary" />
+              <div>
+                <h2 className="font-serif text-2xl font-medium">Your care team</h2>
+                <p className="mt-1 max-w-xl text-sm leading-6 text-muted-foreground">Manage invitations and decide who can read your journal. You can stop sharing at any time.</p>
+              </div>
+            </div>
+            <Button variant="outline" onClick={() => setLocation("/dashboard/care-team")} data-testid="button-dashboard-care-team">View care team <ArrowRight /></Button>
+          </Card>}
+
+          {section === "journal" && <Card id="daily-check-in" className="scroll-mt-28 space-y-5 p-5 sm:p-6">
             {activitiesOpen && activityInitial
               ? <ActivitiesEditor initial={activityInitial} onSave={saveActivities} onCancel={() => { setActivitiesOpen(false); setActivityInitial(null); }} />
               : <DailyCheckInFlow key={today} initial={{ ...(todayLog ?? emptyLog(today)) }} logs={logs} today={today} onPersist={saveCheckIn} onEditActivities={() => beginActivities()} />}
-          </Card>
+          </Card>}
         </div>
 
-        <section className="space-y-4" aria-labelledby="history-heading">
+        {section === "journal" && <section className="space-y-4" aria-labelledby="history-heading">
           <Card className="p-5 sm:p-6">
             {selectedHistory ? <>
               <Button variant="outline" size="sm" className="mb-5" onClick={() => { setSelectedHistory(null); setDeleteDate(null); }}><ArrowLeft />Back to history</Button>
@@ -375,8 +446,28 @@ export default function DashboardPage() {
                 })}</div>}
             </>}
           </Card>
-        </section>
+        </section>}
       </>}
+      {section === "account" && <div className="grid gap-5 lg:grid-cols-2">
+        <Card className="space-y-5 p-5 sm:p-6">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Account details</p>
+            <h2 className="mt-2 font-serif text-2xl font-medium">{user?.fullName || [user?.firstName, user?.lastName].filter(Boolean).join(" ") || "Your Stillwell account"}</h2>
+          </div>
+          <dl className="space-y-4">
+            <div><dt className="text-xs text-muted-foreground">Email</dt><dd className="mt-1 break-all text-sm font-medium">{user?.primaryEmailAddress?.emailAddress ?? "No email address on file"}</dd></div>
+            <div><dt className="text-xs text-muted-foreground">Account type</dt><dd className="mt-1 text-sm font-medium">Patient</dd></div>
+          </dl>
+          <Button variant="outline" onClick={() => void logout()} data-testid="button-account-sign-out"><LogOut />Sign out</Button>
+        </Card>
+        <Card className="space-y-4 p-5 sm:p-6">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Privacy and data</p>
+          <h2 className="font-serif text-2xl font-medium">Your data stays under your control.</h2>
+          <p className="text-sm leading-6 text-muted-foreground">Review the privacy details, manage sharing, or permanently delete your recovery data. Your sign-in account remains if you delete recovery data.</p>
+          <Button variant="outline" asChild data-testid="button-account-privacy"><Link href="/privacy"><ShieldCheck />Privacy and data controls <ArrowRight /></Link></Button>
+        </Card>
+      </div>}
+
       <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5 text-xs text-muted-foreground">
         <span className="flex items-center gap-2"><Clock3 className="size-4" />No streaks. No prescribed progression.</span>
         <Link href="/privacy" className="underline underline-offset-4">Privacy &amp; data controls</Link>

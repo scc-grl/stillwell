@@ -30,6 +30,7 @@ const clerkPubKey = publishableKeyFromHost(window.location.hostname, import.meta
 const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
 /** Exact match: /clinician/portal, /clinician/patients/:id, /clinician/patients/:id/days/:date. */
 const CARE_PORTAL_ROUTE = /^\/clinician\/(?:portal|patients\/(?<id>[^/]+)(?:\/days\/(?<date>[^/]+))?)\/?$/;
+const PATIENT_DASHBOARD_ROUTE = /^\/dashboard(?:\/(?:journal|care-team|account))?\/?$/;
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 function stripBase(path: string) {
   return basePath && path.startsWith(basePath) ? path.slice(basePath.length) || "/" : path;
@@ -335,6 +336,10 @@ function Routes() {
       "/sign-up/patient": { title: "Create a patient account", description: "Create a private Stillwell journal account for your own recovery notes and reflections." },
       "/sign-up": { title: "Choose your account", description: "Choose whether you are creating a Stillwell account as a patient or a clinician." },
       "/sign-in": { title: "Patient sign in", description: "Sign in to revisit your private Stillwell journal, routines, and reflections." },
+      "/dashboard/journal": { title: "Your journal", description: "Record a private daily check-in and review the entries you chose to keep." },
+      "/dashboard/care-team": { title: "Your care team", description: "Manage who can read your Stillwell journal and review planned support options." },
+      "/dashboard/account": { title: "Your account", description: "Manage your Stillwell account, privacy, and recovery-data controls." },
+      "/dashboard": { title: "Your dashboard", description: "Review your Stillwell journal progress, chosen routine, and care team." },
       "/account/continue": { title: "Setting up your Stillwell account", description: "Confirming your Stillwell account type." },
       "/our-history": { title: "Our history", description: "Learn about the Stillwell Recovery journal and the values behind its user-led approach." },
       "/faqs": { title: "FAQs", description: "Answers about Stillwell, a private self-guided recovery journal." },
@@ -351,7 +356,7 @@ function Routes() {
     }
     const matchedMetadata = Object.entries(metadata).find(([path]) => location === path || location.startsWith(`${path}/`))?.[1];
     const page = matchedMetadata?.title ?? (location.startsWith("/sign-in") ? "Sign in" : location.startsWith("/sign-up") ? "Create account" :
-      location === "/quiz" ? "Your starting quiz" : location === "/dashboard" ? "Your private journal" :
+      location === "/quiz" ? "Your starting quiz" : location === "/dashboard" ? "Your dashboard" :
       location === "/privacy" ? "Privacy and data controls" : "Recovery at your pace");
     document.title = `${page} · Stillwell`;
     document.querySelector('meta[name="description"]')?.setAttribute("content",
@@ -373,7 +378,7 @@ function Routes() {
       {/* One route for all canonical care URLs keeps CarePortal (and its toast provider) mounted across portal/patient/day navigation. */}
       <Route path={CARE_PORTAL_ROUTE}>{(params: { id?: string; date?: string }) => <CarePortal patientId={params.id || undefined} date={params.date || undefined}/>}</Route>
       <Route path="/quiz" component={QuizRoute}/>
-      <Route path="/dashboard" component={PrivateDashboard}/>
+      <Route path={PATIENT_DASHBOARD_ROUTE} component={PrivateDashboard}/>
       <Route path="/invite/:token">{(params) => <InviteRoute token={params.token}/>}</Route>
       <Route path="/request/:token">{(params) => <RequestRoute token={params.token}/>}</Route>
       <Route path="/partners"><Redirect to="/clinicians"/></Route>
