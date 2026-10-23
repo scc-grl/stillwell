@@ -5,11 +5,12 @@ import { Checkbox } from "@workspace/stillwell-design-system/components/ui/check
 import { Input } from "@workspace/stillwell-design-system/components/ui/input";
 import { Textarea } from "@workspace/stillwell-design-system/components/ui/textarea";
 import stillwellMark from "@workspace/stillwell-design-system/brand/stillwell-mark.svg";
-import { ArrowLeft, ArrowRight, Check, ChevronDown, CircleAlert, Clock3, HeartHandshake, Keyboard, LayoutDashboard, LogOut, Mail, MessageSquareText, NotebookPen, Search, Settings, ShieldCheck, UserRound, UsersRound } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, Check, ChevronDown, CircleAlert, ClipboardList, Clock3, HeartHandshake, Keyboard, LayoutDashboard, LogOut, Mail, MessageSquareText, NotebookPen, Search, Settings, ShieldCheck, UserRound, UsersRound } from "lucide-react";
 
-type View = "dashboard" | "journal" | "care-team" | "account";
+type View = "dashboard" | "journal" | "care-protocol" | "care-team" | "account";
 type Rating = "Not noticeable" | "Less noticeable" | "Noticeable" | "More noticeable";
 type Support = "Self-guided" | "With clinician support";
+type ProtocolMode = "custom" | "roadmap" | null;
 
 const symptoms = ["Headache", "Fatigue", "Fog", "Sleep", "Mood", "Light"] as const;
 const ratings: Rating[] = ["Not noticeable", "Less noticeable", "Noticeable", "More noticeable"];
@@ -21,6 +22,12 @@ const routineOptions = [
   { id: "pause", title: "Quiet pause", text: "Make space for a familiar meditation or a quiet moment, if comfortable." },
   { id: "pacing", title: "Pacing", text: "Reflect on pauses, energy, and room to adjust." },
 ] as const;
+const protocolResources = [
+  { id: "questions", title: "Questions to bring to a clinician", detail: "A reflection guide for noting what you want to ask about symptoms, daily routines, and returning to activities." },
+  { id: "food-guide", title: "Food & hydration reflections", detail: "A simple way to notice what feels manageable for you, without targets or a prescribed diet." },
+  { id: "movement-guide", title: "Movement & pacing notes", detail: "Track activity and pauses that are appropriate for you. Follow any guidance from your clinician." },
+  { id: "quiet-guide", title: "Rest & quiet pauses", detail: "Optional prompts for noticing rest, sleep, and moments of quiet in your day." },
+];
 
 const exampleSeries: Record<string, number[]> = {
   "Overall feeling": [2, 3, 2, 4, 3, 4, 3],
@@ -89,8 +96,8 @@ function EmergencyNote() {
   );
 }
 
-export default function PatientDashboardJournal() {
-  const [view, setView] = useState<View>("dashboard");
+export default function PatientDashboardJournal({ initialView = "dashboard", initialProtocolMode = null }: { initialView?: View; initialProtocolMode?: ProtocolMode } = {}) {
+  const [view, setView] = useState<View>(initialView);
   const [metric, setMetric] = useState("Overall feeling");
   const [support, setSupport] = useState<Support>("Self-guided");
   const [selectedRoutine, setSelectedRoutine] = useState<string[]>(["food", "movement"]);
@@ -112,6 +119,11 @@ export default function PatientDashboardJournal() {
   const [signedOut, setSignedOut] = useState(false);
   const [feedbackRead, setFeedbackRead] = useState(false);
   const [findClinicianOpen, setFindClinicianOpen] = useState(false);
+  const [protocolMode, setProtocolMode] = useState<ProtocolMode>(initialProtocolMode);
+  const [protocolNote, setProtocolNote] = useState("");
+  const [protocolSaved, setProtocolSaved] = useState(false);
+  const [protocolFeedback, setProtocolFeedback] = useState("");
+  const [openedResource, setOpenedResource] = useState<string | null>(null);
 
   const today = useMemo(() => new Intl.DateTimeFormat(undefined, { weekday: "long", month: "long", day: "numeric" }).format(new Date()), []);
   const week = useMemo(() => {
@@ -161,7 +173,21 @@ export default function PatientDashboardJournal() {
   }
 
   function toggleRoutine(id: string) {
+    setProtocolSaved(false);
     setSelectedRoutine((items) => items.includes(id) ? items.filter((item) => item !== id) : [...items, id]);
+  }
+
+  function saveProtocol(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setProtocolSaved(true);
+    setProtocolFeedback("Your protocol draft is saved in this design preview. You can adjust it anytime.");
+  }
+
+  function addRoadmapToProtocol() {
+    setSelectedRoutine(routineOptions.map((item) => item.id));
+    setProtocolMode("custom");
+    setProtocolSaved(false);
+    setProtocolFeedback("Roadmap starting points are ready to review. Keep only what feels useful to you.");
   }
 
   function submitInvite(event: FormEvent<HTMLFormElement>) {
@@ -192,9 +218,10 @@ export default function PatientDashboardJournal() {
             <span className="font-serif text-xl font-semibold tracking-tight">stillwell</span>
           </div>
           <span className="hidden text-xs text-muted-foreground sm:inline">A quiet place for your own reflections</span>
-          <nav aria-label="Main navigation" className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto">
+          <nav aria-label="Main navigation" className="grid w-full grid-cols-2 gap-2 lg:flex lg:w-auto">
             <Button className="min-h-11 w-full sm:w-auto" variant={view === "dashboard" ? "secondary" : "ghost"} aria-current={view === "dashboard" ? "page" : undefined} onClick={() => setView("dashboard")}><LayoutDashboard />Dashboard</Button>
             <Button className="min-h-11 w-full sm:w-auto" variant={view === "journal" ? "secondary" : "ghost"} aria-current={view === "journal" ? "page" : undefined} onClick={() => setView("journal")}><NotebookPen />Journal</Button>
+            <Button className="min-h-11 w-full sm:w-auto" variant={view === "care-protocol" ? "secondary" : "ghost"} aria-current={view === "care-protocol" ? "page" : undefined} onClick={() => setView("care-protocol")}><ClipboardList />Care protocol</Button>
             <Button className="min-h-11 w-full sm:w-auto" variant={view === "care-team" ? "secondary" : "ghost"} aria-current={view === "care-team" ? "page" : undefined} onClick={() => setView("care-team")}><UsersRound />Care team</Button>
             <Button className="min-h-11 w-full sm:w-auto" variant={view === "account" ? "secondary" : "ghost"} aria-current={view === "account" ? "page" : undefined} onClick={() => setView("account")}><Settings />Account</Button>
           </nav>
@@ -280,6 +307,7 @@ export default function PatientDashboardJournal() {
                   </div>
                   <div className="mt-4 flex flex-wrap gap-2">
                     <Button variant="outline" onClick={() => setView("care-team")}><UsersRound aria-hidden="true" />View care team</Button>
+                    <Button variant="outline" onClick={() => setView("care-protocol")}><ClipboardList aria-hidden="true" />Care protocol</Button>
                     <Button variant="secondary" onClick={() => { setView("account"); setInviteOpen(true); }}><Mail aria-hidden="true" />Invite a clinician</Button>
                   </div>
                   <p className="mt-4 flex items-center gap-2 text-xs text-muted-foreground"><ShieldCheck aria-hidden="true" className="size-4" />Your reflections belong to you.</p>
@@ -448,6 +476,148 @@ export default function PatientDashboardJournal() {
               <span>No streaks. No missing-day reminders.</span>
               <Button variant="ghost" size="sm" onClick={() => setView("dashboard")}>Back to Dashboard</Button>
             </footer>
+          </>
+        ) : view === "care-protocol" ? (
+          <>
+            <section className="space-y-3" aria-labelledby="care-protocol-heading">
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Your care protocol</p>
+              <h1 id="care-protocol-heading" className="max-w-3xl font-serif text-4xl font-medium leading-tight sm:text-5xl">Build a plan that feels possible.</h1>
+              <p className="max-w-3xl text-sm leading-6 text-muted-foreground">Choose the parts you want to notice, or use a Stillwell roadmap and reflection resources to put a starting plan together. Keep what helps; change or skip the rest.</p>
+            </section>
+
+            <Card>
+              <CardContent className="flex gap-3 p-4 text-sm leading-6">
+                <ShieldCheck aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-primary" />
+                <p><strong className="font-semibold">Self-guided, not a prescription.</strong> This space helps you organize reflections and routines. It does not diagnose, prescribe exercise, recommend supplements, or replace advice from a clinician.</p>
+              </CardContent>
+            </Card>
+
+            <section className="grid gap-5 lg:grid-cols-2" aria-label="Choose how to build your protocol">
+              <Card className={protocolMode === "custom" ? "border-primary ring-1 ring-primary/30" : ""}>
+                <CardHeader className="p-5 sm:p-6">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Make it your own</p>
+                  <CardTitle className="mt-2 flex items-center gap-2 font-serif text-2xl font-medium"><ClipboardList aria-hidden="true" className="size-5 text-primary" />Create your protocol</CardTitle>
+                  <CardDescription className="leading-6">Pick the routines you want to include and add a note in your own words. Your plan can stay simple.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4 px-5 pb-5 sm:px-6 sm:pb-6">
+                  <div className="flex flex-wrap gap-2">
+                    {selectedRoutine.map((id) => routineOptions.find((item) => item.id === id)).filter(Boolean).map((item) => <span key={item!.id} className="rounded-full bg-secondary px-3 py-1 text-xs text-secondary-foreground">{item!.title}</span>)}
+                    {!selectedRoutine.length && <span className="text-sm text-muted-foreground">No routines selected yet.</span>}
+                  </div>
+                  <Button type="button" onClick={() => { setProtocolMode("custom"); setProtocolFeedback(""); setProtocolSaved(false); }}>Build my own protocol <ArrowRight aria-hidden="true" /></Button>
+                </CardContent>
+              </Card>
+
+              <Card className={protocolMode === "roadmap" ? "border-primary ring-1 ring-primary/30" : ""}>
+                <CardHeader className="p-5 sm:p-6">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">A little structure, at your pace</p>
+                  <CardTitle className="mt-2 flex items-center gap-2 font-serif text-2xl font-medium"><BookOpen aria-hidden="true" className="size-5 text-primary" />Use the Stillwell roadmap</CardTitle>
+                  <CardDescription className="leading-6">Explore a few gentle steps and practical reflection resources, then choose what belongs in your own plan.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4 px-5 pb-5 sm:px-6 sm:pb-6">
+                  <p className="text-sm leading-6 text-muted-foreground">No required pace or checklist. Start wherever feels useful, with or without a clinician.</p>
+                  <Button type="button" variant="outline" onClick={() => { setProtocolMode("roadmap"); setProtocolFeedback(""); }}>Explore the roadmap <ArrowRight aria-hidden="true" /></Button>
+                </CardContent>
+              </Card>
+            </section>
+
+            {!protocolMode && <Card>
+              <CardHeader className="p-5 sm:p-6">
+                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Your starting points</p>
+                <CardTitle className="mt-2 font-serif text-2xl font-medium">A plan can be just one small thing.</CardTitle>
+                <CardDescription className="leading-6">Choose a direction above to shape a personal protocol, or leave this page and return whenever you like.</CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-wrap gap-2 px-5 pb-5 sm:px-6 sm:pb-6">
+                {routineOptions.map((item) => <span key={item.id} className={`rounded-full px-3 py-2 text-xs ${selectedRoutine.includes(item.id) ? "bg-secondary text-secondary-foreground" : "border border-border text-muted-foreground"}`}>{item.title}{selectedRoutine.includes(item.id) ? " · selected" : ""}</span>)}
+              </CardContent>
+            </Card>}
+
+            {protocolMode === "custom" && <Card>
+              <CardHeader className="p-5 sm:p-6">
+                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Build your plan</p>
+                <CardTitle className="mt-2 font-serif text-2xl font-medium">What would you like in your protocol?</CardTitle>
+                <CardDescription className="leading-6">Pick any combination. These are reflection prompts, not treatment instructions.</CardDescription>
+              </CardHeader>
+              <CardContent className="px-5 pb-5 sm:px-6 sm:pb-6">
+                <form className="space-y-5" onSubmit={saveProtocol}>
+                  <fieldset className="space-y-2">
+                    <legend className="mb-2 text-sm font-semibold">Choose focus areas</legend>
+                    {routineOptions.map((item) => <label key={item.id} className="flex min-h-11 cursor-pointer items-start gap-3 rounded-lg p-3 hover:bg-muted/60">
+                      <Checkbox className="mt-1" checked={selectedRoutine.includes(item.id)} onCheckedChange={() => toggleRoutine(item.id)} aria-label={item.title} />
+                      <span><span className="block text-sm font-medium">{item.title}</span><span className="text-xs leading-5 text-muted-foreground">{item.text}</span></span>
+                    </label>)}
+                  </fieldset>
+                  <fieldset className="space-y-2">
+                    <legend className="mb-2 text-sm font-semibold">Support approach</legend>
+                    <div className="flex flex-wrap gap-2">
+                      {(["Self-guided", "With clinician support"] as Support[]).map((mode) => <Button key={mode} type="button" size="sm" variant={support === mode ? "default" : "outline"} aria-pressed={support === mode} onClick={() => { setSupport(mode); setProtocolSaved(false); }}>{mode}</Button>)}
+                    </div>
+                  </fieldset>
+                  <div className="space-y-2">
+                    <label htmlFor="protocol-note" className="text-sm font-semibold">Your note or personal step (optional)</label>
+                    <Textarea id="protocol-note" maxLength={500} value={protocolNote} placeholder="What would make this plan feel useful for you?" onChange={(event) => { setProtocolNote(event.target.value); setProtocolSaved(false); }} />
+                    <p className="text-xs text-muted-foreground">A private draft for this design preview. No information is sent or saved.</p>
+                  </div>
+                  {protocolFeedback && <p className="rounded-lg bg-secondary p-3 text-sm text-secondary-foreground" role="status">{protocolFeedback}</p>}
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <Button type="submit" disabled={!selectedRoutine.length && !protocolNote.trim()}><Check aria-hidden="true" />Save my protocol</Button>
+                    <Button type="button" variant="outline" onClick={() => { setProtocolMode("roadmap"); setProtocolFeedback(""); }}>Explore Stillwell’s roadmap</Button>
+                  </div>
+                  {protocolSaved && <Card className="border-secondary bg-secondary/60">
+                    <CardContent className="space-y-3 p-4">
+                      <p className="text-sm font-semibold">Your protocol draft</p>
+                      <p className="text-sm text-muted-foreground">Support approach · {support}</p>
+                      <div className="flex flex-wrap gap-2">{selectedRoutine.map((id) => routineOptions.find((item) => item.id === id)).filter(Boolean).map((item) => <span key={item!.id} className="rounded-full bg-background px-3 py-1 text-xs">{item!.title}</span>)}</div>
+                      {protocolNote.trim() && <p className="rounded-lg bg-background p-3 text-sm leading-6">{protocolNote}</p>}
+                    </CardContent>
+                  </Card>}
+                </form>
+              </CardContent>
+            </Card>}
+
+            {protocolMode === "roadmap" && <section className="space-y-5" aria-labelledby="roadmap-heading">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Stillwell roadmap</p>
+                <h2 id="roadmap-heading" className="mt-2 font-serif text-3xl font-medium">A few steps to help you put a plan together.</h2>
+                <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Move through these in any order. The roadmap is a reflection aid, not a clinical protocol or a set of medical recommendations.</p>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  { number: "01", title: "Notice what matters", text: "Use your check-ins to note symptoms and daily experiences that you want to understand over time." },
+                  { number: "02", title: "Choose a few supports", text: "Pick optional routines—such as food reflections, cleared movement, quiet pauses, or pacing—that fit your day." },
+                  { number: "03", title: "Review and adjust", text: "Keep what feels workable, change what does not, and bring questions to a clinician if you choose." },
+                ].map((step) => <Card key={step.number}>
+                  <CardHeader className="p-5">
+                    <p className="text-xs font-semibold tracking-widest text-primary">{step.number} · ROADMAP</p>
+                    <CardTitle className="mt-2 font-serif text-xl font-medium">{step.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="px-5 pb-5 text-sm leading-6 text-muted-foreground">{step.text}</CardContent>
+                </Card>)}
+              </div>
+              <Card>
+                <CardHeader className="p-5 sm:p-6">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Reflection resources</p>
+                  <CardTitle className="mt-2 font-serif text-2xl font-medium">Ideas to help you build your own plan</CardTitle>
+                  <CardDescription className="leading-6">Educational prompts in this design preview. These are not treatment directions or a substitute for clinical guidance.</CardDescription>
+                </CardHeader>
+                <CardContent className="grid gap-3 px-5 pb-5 sm:grid-cols-2 sm:px-6 sm:pb-6">
+                  {protocolResources.map((resource) => {
+                    const isOpen = openedResource === resource.id;
+                    return <article key={resource.id} className="space-y-3 rounded-xl border border-border p-4">
+                      <h3 className="font-medium">{resource.title}</h3>
+                      <p className="text-sm leading-6 text-muted-foreground">{isOpen ? resource.detail : "A short, optional prompt to help you reflect and prepare your own plan."}</p>
+                      <Button type="button" size="sm" variant="outline" aria-expanded={isOpen} onClick={() => setOpenedResource(isOpen ? null : resource.id)}><BookOpen aria-hidden="true" />{isOpen ? "Close resource" : "Preview resource"}</Button>
+                    </article>;
+                  })}
+                </CardContent>
+              </Card>
+              {protocolFeedback && <p className="rounded-lg bg-secondary p-3 text-sm text-secondary-foreground" role="status">{protocolFeedback}</p>}
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Button type="button" onClick={addRoadmapToProtocol}>Use these starting points <ArrowRight aria-hidden="true" /></Button>
+                <Button type="button" variant="outline" onClick={() => { setProtocolMode("custom"); setProtocolFeedback(""); }}>Build from scratch</Button>
+              </div>
+            </section>}
+            <EmergencyNote />
           </>
         ) : view === "care-team" ? (
           <>
