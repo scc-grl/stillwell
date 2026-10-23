@@ -1,12 +1,13 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { Button } from "@workspace/stillwell-design-system/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/stillwell-design-system/components/ui/card";
 import { Checkbox } from "@workspace/stillwell-design-system/components/ui/checkbox";
+import { Input } from "@workspace/stillwell-design-system/components/ui/input";
 import { Textarea } from "@workspace/stillwell-design-system/components/ui/textarea";
 import stillwellMark from "@workspace/stillwell-design-system/brand/stillwell-mark.svg";
-import { ArrowLeft, ArrowRight, Check, ChevronDown, CircleAlert, Clock3, HeartHandshake, Keyboard, LayoutDashboard, NotebookPen, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, ChevronDown, CircleAlert, Clock3, HeartHandshake, Keyboard, LayoutDashboard, LogOut, Mail, NotebookPen, Settings, ShieldCheck, UserRound } from "lucide-react";
 
-type View = "dashboard" | "journal";
+type View = "dashboard" | "journal" | "account";
 type Rating = "Not noticeable" | "Less noticeable" | "Noticeable" | "More noticeable";
 type Support = "Self-guided" | "With clinician support";
 
@@ -102,6 +103,13 @@ export default function PatientDashboardJournal() {
   const [symptomIndex, setSymptomIndex] = useState(0);
   const [expandedHistory, setExpandedHistory] = useState<string | null>(null);
   const [feedback, setFeedback] = useState("");
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteFirstName, setInviteFirstName] = useState("");
+  const [inviteLastName, setInviteLastName] = useState("");
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteError, setInviteError] = useState("");
+  const [inviteSent, setInviteSent] = useState(false);
+  const [signedOut, setSignedOut] = useState(false);
 
   const today = useMemo(() => new Intl.DateTimeFormat(undefined, { weekday: "long", month: "long", day: "numeric" }).format(new Date()), []);
   const week = useMemo(() => {
@@ -154,6 +162,25 @@ export default function PatientDashboardJournal() {
     setSelectedRoutine((items) => items.includes(id) ? items.filter((item) => item !== id) : [...items, id]);
   }
 
+  function submitInvite(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!inviteFirstName.trim()) {
+      setInviteError("Enter their first name.");
+      return;
+    }
+    if (!inviteLastName.trim()) {
+      setInviteError("Enter their last name.");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inviteEmail.trim())) {
+      setInviteError("Enter an email like name@example.com.");
+      return;
+    }
+    setInviteError("");
+    setInviteSent(true);
+    setInviteOpen(false);
+  }
+
   return (
     <main className="min-h-[100dvh] bg-background text-foreground">
       <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur">
@@ -166,12 +193,24 @@ export default function PatientDashboardJournal() {
           <nav aria-label="Main navigation" className="flex w-full gap-2 sm:w-auto">
             <Button className="flex-1 sm:flex-none" variant={view === "dashboard" ? "secondary" : "ghost"} aria-current={view === "dashboard" ? "page" : undefined} onClick={() => setView("dashboard")}><LayoutDashboard />Dashboard</Button>
             <Button className="flex-1 sm:flex-none" variant={view === "journal" ? "secondary" : "ghost"} aria-current={view === "journal" ? "page" : undefined} onClick={() => setView("journal")}><NotebookPen />Journal</Button>
+            <Button className="flex-1 sm:flex-none" variant={view === "account" ? "secondary" : "ghost"} aria-current={view === "account" ? "page" : undefined} onClick={() => setView("account")}><Settings />Account</Button>
           </nav>
         </div>
       </header>
 
       <div className="mx-auto max-w-6xl space-y-5 px-4 py-6 sm:space-y-6 sm:px-8 sm:py-9">
-        {view === "dashboard" ? (
+        {signedOut ? (
+          <section className="mx-auto max-w-2xl space-y-5 py-8">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Account</p>
+            <h1 className="font-serif text-4xl font-medium">Signed out in this preview.</h1>
+            <Card>
+              <CardContent className="space-y-4 p-6">
+                <p className="text-sm leading-6 text-muted-foreground">This only changes the preview. It does not end a real sign-in session or change your account or journal data.</p>
+                <Button onClick={() => { setSignedOut(false); setView("account"); }}>Return to account preview</Button>
+              </CardContent>
+            </Card>
+          </section>
+        ) : view === "dashboard" ? (
           <>
             <section className="grid gap-5 lg:grid-cols-[1.15fr_.85fr]">
               <section className="flex min-h-56 flex-col justify-between gap-6 rounded-xl bg-primary p-6 text-primary-foreground sm:p-8" aria-labelledby="dashboard-heading">
@@ -236,6 +275,7 @@ export default function PatientDashboardJournal() {
                     <p className="text-sm font-medium">Care team details aren’t connected in this design preview.</p>
                     <p className="mt-1 text-sm leading-6 text-muted-foreground">You can keep your reflections private, or bring them to a clinician outside Stillwell if you choose.</p>
                   </div>
+                  <Button className="mt-4" variant="outline" onClick={() => { setView("account"); setInviteOpen(true); }}><Mail aria-hidden="true" />Invite a clinician</Button>
                   <p className="mt-4 flex items-center gap-2 text-xs text-muted-foreground"><ShieldCheck aria-hidden="true" className="size-4" />Your reflections belong to you.</p>
                 </CardContent>
               </Card>
@@ -246,7 +286,7 @@ export default function PatientDashboardJournal() {
               <span>Design preview only · not connected to records</span>
             </footer>
           </>
-        ) : (
+        ) : view === "journal" ? (
           <>
             <section className="space-y-2">
               <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Your private journal</p>
@@ -402,6 +442,101 @@ export default function PatientDashboardJournal() {
               <span>No streaks. No missing-day reminders.</span>
               <Button variant="ghost" size="sm" onClick={() => setView("dashboard")}>Back to Dashboard</Button>
             </footer>
+          </>
+        ) : (
+          <>
+            <section className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Your account</p>
+              <h1 className="font-serif text-4xl font-medium leading-tight">Account settings</h1>
+              <p className="max-w-2xl text-sm leading-6 text-muted-foreground">Manage your Stillwell account, care-team access, and sign-in from one place.</p>
+            </section>
+
+            <div className="grid gap-5 lg:grid-cols-[0.85fr_1.15fr]">
+              <div className="space-y-5">
+                <Card>
+                  <CardHeader className="p-5 sm:p-6">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Account details</p>
+                    <CardTitle className="mt-2 flex items-center gap-2 font-serif text-2xl font-medium"><UserRound aria-hidden="true" className="size-5 text-primary" />Your Stillwell account</CardTitle>
+                    <CardDescription>These settings are private to you.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4 px-5 pb-5 sm:px-6 sm:pb-6">
+                    <div className="flex items-center justify-between gap-4 border-b border-border pb-3">
+                      <span className="text-sm text-muted-foreground">Account type</span>
+                      <span className="rounded-full bg-secondary px-3 py-1 text-sm font-medium">Patient</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-sm text-muted-foreground">Sign-in details</span>
+                      <span className="text-right text-sm">Managed by your secure account</span>
+                    </div>
+                    <p className="flex items-start gap-2 text-xs leading-5 text-muted-foreground"><ShieldCheck aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" />Your password and sign-in methods are not shown in your journal.</p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="p-5 sm:p-6">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Sign-in</p>
+                    <CardTitle className="mt-2 flex items-center gap-2 font-serif text-2xl font-medium"><LogOut aria-hidden="true" className="size-5 text-primary" />Sign out</CardTitle>
+                    <CardDescription>Leave your Stillwell account on this device.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="px-5 pb-5 sm:px-6 sm:pb-6">
+                    <Button variant="outline" onClick={() => setSignedOut(true)}><LogOut aria-hidden="true" />Sign out</Button>
+                    <p className="mt-3 text-xs leading-5 text-muted-foreground">In this design preview, sign out only changes the preview screen. It does not affect a real account or journal.</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <Card>
+                <CardHeader className="p-5 sm:p-6">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Your care team</p>
+                  <CardTitle className="mt-2 flex items-center gap-2 font-serif text-2xl font-medium"><HeartHandshake aria-hidden="true" className="size-5 text-primary" />Invite a clinician to Stillwell</CardTitle>
+                  <CardDescription className="leading-6">Invite a clinician you already see. They can read your journal after they accept; only you can change it.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-5 px-5 pb-5 sm:px-6 sm:pb-6">
+                  {inviteSent ? (
+                    <div className="space-y-3 rounded-xl bg-secondary p-5" role="status">
+                      <p className="flex items-center gap-2 font-medium"><Check aria-hidden="true" className="size-5 text-primary" />Invite preview created</p>
+                      <p className="text-sm leading-6 text-muted-foreground">No email was sent and nothing was shared. This design preview does not save or send invitations.</p>
+                      <Button variant="outline" onClick={() => { setInviteSent(false); setInviteOpen(true); setInviteError(""); }}>Invite another clinician</Button>
+                    </div>
+                  ) : inviteOpen ? (
+                    <form className="space-y-4" onSubmit={submitInvite} noValidate>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="space-y-2">
+                          <label htmlFor="invite-first-name" className="text-sm font-medium">First name</label>
+                          <Input id="invite-first-name" autoComplete="given-name" value={inviteFirstName} onChange={(event) => setInviteFirstName(event.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                          <label htmlFor="invite-last-name" className="text-sm font-medium">Last name</label>
+                          <Input id="invite-last-name" autoComplete="family-name" value={inviteLastName} onChange={(event) => setInviteLastName(event.target.value)} />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label htmlFor="invite-email" className="text-sm font-medium">Work email</label>
+                        <Input id="invite-email" type="email" inputMode="email" autoComplete="email" autoCapitalize="none" autoCorrect="off" value={inviteEmail} onChange={(event) => setInviteEmail(event.target.value)} placeholder="name@clinic.org" />
+                        <p className="text-xs text-muted-foreground">Use the email they’ll sign in with.</p>
+                      </div>
+                      <div className="space-y-2 rounded-xl bg-secondary p-4 text-sm leading-6">
+                        <p className="font-medium">{inviteFirstName.trim() ? `${inviteFirstName.trim()} will see your journal after accepting.` : "They’ll see your whole journal after accepting."}</p>
+                        <p className="text-muted-foreground">Daily entries, symptom ratings, routine logs, notes, and your routine focus areas, including past entries. Read-only; remove access anytime.</p>
+                      </div>
+                      <p className="text-xs leading-5 text-muted-foreground">Stillwell doesn’t verify clinicians, so only invite someone you know. Sending this preview does not send an email or share your journal.</p>
+                      {inviteError && <p className="text-sm text-destructive" role="alert">{inviteError}</p>}
+                      <div className="flex flex-col gap-2 sm:flex-row">
+                        <Button type="submit" disabled={!inviteFirstName.trim() || !inviteLastName.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inviteEmail.trim())}><Mail aria-hidden="true" />Send invite</Button>
+                        <Button type="button" variant="outline" onClick={() => { setInviteOpen(false); setInviteError(""); }}>Cancel</Button>
+                      </div>
+                    </form>
+                  ) : (
+                    <div className="space-y-4 rounded-xl bg-secondary p-5">
+                      <p className="text-sm font-medium">No clinicians connected yet.</p>
+                      <p className="text-sm leading-6 text-muted-foreground">Nothing is shared unless you invite a clinician and they accept. You can stop sharing anytime.</p>
+                      <Button onClick={() => { setInviteOpen(true); setInviteError(""); }}><Mail aria-hidden="true" />Invite a clinician</Button>
+                    </div>
+                  )}
+                  <p className="flex items-center gap-2 border-t border-border pt-4 text-xs leading-5 text-muted-foreground"><ShieldCheck aria-hidden="true" className="size-4 shrink-0 text-primary" />Your journal remains yours. Clinicians can’t edit it, and you can remove access at any time.</p>
+                </CardContent>
+              </Card>
+            </div>
           </>
         )}
       </div>
