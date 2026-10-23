@@ -5,7 +5,7 @@ import { Checkbox } from "@workspace/stillwell-design-system/components/ui/check
 import { Input } from "@workspace/stillwell-design-system/components/ui/input";
 import { Textarea } from "@workspace/stillwell-design-system/components/ui/textarea";
 import stillwellMark from "@workspace/stillwell-design-system/brand/stillwell-mark.svg";
-import { ArrowLeft, ArrowRight, Check, ChevronDown, CircleAlert, Clock3, HeartHandshake, Keyboard, LayoutDashboard, LogOut, Mail, MessageSquareText, NotebookPen, Settings, ShieldCheck, UserRound, UsersRound } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, ChevronDown, CircleAlert, Clock3, HeartHandshake, Keyboard, LayoutDashboard, LogOut, Mail, MessageSquareText, NotebookPen, Search, Settings, ShieldCheck, UserRound, UsersRound } from "lucide-react";
 
 type View = "dashboard" | "journal" | "care-team" | "account";
 type Rating = "Not noticeable" | "Less noticeable" | "Noticeable" | "More noticeable";
@@ -111,6 +111,7 @@ export default function PatientDashboardJournal() {
   const [inviteSent, setInviteSent] = useState(false);
   const [signedOut, setSignedOut] = useState(false);
   const [feedbackRead, setFeedbackRead] = useState(false);
+  const [findClinicianOpen, setFindClinicianOpen] = useState(false);
 
   const today = useMemo(() => new Intl.DateTimeFormat(undefined, { weekday: "long", month: "long", day: "numeric" }).format(new Date()), []);
   const week = useMemo(() => {
@@ -457,21 +458,51 @@ export default function PatientDashboardJournal() {
             </section>
 
             <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
-              <Card>
-                <CardHeader className="p-5 sm:p-6">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Clinicians you share with</p>
-                  <CardTitle className="mt-2 flex items-center gap-2 font-serif text-2xl font-medium"><UsersRound aria-hidden="true" className="size-5 text-primary" />Your connections</CardTitle>
-                  <CardDescription className="leading-6">Only clinicians you invite and who accept can read your shared journal. They cannot edit it.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4 px-5 pb-5 sm:px-6 sm:pb-6">
-                  <div className="rounded-xl bg-secondary p-4">
-                    <p className="font-medium">No clinicians connected yet.</p>
-                    <p className="mt-1 text-sm leading-6 text-muted-foreground">This preview has no real connections. When you share your journal, clinician details will appear here.</p>
-                  </div>
-                  <Button onClick={() => { setView("account"); setInviteOpen(true); setInviteError(""); }}><Mail aria-hidden="true" />Invite a clinician</Button>
-                  <p className="text-xs leading-5 text-muted-foreground">You can stop sharing anytime. A clinician keeps a read-only copy of what was shared up to then.</p>
-                </CardContent>
-              </Card>
+              <div className="space-y-5">
+                <Card>
+                  <CardHeader className="p-5 sm:p-6">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Clinicians you share with</p>
+                    <CardTitle className="mt-2 flex items-center gap-2 font-serif text-2xl font-medium"><UsersRound aria-hidden="true" className="size-5 text-primary" />Your connections</CardTitle>
+                    <CardDescription className="leading-6">Only clinicians you invite and who accept can read your shared journal. They cannot edit it.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4 px-5 pb-5 sm:px-6 sm:pb-6">
+                    <div className="rounded-xl bg-secondary p-4">
+                      <p className="font-medium">No clinicians connected yet.</p>
+                      <p className="mt-1 text-sm leading-6 text-muted-foreground">This preview has no real connections. When you share your journal, clinician details will appear here.</p>
+                    </div>
+                    <Button onClick={() => { setView("account"); setInviteOpen(true); setInviteError(""); }}><Mail aria-hidden="true" />Invite a clinician</Button>
+                    <p className="text-xs leading-5 text-muted-foreground">You can stop sharing anytime. A clinician keeps a read-only copy of what was shared up to then.</p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="p-5 sm:p-6">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Explore care options</p>
+                        <CardTitle className="mt-2 flex items-center gap-2 font-serif text-2xl font-medium"><Search aria-hidden="true" className="size-5 text-primary" />Find a clinician</CardTitle>
+                      </div>
+                      <span className="rounded-full bg-secondary px-3 py-1 text-xs font-medium">Planned</span>
+                    </div>
+                    <CardDescription className="leading-6">Explore clinician support by care area and location when listings are available.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4 px-5 pb-5 sm:px-6 sm:pb-6">
+                    <p className="text-sm leading-6 text-muted-foreground">Clinician listings are not available in this preview. Stillwell does not verify clinicians; only contact someone you know.</p>
+                    <Button type="button" variant="outline" aria-expanded={findClinicianOpen} onClick={() => setFindClinicianOpen((open) => !open)}>
+                      <Search aria-hidden="true" />{findClinicianOpen ? "Hide directory preview" : "Find a clinician"}
+                    </Button>
+                    {findClinicianOpen && (
+                      <div className="space-y-3 rounded-xl bg-secondary p-4" role="status">
+                        <p className="font-medium">The clinician directory is not live yet.</p>
+                        <p className="text-sm leading-6 text-muted-foreground">For now, you can invite a clinician you already see. Nothing is shared unless they accept.</p>
+                        <Button type="button" variant="secondary" onClick={() => { setView("account"); setInviteOpen(true); setInviteError(""); }}>
+                          <Mail aria-hidden="true" />Invite a clinician
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
 
               <Card>
                 <CardHeader className="p-5 sm:p-6">
