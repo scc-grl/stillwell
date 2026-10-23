@@ -5,9 +5,9 @@ import { Checkbox } from "@workspace/stillwell-design-system/components/ui/check
 import { Input } from "@workspace/stillwell-design-system/components/ui/input";
 import { Textarea } from "@workspace/stillwell-design-system/components/ui/textarea";
 import stillwellMark from "@workspace/stillwell-design-system/brand/stillwell-mark.svg";
-import { ArrowLeft, ArrowRight, Check, ChevronDown, CircleAlert, Clock3, HeartHandshake, Keyboard, LayoutDashboard, LogOut, Mail, NotebookPen, Settings, ShieldCheck, UserRound } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, ChevronDown, CircleAlert, Clock3, HeartHandshake, Keyboard, LayoutDashboard, LogOut, Mail, MessageSquareText, NotebookPen, Settings, ShieldCheck, UserRound, UsersRound } from "lucide-react";
 
-type View = "dashboard" | "journal" | "account";
+type View = "dashboard" | "journal" | "care-team" | "account";
 type Rating = "Not noticeable" | "Less noticeable" | "Noticeable" | "More noticeable";
 type Support = "Self-guided" | "With clinician support";
 
@@ -110,6 +110,7 @@ export default function PatientDashboardJournal() {
   const [inviteError, setInviteError] = useState("");
   const [inviteSent, setInviteSent] = useState(false);
   const [signedOut, setSignedOut] = useState(false);
+  const [feedbackRead, setFeedbackRead] = useState(false);
 
   const today = useMemo(() => new Intl.DateTimeFormat(undefined, { weekday: "long", month: "long", day: "numeric" }).format(new Date()), []);
   const week = useMemo(() => {
@@ -190,10 +191,11 @@ export default function PatientDashboardJournal() {
             <span className="font-serif text-xl font-semibold tracking-tight">stillwell</span>
           </div>
           <span className="hidden text-xs text-muted-foreground sm:inline">A quiet place for your own reflections</span>
-          <nav aria-label="Main navigation" className="flex w-full gap-2 sm:w-auto">
-            <Button className="flex-1 sm:flex-none" variant={view === "dashboard" ? "secondary" : "ghost"} aria-current={view === "dashboard" ? "page" : undefined} onClick={() => setView("dashboard")}><LayoutDashboard />Dashboard</Button>
-            <Button className="flex-1 sm:flex-none" variant={view === "journal" ? "secondary" : "ghost"} aria-current={view === "journal" ? "page" : undefined} onClick={() => setView("journal")}><NotebookPen />Journal</Button>
-            <Button className="flex-1 sm:flex-none" variant={view === "account" ? "secondary" : "ghost"} aria-current={view === "account" ? "page" : undefined} onClick={() => setView("account")}><Settings />Account</Button>
+          <nav aria-label="Main navigation" className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto">
+            <Button className="min-h-11 w-full sm:w-auto" variant={view === "dashboard" ? "secondary" : "ghost"} aria-current={view === "dashboard" ? "page" : undefined} onClick={() => setView("dashboard")}><LayoutDashboard />Dashboard</Button>
+            <Button className="min-h-11 w-full sm:w-auto" variant={view === "journal" ? "secondary" : "ghost"} aria-current={view === "journal" ? "page" : undefined} onClick={() => setView("journal")}><NotebookPen />Journal</Button>
+            <Button className="min-h-11 w-full sm:w-auto" variant={view === "care-team" ? "secondary" : "ghost"} aria-current={view === "care-team" ? "page" : undefined} onClick={() => setView("care-team")}><UsersRound />Care team</Button>
+            <Button className="min-h-11 w-full sm:w-auto" variant={view === "account" ? "secondary" : "ghost"} aria-current={view === "account" ? "page" : undefined} onClick={() => setView("account")}><Settings />Account</Button>
           </nav>
         </div>
       </header>
@@ -272,10 +274,13 @@ export default function PatientDashboardJournal() {
                 </CardHeader>
                 <CardContent className="px-5 pb-5 sm:px-6 sm:pb-6">
                   <div className="rounded-lg bg-secondary p-4">
-                    <p className="text-sm font-medium">Care team details aren’t connected in this design preview.</p>
-                    <p className="mt-1 text-sm leading-6 text-muted-foreground">You can keep your reflections private, or bring them to a clinician outside Stillwell if you choose.</p>
+                    <p className="text-sm font-medium">No clinician is connected in this preview.</p>
+                    <p className="mt-1 text-sm leading-6 text-muted-foreground">View how clinician feedback could appear, or invite a clinician you already see.</p>
                   </div>
-                  <Button className="mt-4" variant="outline" onClick={() => { setView("account"); setInviteOpen(true); }}><Mail aria-hidden="true" />Invite a clinician</Button>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <Button variant="outline" onClick={() => setView("care-team")}><UsersRound aria-hidden="true" />View care team</Button>
+                    <Button variant="secondary" onClick={() => { setView("account"); setInviteOpen(true); }}><Mail aria-hidden="true" />Invite a clinician</Button>
+                  </div>
                   <p className="mt-4 flex items-center gap-2 text-xs text-muted-foreground"><ShieldCheck aria-hidden="true" className="size-4" />Your reflections belong to you.</p>
                 </CardContent>
               </Card>
@@ -443,6 +448,67 @@ export default function PatientDashboardJournal() {
               <Button variant="ghost" size="sm" onClick={() => setView("dashboard")}>Back to Dashboard</Button>
             </footer>
           </>
+        ) : view === "care-team" ? (
+          <>
+            <section className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Your care team</p>
+              <h1 className="font-serif text-4xl font-medium leading-tight">Keep your clinician’s feedback in view.</h1>
+              <p className="max-w-2xl text-sm leading-6 text-muted-foreground">See who you choose to share with and return to notes they leave for you. Your journal remains yours to change.</p>
+            </section>
+
+            <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+              <Card>
+                <CardHeader className="p-5 sm:p-6">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Clinicians you share with</p>
+                  <CardTitle className="mt-2 flex items-center gap-2 font-serif text-2xl font-medium"><UsersRound aria-hidden="true" className="size-5 text-primary" />Your connections</CardTitle>
+                  <CardDescription className="leading-6">Only clinicians you invite and who accept can read your shared journal. They cannot edit it.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4 px-5 pb-5 sm:px-6 sm:pb-6">
+                  <div className="rounded-xl bg-secondary p-4">
+                    <p className="font-medium">No clinicians connected yet.</p>
+                    <p className="mt-1 text-sm leading-6 text-muted-foreground">This preview has no real connections. When you share your journal, clinician details will appear here.</p>
+                  </div>
+                  <Button onClick={() => { setView("account"); setInviteOpen(true); setInviteError(""); }}><Mail aria-hidden="true" />Invite a clinician</Button>
+                  <p className="text-xs leading-5 text-muted-foreground">You can stop sharing anytime. A clinician keeps a read-only copy of what was shared up to then.</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="p-5 sm:p-6">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Feedback to keep in view</p>
+                      <CardTitle className="mt-2 flex items-center gap-2 font-serif text-2xl font-medium"><MessageSquareText aria-hidden="true" className="size-5 text-primary" />Feedback from your care team</CardTitle>
+                    </div>
+                    <span className="rounded-full bg-secondary px-3 py-1 text-xs font-medium">Illustrative example</span>
+                  </div>
+                  <CardDescription className="leading-6">Notes a clinician chooses to share can be revisited here.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4 px-5 pb-5 sm:px-6 sm:pb-6">
+                  <article className="rounded-xl border border-border bg-secondary p-4 sm:p-5">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="font-semibold">A note from your clinician</p>
+                        <p className="mt-1 text-sm text-muted-foreground">Example only · Not from a real clinician</p>
+                      </div>
+                      <span className="text-xs text-muted-foreground">{feedbackRead ? "Read in preview" : "Unread · example"}</span>
+                    </div>
+                    <p className="mt-4 text-base leading-7">“Your reflections are ready to discuss together at your next visit.”</p>
+                    <p className="mt-2 text-xs text-muted-foreground">Illustrative entry · 2 days ago</p>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <Button type="button" variant="outline" size="sm" aria-pressed={feedbackRead} onClick={() => setFeedbackRead((read) => !read)}>{feedbackRead ? "Mark as unread" : "Mark as read"}</Button>
+                      <Button type="button" variant="ghost" size="sm" onClick={() => setView("journal")}>Open journal <ArrowRight /></Button>
+                    </div>
+                  </article>
+                  <p className="text-xs leading-5 text-muted-foreground" role="note">This sample demonstrates the layout only. It is not real clinician feedback, and no clinician is connected in this design preview.</p>
+                </CardContent>
+              </Card>
+            </div>
+            <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4 text-xs text-muted-foreground">
+              <span>Your journal is read-only to clinicians you choose to share with.</span>
+              <Button variant="ghost" size="sm" onClick={() => setView("dashboard")}>Back to Dashboard</Button>
+            </footer>
+          </>
         ) : (
           <>
             <section className="space-y-2">
@@ -534,6 +600,7 @@ export default function PatientDashboardJournal() {
                     </div>
                   )}
                   <p className="flex items-center gap-2 border-t border-border pt-4 text-xs leading-5 text-muted-foreground"><ShieldCheck aria-hidden="true" className="size-4 shrink-0 text-primary" />Your journal remains yours. Clinicians can’t edit it, and you can remove access at any time.</p>
+                  <Button type="button" variant="ghost" onClick={() => setView("care-team")}>View care team <ArrowRight /></Button>
                 </CardContent>
               </Card>
             </div>
