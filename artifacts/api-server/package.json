@@ -13,6 +13,7 @@
   "dependencies": {
     "@clerk/express": "^2.1.76",
     "@clerk/shared": "^4.39.0",
+    "@replit/connectors-sdk": "^0.4.3",
     "@workspace/api-zod": "workspace:*",
     "@workspace/db": "workspace:*",
     "@workspace/recovery-journal": "workspace:*",

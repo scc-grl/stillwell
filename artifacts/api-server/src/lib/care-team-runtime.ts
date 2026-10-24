@@ -1,9 +1,20 @@
 import { clerkClient } from "@clerk/express";
+import { ReplitConnectors } from "@replit/connectors-sdk";
 import { accountRoles, clinicianProfiles, db, pool } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { CareTeamService, type Identity } from "./care-team";
-import { sendCareEmail } from "./care-team-email";
+import { sendCareEmail, type CareEmailPayload } from "./care-team-email";
 import { logger } from "./logger";
+
+const resend = new ReplitConnectors();
+async function sendThroughResend(payload: CareEmailPayload) {
+  const response = await resend.proxy("resend", "/emails", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  return { ok: response.ok };
+}
 
 export async function careIdentity(id: string): Promise<Identity> {
   const [role] = await db.select().from(accountRoles).where(eq(accountRoles.userId, id));
@@ -23,7 +34,8 @@ export const careTeamService = new CareTeamService({
   pool,
   identity: careIdentity,
   send: mail => sendCareEmail(mail, {
-    apiKey: process.env.EMAIL_API_KEY, from: process.env.EMAIL_FROM, replyTo: process.env.EMAIL_REPLY_TO,
+    from: process.env.EMAIL_FROM, replyTo: process.env.EMAIL_REPLY_TO,
+    send: sendThroughResend,
     logSuppressed: () => logger.info("invite email suppressed"),
   }),
 });

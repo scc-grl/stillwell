@@ -365,6 +365,32 @@ test("Resend payload has HTML/plain text, optional reply-to, and failure/configu
   await assert.rejects(sendCareEmail(deliveries[0],{apiKey:"test-only",logSuppressed:()=>{}}),/configuration/);
   await assert.rejects(sendCareEmail(deliveries[0],{apiKey:"test-only",from:"sender@example.com",logSuppressed:()=>{},fetcher:async()=>({ok:false})}),/Email delivery failed/);
 });
+test("connected Resend sender receives the rendered payload and provider errors stay sanitized", async () => {
+  await invite();
+  let payload;
+  const result = await sendCareEmail(deliveries[0], {
+    from: "Stillwell <journal@example.com>",
+    replyTo: "reply@example.com",
+    logSuppressed: () => assert.fail(),
+    send: async value => {
+      payload = value;
+      return { ok: true };
+    },
+  });
+  assert.deepEqual(result, { suppressed: false });
+  assert.equal(payload.from, "Stillwell <journal@example.com>");
+  assert.deepEqual(payload.to, [deliveries[0].recipient]);
+  assert.equal(payload.reply_to, "reply@example.com");
+  assert.ok(payload.html && payload.text && payload.subject);
+  await assert.rejects(
+    sendCareEmail(deliveries[0], {
+      from: "Stillwell <journal@example.com>",
+      logSuppressed: () => assert.fail(),
+      send: async () => { throw new Error(`provider details for ${deliveries[0].recipient}`); },
+    }),
+    error => error.message === "Email delivery failed" && !error.message.includes(deliveries[0].recipient),
+  );
+});
 test("email templates use required copy, escape user values, and omit journal content and patient last names",async()=>{
   await invite();const a=renderCareEmail(deliveries[0]);
   assert.equal(a.subject,`${patient.firstName} invited you to view their Stillwell journal`);

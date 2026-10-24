@@ -7,6 +7,15 @@ export interface CareEmail {
   link: string;
   expiresAt: Date;
 }
+export interface CareEmailPayload {
+  from: string;
+  to: string[];
+  reply_to?: string;
+  subject: string;
+  text: string;
+  html: string;
+}
+type SendCareEmail = (payload: CareEmailPayload) => Promise<{ ok: boolean } | void>;
 const escapeHtml = (value: string) => value.replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
 export function careDeliveryResponse(result: { invite: unknown; suppressed: boolean; link: string }, environment: string | undefined) {
@@ -39,22 +48,44 @@ export function renderCareEmail(input: CareEmail) {
 
 export async function sendCareEmail(
   input: CareEmail,
-  options: { apiKey?: string; from?: string; replyTo?: string; logSuppressed: () => void; fetcher?: typeof fetch },
+  options: {
+    apiKey?: string;
+    from?: string;
+    replyTo?: string;
+    logSuppressed: () => void;
+    fetcher?: typeof fetch;
+    send?: SendCareEmail;
+  },
 ) {
-  if (!options.apiKey) {
+  if (!options.send && !options.apiKey) {
     options.logSuppressed();
     return { suppressed: true };
   }
   if (!options.from) throw new Error("Email configuration unavailable");
   const url = new URL(input.link);
   if (url.protocol !== "https:") throw new Error("Email URL configuration unavailable");
-  const response = await (options.fetcher ?? fetch)("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${options.apiKey}`, "Content-Type": "application/json" },
-    signal: AbortSignal.timeout(10000),
-    body: JSON.stringify({ from: options.from, to: [input.recipient], ...(options.replyTo ? { reply_to: options.replyTo } : {}), ...renderCareEmail(input) }),
-  });
-  // Never propagate provider response bodies: they may contain recipient details.
-  if (!response.ok) throw new Error("Email delivery failed");
+  const payload: CareEmailPayload = {
+    from: options.from,
+    to: [input.recipient],
+    ...(options.replyTo ? { reply_to: options.replyTo } : {}),
+    ...renderCareEmail(input),
+  };
+  try {
+    if (options.send) {
+      const response = await options.send(payload);
+      if (response && !response.ok) throw new Error("Email delivery failed");
+    } else {
+      const response = await (options.fetcher ?? fetch)("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${options.apiKey}`, "Content-Type": "application/json" },
+        signal: AbortSignal.timeout(10000),
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) throw new Error("Email delivery failed");
+    }
+  } catch {
+    // Provider errors may contain recipient details; only expose a generic delivery failure.
+    throw new Error("Email delivery failed");
+  }
   return { suppressed: false };
 }
