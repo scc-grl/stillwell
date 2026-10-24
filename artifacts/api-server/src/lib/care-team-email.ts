@@ -18,6 +18,15 @@ export interface CareEmailPayload {
 type SendCareEmail = (payload: CareEmailPayload) => Promise<{ ok: boolean } | void>;
 const escapeHtml = (value: string) => value.replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
+export function safeEmailProviderErrorCode(body: unknown): string | undefined {
+  if (!body || typeof body !== "object") return undefined;
+  const record = body as Record<string, unknown>;
+  const candidate = record.name ?? record.code ?? record.type;
+  return typeof candidate === "string" && /^[A-Za-z0-9_-]{1,64}$/.test(candidate)
+    ? candidate
+    : undefined;
+}
+
 export function careDeliveryResponse(result: { invite: unknown; suppressed: boolean; link: string }, environment: string | undefined) {
   return { invite: result.invite, suppressed: result.suppressed,
     ...(result.suppressed && environment === "development" ? { developmentLink: result.link } : {}) };

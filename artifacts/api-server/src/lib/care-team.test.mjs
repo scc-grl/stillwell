@@ -13,7 +13,7 @@ async function load(name) {
   return import(`data:text/javascript;base64,${Buffer.from(result.outputFiles[0].text).toString("base64")}`);
 }
 const { CareTeamService, PATIENT_INVITE, CLINICIAN_REQUEST, hashCareToken, inviteInput } = await load("./care-team.ts");
-const { sendCareEmail, renderCareEmail, careDeliveryResponse } = await load("./care-team-email.ts");
+const { sendCareEmail, renderCareEmail, careDeliveryResponse, safeEmailProviderErrorCode } = await load("./care-team-email.ts");
 const { patientWrite } = await load("./recovery-lock.ts");
 const { Pool } = createRequire(new URL("../../../../lib/db/package.json", import.meta.url))("pg");
 if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is required for the isolated care-team database tests.");
@@ -390,6 +390,12 @@ test("connected Resend sender receives the rendered payload and provider errors 
     }),
     error => error.message === "Email delivery failed" && !error.message.includes(deliveries[0].recipient),
   );
+});
+test("email diagnostics retain only a safe provider error code", () => {
+  assert.equal(safeEmailProviderErrorCode({ name: "restricted_api_key" }), "restricted_api_key");
+  assert.equal(safeEmailProviderErrorCode({ code: "validation-error_1" }), "validation-error_1");
+  assert.equal(safeEmailProviderErrorCode({ message: "invalid recipient someone@example.com" }), undefined);
+  assert.equal(safeEmailProviderErrorCode({ name: "invalid-from someone@example.com" }), undefined);
 });
 test("email templates use required copy, escape user values, and omit journal content and patient last names",async()=>{
   await invite();const a=renderCareEmail(deliveries[0]);

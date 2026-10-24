@@ -3,7 +3,7 @@ import { ReplitConnectors } from "@replit/connectors-sdk";
 import { accountRoles, clinicianProfiles, db, pool } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { CareTeamService, type Identity } from "./care-team";
-import { sendCareEmail, type CareEmailPayload } from "./care-team-email";
+import { safeEmailProviderErrorCode, sendCareEmail, type CareEmailPayload } from "./care-team-email";
 import { logger } from "./logger";
 
 const resend = new ReplitConnectors();
@@ -13,6 +13,18 @@ async function sendThroughResend(payload: CareEmailPayload) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
+  if (!response.ok) {
+    let providerCode: string | undefined;
+    try {
+      providerCode = safeEmailProviderErrorCode(await response.clone().json());
+    } catch {
+      // Keep provider response bodies out of logs.
+    }
+    logger.warn({
+      providerStatus: response.status,
+      ...(providerCode ? { providerCode } : {}),
+    }, "Resend rejected a care-team email");
+  }
   return { ok: response.ok };
 }
 
