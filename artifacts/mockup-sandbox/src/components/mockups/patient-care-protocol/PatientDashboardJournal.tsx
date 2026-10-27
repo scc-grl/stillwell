@@ -89,7 +89,7 @@ function PlaceholderPage({ view, onNavigate }: { view: Exclude<PatientWorkspaceV
       eyebrow: "Your chosen routine",
       title: "Build a plan around what matters to you.",
       description: "Choose optional reflections for food and hydration, movement, quiet pauses, and pacing. Keep, change, or skip any part.",
-      note: "Educational routines only. This preview does not offer supplement doses or exercise prescriptions.",
+      note: "Educational routines only. This preview does not offer treatment recommendations or exercise prescriptions.",
     },
     "care-team": {
       eyebrow: "Your care team",

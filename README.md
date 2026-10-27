@@ -30,7 +30,7 @@ Each product gets its own folder under `artifacts/`. A future phone app will sit
 
 ## Ground rules
 
-- Stillwell is educational and user-led. It does not diagnose, prescribe treatment, recommend supplement doses, or set exercise intensity or progression.
+- Stillwell is educational and user-led. It does not diagnose or prescribe treatment. No supplement content or recommendations. It does not set exercise intensity or progression.
 - The emergency and new-injury boundary stays visible wherever symptoms are recorded.
 - Health data, notes and symptom choices never go to analytics or logs. Stillwell does not claim HIPAA compliance or end-to-end encryption.
 - Secrets (database URLs, API keys, tokens) live in Replit Secrets, never in this repository.

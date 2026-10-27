@@ -1,6 +1,6 @@
 # Source-backed component inventory
 
-Source: Stillwell Recovery local workspace. Five core families are the pilot; remaining source modules are inventoried, not claimed as shipped. Toaster is grouped with Toast. Brand mark is retained as a brand asset; page-specific flows, Clerk screens, API hooks, and journal compositions remain in the app. Native product appearances supplement the existing primitive APIs. Ordering respects primitive dependencies. No source repository license was declared; upstream primitive licenses still apply.
+Source: Stillwell Recovery local workspace. Five core families are the pilot; remaining source modules are inventoried, not claimed as shipped. Toaster is grouped with Toast. Brand mark is retained as a brand asset; page-specific flows, Clerk screens, API hooks, and journal compositions remain in the app. Native product appearances extend the existing primitive APIs. Ordering respects primitive dependencies. No source repository license was declared; upstream primitive licenses still apply.
 
 | Family | Build contract | Dependencies | Importance evidence | Chunk | Status |
 |---|---|---|---|---|---|

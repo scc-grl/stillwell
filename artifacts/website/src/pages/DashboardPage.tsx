@@ -369,11 +369,6 @@ export default function DashboardPage() {
               })}
             </ol>
             <p className="text-xs leading-5 text-muted-foreground">{profile.supportMode === "clinician_supported" ? "Bring these reflections to your clinician to review together." : "You can journal independently. Ask a clinician about symptoms or activity safety whenever you need guidance."} Adapt or skip any routine; use the separate activity log to document what happened.</p>
-            <Card className="space-y-2 bg-muted/60 p-4">
-              <h3 className="flex items-center gap-2 text-sm font-semibold"><ShieldCheck className="size-4" />Supplement review</h3>
-              <p className="text-xs leading-5 text-muted-foreground">If you take or are considering supplements, review products and possible interactions with a clinician or pharmacist before changes. No supplement or dose is recommended here.</p>
-              <a href="https://www.nccih.nih.gov/health/know-science/how-medications-and-supplements-can-interact/talk-with-your-health-care-providers" target="_blank" rel="noreferrer" className="text-xs text-primary underline underline-offset-4">NIH guidance on supplement interactions</a>
-            </Card>
             {routineOpen && <div className="space-y-4 border-t border-border pt-4">
               <p className="text-sm leading-6 text-muted-foreground">Choose what you want to keep in your routine. These are reflections, not treatment instructions.</p>
               <div className="space-y-2">

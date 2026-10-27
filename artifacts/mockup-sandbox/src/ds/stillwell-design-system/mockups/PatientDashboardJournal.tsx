@@ -488,7 +488,7 @@ export default function PatientDashboardJournal({ initialView = "dashboard", ini
             <Card>
               <CardContent className="flex gap-3 p-4 text-sm leading-6">
                 <ShieldCheck aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-primary" />
-                <p><strong className="font-semibold">Self-guided, not a prescription.</strong> This space helps you organize reflections and routines. It does not diagnose, prescribe exercise, recommend supplements, or replace advice from a clinician.</p>
+                <p><strong className="font-semibold">Self-guided, not a prescription.</strong> This space helps you organize reflections and routines. It does not diagnose, prescribe exercise, recommend treatment, or replace advice from a clinician.</p>
               </CardContent>
             </Card>
 

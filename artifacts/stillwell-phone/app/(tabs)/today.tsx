@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Alert, Image, Linking, StyleSheet, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -279,26 +279,6 @@ export default function TodayScreen() {
           Adapt or skip any routine; use today’s check-in to document what
           happened.
         </Text>
-        <View style={[styles.separator, { borderColor: colors.border }]} />
-        <Text variant="label">Supplement review</Text>
-        <Text variant="caption">
-          If you take or are considering supplements, review products and
-          possible interactions with a clinician or pharmacist before changes.
-          No supplement or dose is recommended here.
-        </Text>
-        <Button
-          tone="outline"
-          onPress={() =>
-            void Linking.openURL(
-              "https://www.nccih.nih.gov/health/know-science/how-medications-and-supplements-can-interact/talk-with-your-health-care-providers",
-            ).catch(() =>
-              Alert.alert("Link unavailable", "Please try opening the NIH guidance again later."),
-            )
-          }
-          testID="supplement-guidance"
-        >
-          NIH guidance on supplement interactions
-        </Button>
       </Card>
 
       <Card>
@@ -512,10 +492,6 @@ const styles = StyleSheet.create({
     gap: spacing * 2,
     borderRadius: nativeTheme.radius,
     padding: spacing * 4,
-  },
-  separator: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    marginVertical: spacing,
   },
   todaySummary: {
     gap: spacing * 3,

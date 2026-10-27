@@ -190,7 +190,7 @@ export function RecoveryCompass() {
           .rc-nav-link { display: none; }
           .rc-home-grid, .rc-help-grid, .rc-path { grid-template-columns: 1fr !important; }
           .rc-plan-grid { grid-template-columns: 1fr !important; }
-          .rc-plan-food, .rc-plan-supplements, .rc-plan-movement { grid-column: span 1 !important; }
+          .rc-plan-food, .rc-plan-movement { grid-column: span 1 !important; }
           .rc-movement-phases { grid-template-columns: 1fr !important; }
         }
         @media (prefers-reduced-motion: reduce) { .rc-root *, .rc-root *::before, .rc-root *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
@@ -340,10 +340,6 @@ export function RecoveryCompass() {
                     </div>
                   </article>
                   <div className="rc-help-stack">
-                    <article style={{ padding: 15, border: "1px solid #d7e0d4", borderRadius: 16, background: "#edf2e9" }}>
-                      <div style={{ display: "flex", gap: 9, alignItems: "center", color: "#748a76", fontSize: 9, fontWeight: 700, letterSpacing: ".12em", textTransform: "uppercase" }}><ShieldCheck size={14} /> Supplement review</div>
-                      <p style={{ margin: "9px 0 0", color: "#708071", fontSize: 10, lineHeight: 1.65 }}>Check your current products and interactions with a clinician or pharmacist before changing anything.</p>
-                    </article>
                     <article style={{ padding: 15, border: "1px solid #eadfd4", borderRadius: 16, background: "#f7f1e9" }}>
                       <div style={{ display: "flex", gap: 9, alignItems: "center", color: "#96735e", fontSize: 9, fontWeight: 700, letterSpacing: ".12em", textTransform: "uppercase" }}><Heart size={14} /> The right conversation</div>
                       <p style={{ margin: "9px 0 0", color: "#7b6c5f", fontSize: 10, lineHeight: 1.65 }}>Start with your clinician; use your priorities to ask which additional support may fit.</p>
@@ -561,11 +557,11 @@ export function RecoveryCompass() {
                 Fuel, move, <em style={{ color: "#81927f", fontWeight: 400 }}>recover.</em>
               </h1>
               <p style={{ maxWidth: 590, margin: 0, color: "#6d7b70", fontSize: 13, lineHeight: 1.8 }}>
-                Use these as conversation starters—not treatment instructions. A clinician can adapt food, supplements, and activity to your health, medications, and symptoms.
+                Use these as conversation starters—not treatment instructions. A clinician can adapt food and activity to your health, medications, and symptoms.
               </p>
 
               <div className="rc-plan-grid" style={{ display: "grid", gridTemplateColumns: "repeat(12, minmax(0, 1fr))", gap: 12, marginTop: 25 }}>
-                <article className="rc-plan-food" style={{ gridColumn: "span 7", padding: 19, border: "1px solid #dfe5db", borderRadius: 17, background: "#fffdf7" }}>
+                <article className="rc-plan-food" style={{ gridColumn: "span 12", padding: 19, border: "1px solid #dfe5db", borderRadius: 17, background: "#fffdf7" }}>
                   <div style={{ color: "#7a8b78", fontSize: 9, fontWeight: 700, letterSpacing: ".14em", textTransform: "uppercase" }}>01 · Nourishment</div>
                   <h2 className="rc-display" style={{ margin: "10px 0 7px", color: "#345346", fontSize: 23, fontWeight: 500, letterSpacing: "-.035em" }}>Steady meals, easy choices.</h2>
                   <p style={{ margin: 0, color: "#758176", fontSize: 11, lineHeight: 1.75 }}>
@@ -576,21 +572,10 @@ export function RecoveryCompass() {
                   </button>
                 </article>
 
-                <article className="rc-plan-supplements" style={{ gridColumn: "span 5", padding: 19, border: "1px solid #d7e0d4", borderRadius: 17, background: "#edf2e9" }}>
-                  <div style={{ color: "#728574", fontSize: 9, fontWeight: 700, letterSpacing: ".14em", textTransform: "uppercase" }}>02 · Supplements</div>
-                  <h2 className="rc-display" style={{ margin: "10px 0 7px", color: "#345346", fontSize: 23, fontWeight: 500, letterSpacing: "-.035em" }}>Review before adding.</h2>
-                  <p style={{ margin: 0, color: "#718073", fontSize: 11, lineHeight: 1.75 }}>
-                    No supplement is recommended here. Bring your current products and doses to a clinician or pharmacist; check evidence and interactions before starting, stopping, or changing anything.
-                  </p>
-                  <button className="rc-button" type="button" onClick={() => toggleProtocolStep("supplements")} aria-pressed={protocolSteps.includes("supplements")} style={{ display: "inline-flex", alignItems: "center", gap: 7, minHeight: 34, marginTop: 15, padding: "0 12px", border: "1px solid #bdd0bf", borderRadius: 99, background: protocolSteps.includes("supplements") ? "#dce8d9" : "transparent", color: "#4d6b58", fontSize: 10, fontWeight: 700, cursor: "pointer" }}>
-                    {protocolSteps.includes("supplements") && <Check size={12} />} {protocolSteps.includes("supplements") ? "Question added" : "Add a supplement question"}
-                  </button>
-                </article>
-
                 <article className="rc-plan-movement" style={{ gridColumn: "span 12", padding: 19, border: "1px solid #eadfd4", borderRadius: 17, background: "#f7f1e9" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
                     <div>
-                      <div style={{ color: "#96735e", fontSize: 9, fontWeight: 700, letterSpacing: ".14em", textTransform: "uppercase" }}>03 · Gentle movement</div>
+                      <div style={{ color: "#96735e", fontSize: 9, fontWeight: 700, letterSpacing: ".14em", textTransform: "uppercase" }}>02 · Gentle movement</div>
                       <h2 className="rc-display" style={{ margin: "10px 0 6px", color: "#59483c", fontSize: 23, fontWeight: 500, letterSpacing: "-.035em" }}>Start low. Build slowly.</h2>
                       <p style={{ maxWidth: 640, margin: 0, color: "#7b6c5f", fontSize: 11, lineHeight: 1.75 }}>
                         Only after your clinician clears you: keep activity easy and below a symptom flare. Don’t push through worsening symptoms.

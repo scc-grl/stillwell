@@ -77,7 +77,7 @@ Journaling must remain patient-controlled and non-prescriptive.
 
 **Why:** The user wants an ongoing personal recovery journal, not only a clinician-led service preview.
 
-**How to apply:** Save health records only with explicit consent and authenticated, owner-scoped access. Keep symptom choices, health details, free text, and identifiers out of analytics. Self-guided personalization means user-chosen priorities and educational routines, not diagnoses or prescribed treatment. Do not recommend supplement products/doses or individualized exercise intensity/progression. Keep urgent-care boundaries clear and encourage appropriate medical review.
+**How to apply:** Save health records only with explicit consent and authenticated, owner-scoped access. Keep symptom choices, health details, free text, and identifiers out of analytics. Self-guided personalization means user-chosen priorities and educational routines, not diagnoses or prescribed treatment. Follow replit.md's health-content exclusions and do not prescribe individualized exercise intensity/progression. Keep urgent-care boundaries clear and encourage appropriate medical review.
 
 Journal calendar dates in URL paths must also be redacted from access logs.
 

@@ -7,7 +7,7 @@ The voice is calm, optional and user-led. The person decides what to track; Stil
 - **Offer, never instruct.** Prefer "Add if useful", "Optional note for yourself", "Leave room to adjust". Avoid "You must", "Don't forget", streaks, scores, goals and countdowns.
 - **Second person, plain words.** Speak to "you"; Stillwell refers to itself by name, never "we promise". Sentence case everywhere except `eyebrow-label`, which is uppercase.
 - **Frame choices as the user's, not a plan.** Real copy: "These are your chosen areas, not a prescribed care plan." / "No durations are goals."
-- **Never diagnose or prescribe.** No supplement doses, no exercise intensity or progression, no claims of HIPAA compliance or end-to-end encryption. Real copy: "Stillwell is an educational, user-chosen reflection tool. It does not diagnose, prescribe treatment, or replace clinical care."
+- **Never diagnose or prescribe.** No supplement content or recommendations, no exercise intensity or progression, no claims of HIPAA compliance or end-to-end encryption. Real copy: "Stillwell is an educational, user-chosen reflection tool. It does not diagnose, prescribe treatment, or replace clinical care."
 - **Keep the safety boundary visible** on any screen where a person records symptoms. Real copy: "Not for a new injury or an emergency. If symptoms are worsening, contact a clinician. Severe or urgent symptoms need emergency care now."
 - **Symptoms are noticed, not scored.** Scales run from "Less noticeable" to "More noticeable", 0–10.
 - No emoji. Icons are line icons only (see Iconography).

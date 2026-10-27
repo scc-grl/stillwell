@@ -353,19 +353,8 @@ export function RecoveryCompassMobile() {
               </button>
             </article>
 
-            <article style={{ marginTop: 9, padding: "15px 14px", border: "1px solid #d7e0d4", borderRadius: 15, background: "#edf2e9" }}>
-              <span style={{ color: "#728574", fontSize: 8, fontWeight: 700, letterSpacing: ".14em", textTransform: "uppercase" }}>02 · Supplements</span>
-              <h2 className="rcm-display" style={{ margin: "7px 0 6px", color: "#345346", fontSize: 21, fontWeight: 500, letterSpacing: "-.035em" }}>Review before adding.</h2>
-              <p style={{ margin: 0, color: "#718073", fontSize: 10, lineHeight: 1.7 }}>
-                No supplement is recommended here. Bring current products and doses to a clinician or pharmacist; check evidence and interactions before starting, stopping, or changing anything.
-              </p>
-              <button className="rcm-control" type="button" onClick={() => togglePlanChoice("supplements")} aria-pressed={planChoices.includes("supplements")} style={{ display: "inline-flex", minHeight: 34, alignItems: "center", gap: 6, marginTop: 12, padding: "0 10px", border: "1px solid #bdd0bf", borderRadius: 99, background: planChoices.includes("supplements") ? "#dce8d9" : "transparent", color: "#4d6b58", fontSize: 9, fontWeight: 700, cursor: "pointer" }}>
-                {planChoices.includes("supplements") && <Check size={11} />} {planChoices.includes("supplements") ? "Question added" : "Ask about supplements"}
-              </button>
-            </article>
-
             <article style={{ marginTop: 9, padding: "15px 14px", border: "1px solid #eadfd4", borderRadius: 15, background: "#f7f1e9" }}>
-              <span style={{ color: "#96735e", fontSize: 8, fontWeight: 700, letterSpacing: ".14em", textTransform: "uppercase" }}>03 · Gentle movement</span>
+              <span style={{ color: "#96735e", fontSize: 8, fontWeight: 700, letterSpacing: ".14em", textTransform: "uppercase" }}>02 · Gentle movement</span>
               <h2 className="rcm-display" style={{ margin: "7px 0 6px", color: "#59483c", fontSize: 21, fontWeight: 500, letterSpacing: "-.035em" }}>Start low. Build slowly.</h2>
               <p style={{ margin: 0, color: "#7b6c5f", fontSize: 10, lineHeight: 1.7 }}>
                 Only after your clinician clears you. Keep activity easy and below a symptom flare—don’t push through worsening symptoms.

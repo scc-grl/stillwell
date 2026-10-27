@@ -156,8 +156,6 @@ export function RecoveryFlow() {
   const [cadenceOverride, setCadenceOverride] = useState<"automatic" | "daily" | "weekly" | "paused">("automatic");
   const [milestone, setMilestone] = useState<Milestone>("observe");
   const [movementPaused, setMovementPaused] = useState(false);
-  const [supplements, setSupplements] = useState("");
-  const [clinicianQuestions, setClinicianQuestions] = useState("");
   const [checkinMode, setCheckinMode] = useState<"manual" | "audio">("manual");
   const [checkinSymptoms, setCheckinSymptoms] = useState<SymptomValues>({});
   const [checkinStatuses, setCheckinStatuses] = useState<Entry["statuses"]>({});
@@ -378,8 +376,6 @@ export function RecoveryFlow() {
       lines.push("My chosen routine");
       lines.push(`Protocol start: ${protocolStart}; current logging cadence: ${cadenceLabel}`);
       lines.push(...(routine.length ? routine.map((item) => `- ${item.label}${item.note ? `: ${item.note}` : ""}`) : ["- No routine choices recorded"]));
-      lines.push(`Supplements recorded: ${supplements || "Not recorded"}`);
-      lines.push(`Questions for clinician or pharmacist: ${clinicianQuestions || "Not recorded"}`);
       lines.push("");
     }
     if (includeMilestone) {
@@ -407,7 +403,7 @@ export function RecoveryFlow() {
     }
     lines.push("This is a personal journal, not a diagnosis or treatment recommendation.");
     return lines.join("\n");
-  }, [baseline, cadenceLabel, clinicianQuestions, dietPattern, includeBaseline, includeEntries, includeMilestone, includeRoutine, milestone, movementPaused, orderedEntries, preInjuryExercise, preInjuryPreference, protocolStart, routine, supplements]);
+  }, [baseline, cadenceLabel, dietPattern, includeBaseline, includeEntries, includeMilestone, includeRoutine, milestone, movementPaused, orderedEntries, preInjuryExercise, preInjuryPreference, protocolStart, routine]);
 
   async function copySummary() {
     try {
@@ -542,16 +538,6 @@ export function RecoveryFlow() {
               </div>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader><CardTitle><SectionTitle eyebrow="For a clinician or pharmacist" title="Supplements and questions" detail="Record what you currently take and any questions to review. This prototype does not recommend a supplement or dose as concussion therapy." /></CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-              <label className="block space-y-2 text-sm font-medium" htmlFor="supplements">Current supplements or products <span className="font-normal text-muted-foreground">Optional</span><Textarea id="supplements" value={supplements} onChange={(event) => setSupplements(event.target.value)} placeholder="You can note product names or leave this blank." /></label>
-              <label className="block space-y-2 text-sm font-medium" htmlFor="clinician-questions">Questions to review with a clinician or pharmacist <Textarea id="clinician-questions" value={clinicianQuestions} onChange={(event) => setClinicianQuestions(event.target.value)} placeholder="For example: Could these products interact with medicines I take?" /></label>
-              <p className="text-sm text-muted-foreground">Possible discussion topics—not recommendations:</p>
-              <div className="flex flex-wrap gap-2">{["Do I need a supplement at all?", "Could my products interact with medicines?", "Would food choices meet my needs instead?"].map((question) => <Button key={question} variant="outline" type="button" className="h-auto whitespace-normal" onClick={() => setClinicianQuestions((current) => current ? current + "\n" + question : question)}>{question}</Button>)}</div>
-              <Button variant="link" size="sm" asChild className="h-auto whitespace-normal justify-start"><a href="https://www.nccih.nih.gov/health/know-science/how-medications-and-supplements-can-interact/talk-with-your-health-care-providers" target="_blank" rel="noreferrer noopener">NIH: Talk with your health care providers about supplement interactions</a></Button>
-            </CardContent>
-          </Card>
           <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between"><Button type="button" variant="outline" onClick={() => setScreen("baseline")}>Back</Button><Button type="button" onClick={() => setScreen("checkin")}>Continue to check-in</Button></div>
         </div>}
 
@@ -668,7 +654,7 @@ export function RecoveryFlow() {
             <div className="space-y-3">
               {([
                 [includeBaseline, setIncludeBaseline, "Starting snapshot and pre-injury context"],
-                [includeRoutine, setIncludeRoutine, "Chosen routine, supplements and questions"],
+                [includeRoutine, setIncludeRoutine, "Chosen routine"],
                 [includeMilestone, setIncludeMilestone, "Current exercise milestone"],
                 [includeEntries, setIncludeEntries, `Journal entries (${orderedEntries.length})`],
               ] as const).map(([checked, setChecked, label]) => <label key={label} className="flex items-center gap-3 text-sm">
