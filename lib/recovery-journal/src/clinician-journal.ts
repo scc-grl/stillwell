@@ -1,3 +1,5 @@
+import { normalizeSleep, type SleepLog } from "@workspace/recovery-journal/sleep";
+
 /** Read-only interpretation of stored care-team entries. Never fills missing scores. */
 export const careSymptoms = [
   { key: "headache", label: "Headache" },
@@ -24,6 +26,7 @@ export type ClinicalEntry = {
   routines: CareRoutine[];
   note: string;
   summary: string;
+  sleep: SleepLog | null;
 };
 const record = (value: unknown): Record<string, unknown> =>
   value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
@@ -67,7 +70,7 @@ export function normalizeCareEntry(value: unknown): ClinicalEntry | null {
       note: text(data[`${key}Note`]),
     };
   });
-  return { date: data.date, updatedAt, scores, routines, note: text(data.note), summary: text(checkIn.summary) };
+  return { date: data.date, updatedAt, scores, routines, note: text(data.note), summary: text(checkIn.summary), sleep: normalizeSleep(data.sleep) };
 }
 
 /** Stable newest-first order, de-duplicating pages without losing the latest edit. */

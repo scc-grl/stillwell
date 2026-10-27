@@ -7,6 +7,7 @@ import {
   type CareRange,
   type ClinicalEntry,
 } from '@workspace/recovery-journal/clinician-journal';
+import { sleepDurationMinutes, sleepDurationLabel } from '@workspace/recovery-journal';
 import { Badge } from '@workspace/stillwell-design-system/components/ui/badge';
 import { Button } from '@workspace/stillwell-design-system/components/ui/button';
 import { Card } from '@workspace/stillwell-design-system/components/ui/card';
@@ -56,6 +57,7 @@ function entrySummary(entry: ClinicalEntry): string {
   recorded.forEach((item) => parts.push(`${item.label} ${item.value}`));
   const done = entry.routines.filter((routine) => routine.status === 'done').length;
   if (done) parts.push(`${done} routine${done === 1 ? '' : 's'}`);
+  if (entry.sleep) parts.push(sleepDurationMinutes(entry.sleep) !== null ? `sleep ${sleepDurationLabel(entry.sleep)}` : 'sleep');
   if (entry.note.trim() || entry.summary.trim()) parts.push('note');
   return parts.length ? parts.join(' · ') : 'Nothing recorded';
 }

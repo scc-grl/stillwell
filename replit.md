@@ -59,6 +59,8 @@ Daily entry saves are section-specific (`check_in` or `activities`) and atomical
 
 Public landing → starting quiz → explicit storage consent → email-based account creation → first saved summary and private daily journal. Users can edit routine priorities, log symptoms and food/movement/meditation/pacing, edit or delete individual days, and delete all recovery data without deleting their sign-in account.
 
+Sleep is a separate optional journal section on phone and web. The selected day records the night ending on that day (“last night” for today); local bedtime and wake time produce a clock-time duration estimate, not a sleep score or target. Shared definitions and education live in `lib/recovery-journal`. Saves use `section: sleep`, `check_in`, or `activities` and atomically merge only that section into the latest daily JSONB record. `sleep: null` with `section: sleep` removes just sleep; deleting a day or all recovery data removes it too. Sleep is part of the whole journal shared with clinicians and retained in frozen former-patient snapshots. It must never be logged or sent to analytics.
+
 ## Health-data safety
 
 - **Why consistent reads matter:** edits, deletions and profile changes can happen between queries or pages without changing the entry count or latest timestamp. Keep authorization, profile, totals and entries in one database snapshot per page, and compare the complete version fingerprint across pages.

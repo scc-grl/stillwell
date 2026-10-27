@@ -14,3 +14,4 @@
 - [Workspace validation memory](workspace-validation-memory.md) — run full workspace validation serially to avoid memory exhaustion interrupting previews.
 - [Clerk test cleanup](clerk-test-cleanup.md) — database fixture cleanup does not guarantee synthetic Clerk account removal.
 - [Care-team email delivery](care-team-email-delivery.md) — use the connected Resend integration; real invites still originate in authenticated patient flows.
+- [Workspace package resolution](workspace-package-resolution.md) — shared runtime exports must work in Node tests and Expo; filtered pnpm updates can leave sibling links stale.

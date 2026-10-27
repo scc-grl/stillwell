@@ -77,11 +77,12 @@ async function connect(c = clinician) {
   const sent = await invite(c);
   return service.accept(c, tokenOf(sent), PATIENT_INVITE);
 }
-async function log(date = "2026-10-20", note = "Original note") {
+async function log(date = "2026-10-20", note = "Original note", sleep) {
   const data = { date, symptoms: ["headache","fatigue","fog","sleep","mood","light","dizziness"].map((name, i) => ({name, severity: i})),
     dietStatus: "done", exerciseStatus: "skipped", meditationStatus: "done", meditationMinutes: 12,
     dietNote: "Food note", exerciseNote: "Movement note", meditationNote: "Pause note", note,
-    dailyCheckIn: { overall: "okay", summary: "A private summary", symptoms: {headache: 2, light: null} } };
+    dailyCheckIn: { overall: "okay", summary: "A private summary", symptoms: {headache: 2, light: null} },
+    ...(sleep === undefined ? {} : { sleep }) };
   await pool.query("INSERT INTO recovery_logs(owner_id,date,data) VALUES($1,$2,$3) ON CONFLICT(owner_id,date) DO UPDATE SET data=$3,updated_at=now()", [patient.id, date, data]);
   return data;
 }
@@ -316,6 +317,24 @@ test("a former snapshot is unchanged by patient edits, day deletion and delete-a
   await service.removeFormer(clinician,first.linkId);
   await rejects(service.readPatient(clinician,first.linkId),"not_found");
   assert.equal((await pool.query("SELECT * FROM care_team_snapshots")).rows.length,1);
+});
+test("sleep is shared read-only and frozen across edits, deleted days and delete-all", async () => {
+  const sleep = { bedtime: "23:00", wakeTime: "07:30", quality: "good", wakings: 1, nap: "none", note: "Original night" };
+  await log("2026-10-20", "Original day", sleep);
+  const first = await connect();
+  assert.deepEqual((await service.readPatient(clinician, first.linkId)).entries[0].sleep, sleep);
+  await service.removeClinician(patient, first.linkId);
+  await log("2026-10-20", "Edited day", { ...sleep, note: "Edited night", quality: "poor" });
+  assert.deepEqual((await service.readPatient(clinician, first.linkId)).entries[0].sleep, sleep);
+  const second = await connect(other);
+  await service.deleteRecovery(patient);
+  assert.deepEqual((await service.readPatient(clinician, first.linkId)).entries[0].sleep, sleep);
+  const frozenAtDelete = (await service.readPatient(other, second.linkId)).entries[0].sleep;
+  assert.equal(frozenAtDelete.note, "Edited night");
+  assert.equal(frozenAtDelete.quality, "poor");
+  assert.equal((await pool.query("SELECT * FROM recovery_logs WHERE owner_id=$1", [patient.id])).rows.length, 0);
+  await service.removeFormer(clinician, first.linkId);
+  await rejects(service.readPatient(clinician, first.linkId), "not_found");
 });
 test("delete-all snapshots every active clinician and deletes patient-side invitations without resetting email counts", async()=>{
   await log();const a=await connect();const b=await connect(other);

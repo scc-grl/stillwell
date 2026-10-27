@@ -7,6 +7,7 @@
  */
 import type { ActivityStatus } from './activityStatus';
 import type { DailyCheckIn } from './dailyCheckIn';
+import type { SleepLog } from './sleepLog';
 import type { SymptomEntry } from './symptomEntry';
 
 export interface SharedRecoveryLog {
@@ -22,4 +23,5 @@ export interface SharedRecoveryLog {
   meditationNote?: string;
   note?: string;
   dailyCheckIn?: DailyCheckIn;
+  sleep?: SleepLog | null;
 }

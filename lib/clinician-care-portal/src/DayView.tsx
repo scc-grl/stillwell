@@ -1,6 +1,7 @@
 import { Link } from 'wouter';
 import { ArrowLeft, ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import { careSymptoms, type CareRoutine } from '@workspace/recovery-journal/clinician-journal';
+import { sleepDetails, sleepDurationNote } from '@workspace/recovery-journal';
 import { Button } from '@workspace/stillwell-design-system/components/ui/button';
 import { Card } from '@workspace/stillwell-design-system/components/ui/card';
 import type { FullJournal } from './queries';
@@ -97,6 +98,24 @@ export function DayView({ data, date }: { data: FullJournal; date: string }) {
                 </li>
               ))}
             </ul>
+          </section>
+
+          <section aria-labelledby="day-sleep" className="space-y-3" data-testid="section-day-sleep">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <h2 id="day-sleep" className="font-serif text-2xl font-medium text-foreground">Sleep</h2>
+              <p className="text-xs text-muted-foreground">Night ending this day</p>
+            </div>
+            <Card className="space-y-3 p-5 shadow-none">
+              <dl className="grid gap-x-6 sm:grid-cols-2">
+                {sleepDetails(entry.sleep).map((item) => (
+                  <div key={item.label} className="flex items-start justify-between gap-3 border-b border-border py-2 text-sm">
+                    <dt className="text-foreground">{item.label}</dt>
+                    <dd className={`whitespace-pre-wrap text-right ${item.value === 'Not recorded' ? 'text-muted-foreground' : 'text-foreground'}`}>{item.value}</dd>
+                  </div>
+                ))}
+              </dl>
+              <p className="text-xs leading-5 text-muted-foreground">{sleepDurationNote}</p>
+            </Card>
           </section>
 
           <Card className="space-y-3 p-5 shadow-none" data-testid="card-day-note">

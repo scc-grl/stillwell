@@ -748,6 +748,30 @@ components:
     ActivityStatus:
       type: string
       enum: [done, not_done, not_planned]
+    SleepLog:
+      type: object
+      additionalProperties: false
+      description: Optional record of the night ending on the journal date. Local clock times; duration is derived, never stored as a score.
+      properties:
+        bedtime:
+          type: [string, "null"]
+          pattern: '^([01]\d|2[0-3]):[0-5]\d$'
+        wakeTime:
+          type: [string, "null"]
+          pattern: '^([01]\d|2[0-3]):[0-5]\d$'
+        quality:
+          type: [string, "null"]
+          enum: [poor, fair, good, great, null]
+        wakings:
+          type: [integer, "null"]
+          enum: [0, 1, 2, 3, null]
+          description: 3 represents three or more awakenings.
+        nap:
+          type: [string, "null"]
+          enum: [none, under_30, 30_or_more, null]
+        note:
+          type: string
+          maxLength: 280
     RecoveryLogInput:
       type: object
       additionalProperties: false
@@ -785,6 +809,10 @@ components:
           maxLength: 2000
         dailyCheckIn:
           $ref: "#/components/schemas/DailyCheckIn"
+        sleep:
+          anyOf:
+            - $ref: "#/components/schemas/SleepLog"
+            - type: "null"
     RecoveryLogSaveInput:
       allOf:
         - $ref: "#/components/schemas/RecoveryLogInput"
@@ -792,7 +820,7 @@ components:
           properties:
             section:
               type: string
-              enum: [check_in, activities]
+              enum: [check_in, activities, sleep]
               description: Atomically update only this journal section, preserving fields written on another device. Omit for backwards-compatible merge.
     RecoveryStartInput:
       type: object
@@ -976,6 +1004,10 @@ components:
           type: string
         dailyCheckIn:
           $ref: "#/components/schemas/DailyCheckIn"
+        sleep:
+          anyOf:
+            - $ref: "#/components/schemas/SleepLog"
+            - type: "null"
     SharedPatientJournal:
       type: object
       additionalProperties: false

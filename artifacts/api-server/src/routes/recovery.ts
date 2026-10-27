@@ -124,6 +124,10 @@ router.post("/recovery/logs", async (req, res): Promise<void> => {
     res.status(400).json({ error: "Include the symptom check-in for this update." });
     return;
   }
+  if (parsed.data.section === "sleep" && parsed.data.sleep === undefined) {
+    res.status(400).json({ error: "Include the sleep section, or null to remove it." });
+    return;
+  }
   const { initial, patch } = recoveryLogWrite(parsed.data);
   const saved = await db.transaction(async tx => {
     await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtextextended(${`patient:${ownerId}`},0))`);

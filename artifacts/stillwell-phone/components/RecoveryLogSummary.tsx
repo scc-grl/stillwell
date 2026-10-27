@@ -5,6 +5,7 @@ import { Text } from "@workspace/stillwell-design-system/components/native/text"
 import { spacing } from "@/lib/layout";
 import { checkInSymptoms, overallChoices, dailyCheckInFromLog, ratingLabel } from "@workspace/recovery-journal";
 import { formatDate } from "@/lib/journal";
+import { SleepDetails } from "@/components/SleepDetails";
 
 function statusText(value: string) {
   if (value === "done") return "Done";
@@ -71,6 +72,7 @@ export function RecoveryLogSummary({ log }: { log: RecoveryLog }) {
           value={log.note || "No note added."}
         />
       </Card>
+      <SleepDetails sleep={log.sleep} />
       <Text variant="caption" style={styles.date}>
         Saved {formatDate(log.date)}
       </Text>

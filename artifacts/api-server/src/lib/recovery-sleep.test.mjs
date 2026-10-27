@@ -1,0 +1,113 @@
+import assert from "node:assert/strict";
+import test, { before, after, beforeEach } from "node:test";
+import { randomUUID } from "node:crypto";
+import { createRequire } from "node:module";
+import { buildSync } from "esbuild";
+import { fileURLToPath } from "node:url";
+import { recoveryLogWrite } from "./recovery-log-write.ts";
+
+const compiled = buildSync({
+  stdin: {
+    contents: 'export { SaveRecoveryLogBody, GetRecoveryResponse } from "@workspace/api-zod";',
+    resolveDir: fileURLToPath(new URL(".", import.meta.url)),
+  },
+  bundle: true, platform: "node", format: "esm", write: false,
+});
+const { SaveRecoveryLogBody, GetRecoveryResponse } = await import(
+  `data:text/javascript;base64,${Buffer.from(compiled.outputFiles[0].text).toString("base64")}`
+);
+const { Pool } = createRequire(new URL("../../../../lib/db/package.json", import.meta.url))("pg");
+if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL is required for the isolated sleep database tests.");
+const schema = `sleep_test_${randomUUID().replaceAll("-", "")}`;
+const admin = new Pool({ connectionString: process.env.DATABASE_URL });
+let pool;
+const base = {
+  date: "2026-10-20", symptoms: [], dietStatus: "done", dietNote: "Food",
+  exerciseStatus: "not_done", exerciseNote: "Movement", meditationStatus: "not_planned",
+  meditationMinutes: 0, meditationNote: "", note: "Pacing",
+  dailyCheckIn: { overallFeeling: "okay", symptoms: [
+    "headache", "fatigue", "fog", "sleep", "mood", "light",
+  ].map(name => ({ name, status: "not_recorded", rating: null })), summary: "Check-in" },
+};
+const sleep = { bedtime: "23:30", wakeTime: "07:00", quality: "fair", wakings: 1, nap: "none", note: "Night note" };
+
+before(async () => {
+  await admin.query(`CREATE SCHEMA ${schema}`);
+  pool = new Pool({ connectionString: process.env.DATABASE_URL, options: `-c search_path=${schema},public` });
+  // Use the actual Drizzle-managed table definition, without touching user rows.
+  await pool.query(`CREATE TABLE recovery_logs (LIKE public.recovery_logs INCLUDING ALL)`);
+});
+beforeEach(async () => { await pool.query("TRUNCATE recovery_logs"); });
+after(async () => {
+  if (pool) await pool.end();
+  await admin.query(`DROP SCHEMA IF EXISTS ${schema} CASCADE`);
+  await admin.end();
+});
+
+async function save(input) {
+  const { initial, patch } = recoveryLogWrite(SaveRecoveryLogBody.parse(input));
+  const { rows: [row] } = await pool.query(
+    `INSERT INTO recovery_logs(owner_id,date,data) VALUES($1,$2,$3)
+     ON CONFLICT(owner_id,date) DO UPDATE SET data=recovery_logs.data || $4::jsonb,updated_at=now()
+     RETURNING data`,
+    ["isolated-sleep-patient", initial.date, initial, patch],
+  );
+  return row.data;
+}
+async function saved() {
+  return (await pool.query("SELECT data FROM recovery_logs")).rows[0].data;
+}
+
+test("sleep atomically merges with latest check-in and activities despite a stale client", async () => {
+  await save(base);
+  await save({ ...base, section: "activities", dietNote: "Latest food", note: "Latest pacing" });
+  await save({ ...base, section: "check_in", dailyCheckIn: { ...base.dailyCheckIn, summary: "Latest check-in" } });
+  const result = await save({ ...base, section: "sleep", sleep });
+  assert.deepEqual(result.sleep, sleep);
+  assert.equal(result.dietNote, "Latest food");
+  assert.equal(result.note, "Latest pacing");
+  assert.equal(result.dailyCheckIn.summary, "Latest check-in");
+});
+test("concurrent section saves preserve all three sections in the database", async () => {
+  await save(base);
+  await Promise.all([
+    save({ ...base, section: "sleep", sleep }),
+    save({ ...base, section: "activities", dietNote: "Concurrent food" }),
+    save({ ...base, section: "check_in", dailyCheckIn: { ...base.dailyCheckIn, summary: "Concurrent check-in" } }),
+  ]);
+  const result = await saved();
+  assert.deepEqual(result.sleep, sleep);
+  assert.equal(result.dietNote, "Concurrent food");
+  assert.equal(result.dailyCheckIn.summary, "Concurrent check-in");
+});
+test("activity and check-in saves cannot overwrite sleep with a stale sleep value", async () => {
+  await save({ ...base, section: "sleep", sleep });
+  await save({ ...base, section: "activities", sleep: null });
+  const result = await save({ ...base, section: "check_in", sleep: { quality: "poor" } });
+  assert.deepEqual(result.sleep, sleep);
+});
+test("editing and removing only sleep preserves the rest of the day", async () => {
+  await save({ ...base, sleep });
+  const edited = await save({ ...base, section: "sleep", sleep: { quality: "great", note: "Updated" } });
+  assert.deepEqual(edited.sleep, { quality: "great", note: "Updated" });
+  const removed = await save({ ...base, section: "sleep", sleep: null });
+  assert.equal(removed.sleep, null);
+  assert.deepEqual(removed.dailyCheckIn, base.dailyCheckIn);
+  assert.equal(removed.dietNote, "Food");
+});
+test("legacy clients omitting sleep preserve it; deleting a day removes it", async () => {
+  await save({ ...base, sleep });
+  assert.deepEqual((await save(base)).sleep, sleep);
+  await pool.query("DELETE FROM recovery_logs WHERE owner_id=$1", ["isolated-sleep-patient"]);
+  assert.equal((await pool.query("SELECT count(*)::integer AS count FROM recovery_logs")).rows[0].count, 0);
+});
+test("generated API validation allows skipped fields and rejects invalid times, values and long notes", () => {
+  for (const sleep of [{}, null, { bedtime: null, wakings: 0 }, { note: "x".repeat(280) }]) {
+    assert.equal(SaveRecoveryLogBody.safeParse({ ...base, section: "sleep", sleep }).success, true);
+  }
+  for (const sleep of [{ bedtime: "24:00" }, { wakeTime: "07:99" }, { quality: "excellent" }, { wakings: 4 }, { nap: "long" }, { note: "x".repeat(281) }]) {
+    assert.equal(SaveRecoveryLogBody.safeParse({ ...base, section: "sleep", sleep }).success, false);
+  }
+  const result = GetRecoveryResponse.parse({ profile: null, logs: [{ ...base, sleep, updatedAt: "2026-10-20T08:00:00Z" }] });
+  assert.deepEqual(result.logs[0].sleep, sleep);
+});

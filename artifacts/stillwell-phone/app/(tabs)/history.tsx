@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ActivityIndicator, Alert, StyleSheet, View } from "react-native";
+import { Alert, StyleSheet, View } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   getGetRecoveryQueryKey,
@@ -15,6 +15,8 @@ import { DailyCheckInFlow } from "@/components/DailyCheckInFlow";
 import { RecoveryLogEditor } from "@/components/RecoveryLogEditor";
 import { RecoveryLogSummary } from "@/components/RecoveryLogSummary";
 import { SafetyNotice } from "@/components/SafetyNotice";
+import { SleepEditor } from "@/components/SleepEditor";
+import { emptyLog, sleepSummary, type SleepLog } from "@workspace/recovery-journal";
 import { Screen } from "@/components/Screen";
 import { usePatientData } from "@/contexts/PatientDataContext";
 import { spacing } from "@/lib/layout";
@@ -30,6 +32,7 @@ export default function HistoryScreen() {
   const [selected, setSelected] = useState<RecoveryLog | null>(null);
   const [editing, setEditing] = useState(false);
   const [editingDetails, setEditingDetails] = useState(false);
+  const [editingSleep, setEditingSleep] = useState(false);
   const [actionError, setActionError] = useState("");
   const entries =
     recovery?.logs.filter((log) => log.date < localDate()) ?? [];
@@ -49,6 +52,40 @@ export default function HistoryScreen() {
     const saved = await persistPastDay(log, section);
     setEditing(false);
     return saved;
+  }
+
+  async function saveSleep(date: string, sleep: SleepLog | null) {
+    if (!userId) throw new Error("A signed-in patient account is required.");
+    const saved = await saveLog.mutateAsync({
+      data: { ...emptyLog(date), sleep, section: "sleep" },
+    });
+    queryClient.setQueryData(
+      recoveryQueryKey(userId),
+      (current: typeof recovery) => upsertLog(current, saved),
+    );
+    setSelected(saved);
+    setEditingSleep(false);
+    return saved;
+  }
+
+  function confirmDeleteSleep(log: RecoveryLog) {
+    Alert.alert(
+      "Delete sleep for this day?",
+      "This removes only the sleep entry. Your check-in and activities stay.",
+      [
+        { text: "Keep sleep", style: "cancel" },
+        {
+          text: "Delete sleep",
+          style: "destructive",
+          onPress: () => {
+            setActionError("");
+            void saveSleep(log.date, null).catch(() => {
+              setActionError("Sleep could not be deleted. Try again.");
+            });
+          },
+        },
+      ],
+    );
   }
 
   function confirmDelete(log: RecoveryLog) {
@@ -84,8 +121,9 @@ export default function HistoryScreen() {
   if (recoveryLoading) {
     return (
       <Screen bottomTabs>
-        <View style={styles.loading}>
-          <ActivityIndicator color={colors.primary} />
+        <View style={styles.loading} accessibilityLabel="Loading your history">
+          <View style={[styles.skeleton, { backgroundColor: colors.muted }]} />
+          <View style={[styles.skeleton, { backgroundColor: colors.muted }]} />
         </View>
       </Screen>
     );
@@ -99,6 +137,28 @@ export default function HistoryScreen() {
             Try again
           </Button>
         </Card>
+      </Screen>
+    );
+  }
+  if (selected && editingSleep) {
+    return (
+      <Screen bottomTabs>
+        <SleepEditor
+          key={`${selected.date}-sleep`}
+          date={selected.date}
+          initial={selected.sleep}
+          onSave={async (sleep) => {
+            await saveSleep(selected.date, sleep);
+          }}
+          onDelete={selected.sleep ? () => confirmDeleteSleep(selected) : undefined}
+          deleting={saveLog.isPending}
+          onCancel={() => setEditingSleep(false)}
+        />
+        {actionError ? (
+          <Text variant="caption" accessibilityRole="alert">
+            {actionError}
+          </Text>
+        ) : null}
       </Screen>
     );
   }
@@ -168,6 +228,16 @@ export default function HistoryScreen() {
           Edit food, movement and pacing
         </Button>
         <Button
+          tone="outline"
+          onPress={() => {
+            setActionError("");
+            setEditingSleep(true);
+          }}
+          testID="edit-past-sleep"
+        >
+          {selected.sleep ? "Edit sleep" : "Log sleep"}
+        </Button>
+        <Button
           tone="destructive"
           onPress={() => confirmDelete(selected)}
           disabled={deleteLog.isPending}
@@ -208,6 +278,7 @@ export default function HistoryScreen() {
                     {log.symptoms.length === 1 ? "" : "s"} ·{" "}
                     {log.dietStatus === "done" ? "Food noted" : "Food not noted"}
                   </Text>
+                  <Text variant="caption">{sleepSummary(log.sleep)}</Text>
                 </View>
                 <Button
                   fullWidth={false}
@@ -216,6 +287,7 @@ export default function HistoryScreen() {
                     setActionError("");
                     setEditing(false);
                     setEditingDetails(false);
+                    setEditingSleep(false);
                     setSelected(log);
                   }}
                   accessibilityLabel={`View entry for ${formatDate(log.date)}`}
@@ -250,8 +322,12 @@ const styles = StyleSheet.create({
     gap: spacing,
   },
   loading: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    gap: spacing * 3,
+    paddingTop: spacing * 4,
+  },
+  skeleton: {
+    width: "100%",
+    height: spacing * 20,
+    borderRadius: spacing * 2,
   },
 });

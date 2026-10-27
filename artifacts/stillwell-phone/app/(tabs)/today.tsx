@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Image, StyleSheet, View } from "react-native";
+import { Alert, Image, StyleSheet, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   useSaveRecoveryLog,
   type RecoveryLogInput,
 } from "@workspace/api-client-react";
+import { sleepSummary, type SleepLog } from "@workspace/recovery-journal";
 import { Button } from "@workspace/stillwell-design-system/components/native/button";
 import { Card } from "@workspace/stillwell-design-system/components/native/card";
 import { Text } from "@workspace/stillwell-design-system/components/native/text";
@@ -15,6 +16,8 @@ import { DailyCheckInFlow } from "@/components/DailyCheckInFlow";
 import { RecoveryLogEditor } from "@/components/RecoveryLogEditor";
 import { RecoveryLogSummary } from "@/components/RecoveryLogSummary";
 import { SafetyNotice } from "@/components/SafetyNotice";
+import { SleepEditor } from "@/components/SleepEditor";
+import { SleepDetails, SleepTipsCard, SleepWeek } from "@/components/SleepDetails";
 import { Screen } from "@/components/Screen";
 import { usePatientData } from "@/contexts/PatientDataContext";
 import {
@@ -29,7 +32,7 @@ import {
 } from "@/lib/journal";
 import { spacing } from "@/lib/layout";
 
-type DashboardMode = "dashboard" | "checkin" | "details";
+type DashboardMode = "dashboard" | "checkin" | "details" | "sleep";
 
 function dateHeading(value: string) {
   const [year, month, day] = value.split("-").map(Number);
@@ -93,6 +96,37 @@ export default function TodayScreen() {
     return saved;
   }
 
+  async function saveSleep(sleep: SleepLog | null) {
+    if (!userId) throw new Error("A signed-in patient account is required.");
+    const saved = await saveLog.mutateAsync({
+      data: { ...emptyLog(today), sleep, section: "sleep" },
+    });
+    queryClient.setQueryData(
+      recoveryQueryKey(userId),
+      (current: typeof recovery) => upsertLog(current, saved),
+    );
+    return saved;
+  }
+
+  function confirmDeleteSleep() {
+    Alert.alert(
+      "Delete sleep for this day?",
+      "This removes only the sleep entry. Your check-in and activities stay.",
+      [
+        { text: "Keep sleep", style: "cancel" },
+        {
+          text: "Delete sleep",
+          style: "destructive",
+          onPress: () => {
+            void saveSleep(null)
+              .then(() => setMode("dashboard"))
+              .catch(() => Alert.alert("Sleep could not be deleted. Try again."));
+          },
+        },
+      ],
+    );
+  }
+
   if (recoveryLoading) {
     return (
       <Screen bottomTabs>
@@ -144,6 +178,25 @@ export default function TodayScreen() {
           title="Log food, movement and pacing"
         />
         <SafetyNotice />
+      </Screen>
+    );
+  }
+
+  if (mode === "sleep") {
+    return (
+      <Screen bottomTabs>
+        <SleepEditor
+          key={`${today}-sleep`}
+          date={today}
+          initial={currentLog?.sleep}
+          onSave={async (sleep) => {
+            await saveSleep(sleep);
+            setMode("dashboard");
+          }}
+          onDelete={currentLog?.sleep ? confirmDeleteSleep : undefined}
+          deleting={saveLog.isPending}
+          onCancel={() => setMode("dashboard")}
+        />
       </Screen>
     );
   }
@@ -325,6 +378,30 @@ export default function TodayScreen() {
           </View>
         )}
       </Card>
+
+      <Card>
+        <View style={styles.cardHeading}>
+          <View style={styles.flexCopy}>
+            <Text variant="label">LAST NIGHT</Text>
+            <Text variant="heading">{sleepSummary(currentLog?.sleep)}</Text>
+          </View>
+          <Button
+            fullWidth={false}
+            tone="outline"
+            onPress={() => setMode("sleep")}
+            testID={currentLog?.sleep ? "edit-sleep" : "log-sleep"}
+          >
+            {currentLog?.sleep ? "Edit sleep" : "Log sleep"}
+          </Button>
+        </View>
+        {currentLog?.sleep ? <SleepDetails sleep={currentLog.sleep} /> : (
+          <Text variant="caption">
+            Optional. Record bedtime, wake time, or how the night felt. Skip anything.
+          </Text>
+        )}
+        <SleepWeek logs={recovery.logs} ending={today} />
+      </Card>
+      <SleepTipsCard />
 
       <Card>
         <View style={styles.cardHeading}>

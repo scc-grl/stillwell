@@ -59,6 +59,7 @@
     "@expo-google-fonts/dm-sans": "^0.4.2",
     "@expo-google-fonts/fraunces": "^0.4.1",
     "@expo/react-native-action-sheet": "^4.1.1",
+    "@react-native-community/datetimepicker": "9.1.0",
     "@workspace/api-client-react": "workspace:*",
     "@workspace/api-zod": "workspace:*",
     "@workspace/recovery-journal": "workspace:*",

@@ -1,3 +1,4 @@
+export * from "@workspace/recovery-journal/sleep";
 import type {
   DailyCheckIn, DailyCheckInSymptomAnswer, RecoveryLog, RecoveryLogInput,
   RecoveryPreferences, SymptomEntry,

@@ -15,4 +15,5 @@ export type RecoveryLogSaveInputSection = typeof RecoveryLogSaveInputSection[key
 export const RecoveryLogSaveInputSection = {
   check_in: 'check_in',
   activities: 'activities',
+  sleep: 'sleep',
 } as const;

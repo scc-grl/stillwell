@@ -7,6 +7,7 @@
  */
 import type { ActivityStatus } from './activityStatus';
 import type { DailyCheckIn } from './dailyCheckIn';
+import type { SleepLog } from './sleepLog';
 import type { SymptomEntry } from './symptomEntry';
 
 export interface RecoveryLogInput {
@@ -31,4 +32,5 @@ export interface RecoveryLogInput {
   /** @maxLength 2000 */
   note: string;
   dailyCheckIn?: DailyCheckIn;
+  sleep?: SleepLog | null;
 }

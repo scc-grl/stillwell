@@ -855,6 +855,10 @@ export const getSharedPatientJournalResponseLogsItemDailyCheckInSymptomsMax = 6;
 
 export const getSharedPatientJournalResponseLogsItemDailyCheckInSummaryMax = 500;
 
+export const getSharedPatientJournalResponseLogsItemSleepOneBedtimeRegExp = new RegExp('^([01]\\d|2[0-3]):[0-5]\\d$');
+export const getSharedPatientJournalResponseLogsItemSleepOneWakeTimeRegExp = new RegExp('^([01]\\d|2[0-3]):[0-5]\\d$');
+export const getSharedPatientJournalResponseLogsItemSleepOneNoteMax = 280;
+
 
 
 export const GetSharedPatientJournalResponse = zod.object({
@@ -882,7 +886,15 @@ export const GetSharedPatientJournalResponse = zod.object({
   "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3)]).nullable()
 })).min(getSharedPatientJournalResponseLogsItemDailyCheckInSymptomsMin).max(getSharedPatientJournalResponseLogsItemDailyCheckInSymptomsMax),
   "summary": zod.string().max(getSharedPatientJournalResponseLogsItemDailyCheckInSummaryMax)
-}).optional()
+}).optional(),
+  "sleep": zod.union([zod.object({
+  "bedtime": zod.string().regex(getSharedPatientJournalResponseLogsItemSleepOneBedtimeRegExp).nullish(),
+  "wakeTime": zod.string().regex(getSharedPatientJournalResponseLogsItemSleepOneWakeTimeRegExp).nullish(),
+  "quality": zod.union([zod.literal('poor'),zod.literal('fair'),zod.literal('good'),zod.literal('great'),zod.literal(null)]).nullish(),
+  "wakings": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3),zod.literal(null)]).nullish().describe('3 represents three or more awakenings.'),
+  "nap": zod.union([zod.literal('none'),zod.literal('under_30'),zod.literal('30_or_more'),zod.literal(null)]).nullish(),
+  "note": zod.string().max(getSharedPatientJournalResponseLogsItemSleepOneNoteMax).optional()
+}).describe('Optional record of the night ending on the journal date. Local clock times; duration is derived, never stored as a score.'),zod.null()]).optional()
 }))
 })
 
@@ -958,6 +970,10 @@ export const getRecoveryResponseLogsItemOneDailyCheckInSymptomsMax = 6;
 
 export const getRecoveryResponseLogsItemOneDailyCheckInSummaryMax = 500;
 
+export const getRecoveryResponseLogsItemOneSleepOneBedtimeRegExp = new RegExp('^([01]\\d|2[0-3]):[0-5]\\d$');
+export const getRecoveryResponseLogsItemOneSleepOneWakeTimeRegExp = new RegExp('^([01]\\d|2[0-3]):[0-5]\\d$');
+export const getRecoveryResponseLogsItemOneSleepOneNoteMax = 280;
+
 
 
 export const GetRecoveryResponse = zod.object({
@@ -990,7 +1006,15 @@ export const GetRecoveryResponse = zod.object({
   "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3)]).nullable()
 })).min(getRecoveryResponseLogsItemOneDailyCheckInSymptomsMin).max(getRecoveryResponseLogsItemOneDailyCheckInSymptomsMax),
   "summary": zod.string().max(getRecoveryResponseLogsItemOneDailyCheckInSummaryMax)
-}).optional()
+}).optional(),
+  "sleep": zod.union([zod.object({
+  "bedtime": zod.string().regex(getRecoveryResponseLogsItemOneSleepOneBedtimeRegExp).nullish(),
+  "wakeTime": zod.string().regex(getRecoveryResponseLogsItemOneSleepOneWakeTimeRegExp).nullish(),
+  "quality": zod.union([zod.literal('poor'),zod.literal('fair'),zod.literal('good'),zod.literal('great'),zod.literal(null)]).nullish(),
+  "wakings": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3),zod.literal(null)]).nullish().describe('3 represents three or more awakenings.'),
+  "nap": zod.union([zod.literal('none'),zod.literal('under_30'),zod.literal('30_or_more'),zod.literal(null)]).nullish(),
+  "note": zod.string().max(getRecoveryResponseLogsItemOneSleepOneNoteMax).optional()
+}).describe('Optional record of the night ending on the journal date. Local clock times; duration is derived, never stored as a score.'),zod.null()]).optional()
 }).and(zod.object({
   "updatedAt": zod.coerce.date()
 })))
@@ -1031,6 +1055,10 @@ export const startRecoveryBodyFirstLogDailyCheckInSymptomsMax = 6;
 
 export const startRecoveryBodyFirstLogDailyCheckInSummaryMax = 500;
 
+export const startRecoveryBodyFirstLogSleepOneBedtimeRegExp = new RegExp('^([01]\\d|2[0-3]):[0-5]\\d$');
+export const startRecoveryBodyFirstLogSleepOneWakeTimeRegExp = new RegExp('^([01]\\d|2[0-3]):[0-5]\\d$');
+export const startRecoveryBodyFirstLogSleepOneNoteMax = 280;
+
 
 
 export const StartRecoveryBody = zod.object({
@@ -1061,7 +1089,15 @@ export const StartRecoveryBody = zod.object({
   "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3)]).nullable()
 })).min(startRecoveryBodyFirstLogDailyCheckInSymptomsMin).max(startRecoveryBodyFirstLogDailyCheckInSymptomsMax),
   "summary": zod.string().max(startRecoveryBodyFirstLogDailyCheckInSummaryMax)
-}).optional()
+}).optional(),
+  "sleep": zod.union([zod.object({
+  "bedtime": zod.string().regex(startRecoveryBodyFirstLogSleepOneBedtimeRegExp).nullish(),
+  "wakeTime": zod.string().regex(startRecoveryBodyFirstLogSleepOneWakeTimeRegExp).nullish(),
+  "quality": zod.union([zod.literal('poor'),zod.literal('fair'),zod.literal('good'),zod.literal('great'),zod.literal(null)]).nullish(),
+  "wakings": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3),zod.literal(null)]).nullish().describe('3 represents three or more awakenings.'),
+  "nap": zod.union([zod.literal('none'),zod.literal('under_30'),zod.literal('30_or_more'),zod.literal(null)]).nullish(),
+  "note": zod.string().max(startRecoveryBodyFirstLogSleepOneNoteMax).optional()
+}).describe('Optional record of the night ending on the journal date. Local clock times; duration is derived, never stored as a score.'),zod.null()]).optional()
 })
 })
 
@@ -1089,6 +1125,10 @@ export const startRecoveryResponseLogsItemOneDailyCheckInSymptomsMin = 6;
 export const startRecoveryResponseLogsItemOneDailyCheckInSymptomsMax = 6;
 
 export const startRecoveryResponseLogsItemOneDailyCheckInSummaryMax = 500;
+
+export const startRecoveryResponseLogsItemOneSleepOneBedtimeRegExp = new RegExp('^([01]\\d|2[0-3]):[0-5]\\d$');
+export const startRecoveryResponseLogsItemOneSleepOneWakeTimeRegExp = new RegExp('^([01]\\d|2[0-3]):[0-5]\\d$');
+export const startRecoveryResponseLogsItemOneSleepOneNoteMax = 280;
 
 
 
@@ -1122,7 +1162,15 @@ export const StartRecoveryResponse = zod.object({
   "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3)]).nullable()
 })).min(startRecoveryResponseLogsItemOneDailyCheckInSymptomsMin).max(startRecoveryResponseLogsItemOneDailyCheckInSymptomsMax),
   "summary": zod.string().max(startRecoveryResponseLogsItemOneDailyCheckInSummaryMax)
-}).optional()
+}).optional(),
+  "sleep": zod.union([zod.object({
+  "bedtime": zod.string().regex(startRecoveryResponseLogsItemOneSleepOneBedtimeRegExp).nullish(),
+  "wakeTime": zod.string().regex(startRecoveryResponseLogsItemOneSleepOneWakeTimeRegExp).nullish(),
+  "quality": zod.union([zod.literal('poor'),zod.literal('fair'),zod.literal('good'),zod.literal('great'),zod.literal(null)]).nullish(),
+  "wakings": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3),zod.literal(null)]).nullish().describe('3 represents three or more awakenings.'),
+  "nap": zod.union([zod.literal('none'),zod.literal('under_30'),zod.literal('30_or_more'),zod.literal(null)]).nullish(),
+  "note": zod.string().max(startRecoveryResponseLogsItemOneSleepOneNoteMax).optional()
+}).describe('Optional record of the night ending on the journal date. Local clock times; duration is derived, never stored as a score.'),zod.null()]).optional()
 }).and(zod.object({
   "updatedAt": zod.coerce.date()
 })))
@@ -1181,6 +1229,10 @@ export const saveRecoveryLogBodyOneDailyCheckInSymptomsMax = 6;
 
 export const saveRecoveryLogBodyOneDailyCheckInSummaryMax = 500;
 
+export const saveRecoveryLogBodyOneSleepOneBedtimeRegExp = new RegExp('^([01]\\d|2[0-3]):[0-5]\\d$');
+export const saveRecoveryLogBodyOneSleepOneWakeTimeRegExp = new RegExp('^([01]\\d|2[0-3]):[0-5]\\d$');
+export const saveRecoveryLogBodyOneSleepOneNoteMax = 280;
+
 
 
 export const SaveRecoveryLogBody = zod.object({
@@ -1205,9 +1257,17 @@ export const SaveRecoveryLogBody = zod.object({
   "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3)]).nullable()
 })).min(saveRecoveryLogBodyOneDailyCheckInSymptomsMin).max(saveRecoveryLogBodyOneDailyCheckInSymptomsMax),
   "summary": zod.string().max(saveRecoveryLogBodyOneDailyCheckInSummaryMax)
-}).optional()
+}).optional(),
+  "sleep": zod.union([zod.object({
+  "bedtime": zod.string().regex(saveRecoveryLogBodyOneSleepOneBedtimeRegExp).nullish(),
+  "wakeTime": zod.string().regex(saveRecoveryLogBodyOneSleepOneWakeTimeRegExp).nullish(),
+  "quality": zod.union([zod.literal('poor'),zod.literal('fair'),zod.literal('good'),zod.literal('great'),zod.literal(null)]).nullish(),
+  "wakings": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3),zod.literal(null)]).nullish().describe('3 represents three or more awakenings.'),
+  "nap": zod.union([zod.literal('none'),zod.literal('under_30'),zod.literal('30_or_more'),zod.literal(null)]).nullish(),
+  "note": zod.string().max(saveRecoveryLogBodyOneSleepOneNoteMax).optional()
+}).describe('Optional record of the night ending on the journal date. Local clock times; duration is derived, never stored as a score.'),zod.null()]).optional()
 }).and(zod.object({
-  "section": zod.enum(['check_in', 'activities']).optional().describe('Atomically update only this journal section, preserving fields written on another device. Omit for backwards-compatible merge.')
+  "section": zod.enum(['check_in', 'activities', 'sleep']).optional().describe('Atomically update only this journal section, preserving fields written on another device. Omit for backwards-compatible merge.')
 }))
 
 export const saveRecoveryLogResponseOneDateRegExp = new RegExp('^\\d{4}-\\d{2}-\\d{2}$');
@@ -1231,6 +1291,10 @@ export const saveRecoveryLogResponseOneDailyCheckInSymptomsMin = 6;
 export const saveRecoveryLogResponseOneDailyCheckInSymptomsMax = 6;
 
 export const saveRecoveryLogResponseOneDailyCheckInSummaryMax = 500;
+
+export const saveRecoveryLogResponseOneSleepOneBedtimeRegExp = new RegExp('^([01]\\d|2[0-3]):[0-5]\\d$');
+export const saveRecoveryLogResponseOneSleepOneWakeTimeRegExp = new RegExp('^([01]\\d|2[0-3]):[0-5]\\d$');
+export const saveRecoveryLogResponseOneSleepOneNoteMax = 280;
 
 
 
@@ -1256,7 +1320,15 @@ export const SaveRecoveryLogResponse = zod.object({
   "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3)]).nullable()
 })).min(saveRecoveryLogResponseOneDailyCheckInSymptomsMin).max(saveRecoveryLogResponseOneDailyCheckInSymptomsMax),
   "summary": zod.string().max(saveRecoveryLogResponseOneDailyCheckInSummaryMax)
-}).optional()
+}).optional(),
+  "sleep": zod.union([zod.object({
+  "bedtime": zod.string().regex(saveRecoveryLogResponseOneSleepOneBedtimeRegExp).nullish(),
+  "wakeTime": zod.string().regex(saveRecoveryLogResponseOneSleepOneWakeTimeRegExp).nullish(),
+  "quality": zod.union([zod.literal('poor'),zod.literal('fair'),zod.literal('good'),zod.literal('great'),zod.literal(null)]).nullish(),
+  "wakings": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3),zod.literal(null)]).nullish().describe('3 represents three or more awakenings.'),
+  "nap": zod.union([zod.literal('none'),zod.literal('under_30'),zod.literal('30_or_more'),zod.literal(null)]).nullish(),
+  "note": zod.string().max(saveRecoveryLogResponseOneSleepOneNoteMax).optional()
+}).describe('Optional record of the night ending on the journal date. Local clock times; duration is derived, never stored as a score.'),zod.null()]).optional()
 }).and(zod.object({
   "updatedAt": zod.coerce.date()
 }))

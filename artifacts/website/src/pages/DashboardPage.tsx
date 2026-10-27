@@ -39,6 +39,8 @@ import {
 import { ActivitiesEditor } from "@/components/ActivitiesEditor";
 import { DailyCheckInFlow } from "@/components/DailyCheckInFlow";
 import { PatientProgressChart } from "@/components/PatientProgressChart";
+import { SleepEditor } from "@/components/SleepEditor";
+import { SleepDetailList, SleepTipsCard, SleepWeekTable } from "@/components/SleepDetails";
 import { clearDraft, emptyLog, localDate, priorityChoices, readDraft, routinePrompts, type DraftEnvelope } from "@/lib/recovery";
 import {
   activityChoices,
@@ -47,10 +49,12 @@ import {
   checkInSymptoms,
   overallChoices,
   ratingLabel,
+  sleepSummary,
   supportModes,
+  type SleepLog,
 } from "@workspace/recovery-journal";
 
-type SelectedHistory = { log: RecoveryLog; view: "summary" | "check_in" | "activities" };
+type SelectedHistory = { log: RecoveryLog; view: "summary" | "check_in" | "activities" | "sleep" };
 
 function Brand() {
   return <Link href="/" className="flex items-center gap-3 text-foreground" aria-label="Stillwell home">
@@ -121,6 +125,10 @@ function HistorySummary({ log }: { log: RecoveryLog }) {
       </div>
       {checkIn.summary.trim() && <p className="whitespace-pre-wrap border-t border-border pt-3 text-sm leading-6">{checkIn.summary}</p>}
     </Card>
+    <Card className="space-y-3 p-5">
+      <h3 className="font-serif text-2xl font-medium">Sleep</h3>
+      <SleepDetailList sleep={log.sleep} />
+    </Card>
     <Card className="space-y-4 p-5">
       <h3 className="font-serif text-2xl font-medium">Food, movement and pacing</h3>
       <div className="grid gap-4 sm:grid-cols-2">
@@ -131,6 +139,14 @@ function HistorySummary({ log }: { log: RecoveryLog }) {
       </div>
     </Card>
   </div>;
+}
+
+function SleepDeleteConfirm({ date, pending, onKeep, onDelete }: { date: string; pending: boolean; onKeep: () => void; onDelete: () => void }) {
+  return <Card role="alertdialog" aria-labelledby="sleep-delete-heading" className="mt-4 space-y-3 border-destructive p-4">
+    <h3 id="sleep-delete-heading" className="text-sm font-semibold">Delete sleep for this day?</h3>
+    <p className="text-sm leading-6 text-muted-foreground">This removes only {formatDate(date)}’s sleep entry. Your check-in and activities stay. This cannot be undone.</p>
+    <div className="flex flex-col-reverse gap-2 sm:flex-row"><Button variant="outline" onClick={onKeep}>Keep sleep</Button><Button variant="destructive" disabled={pending} onClick={onDelete}>{pending ? "Deleting…" : "Delete sleep"}</Button></div>
+  </Card>;
 }
 
 export default function DashboardPage() {
@@ -158,6 +174,8 @@ export default function DashboardPage() {
   const [activityInitial, setActivityInitial] = useState<RecoveryLogInput | null>(null);
   const [selectedHistory, setSelectedHistory] = useState<SelectedHistory | null>(null);
   const [deleteDate, setDeleteDate] = useState<string | null>(null);
+  const [sleepOpen, setSleepOpen] = useState(false);
+  const [deleteSleepDate, setDeleteSleepDate] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const startedOnce = useRef(false);
 
@@ -168,6 +186,8 @@ export default function DashboardPage() {
     setActivityInitial(null);
     setSelectedHistory(null);
     setDeleteDate(null);
+    setSleepOpen(false);
+    setDeleteSleepDate(null);
     setMessage("");
   }, [userId]);
 
@@ -243,6 +263,27 @@ export default function DashboardPage() {
     setMessage(`${formatDate(saved.date)} activities saved.`);
   }
 
+  async function saveSleep(date: string, sleep: SleepLog | null) {
+    const saved = await saveRecoveryLog.mutateAsync({ data: { ...emptyLog(date), sleep, section: "sleep" } });
+    queryClient.setQueryData<RecoveryState>(recoveryKey, (old) => old
+      ? { ...old, logs: [...old.logs.filter((item) => item.date !== saved.date), saved].sort((a, b) => b.date.localeCompare(a.date)) }
+      : { profile: null, logs: [saved] });
+    setSleepOpen(false);
+    setDeleteSleepDate(null);
+    setSelectedHistory((current) => current && current.log.date === saved.date ? { log: saved, view: "summary" } : current);
+    setMessage(sleep ? `${formatDate(saved.date)} sleep saved.` : `${formatDate(saved.date)} sleep was deleted.`);
+    return saved;
+  }
+
+  async function deleteSleep(date: string) {
+    setMessage("");
+    try {
+      await saveSleep(date, null);
+    } catch {
+      setMessage("Sleep could not be deleted. Please try again.");
+    }
+  }
+
   function beginActivities(log?: RecoveryLog) {
     setActivityInitial(log ? { ...log } : { ...(todayLog ?? emptyLog(today)) });
     setActivitiesOpen(true);
@@ -277,6 +318,7 @@ export default function DashboardPage() {
   const openHistoryDay = (log: RecoveryLog) => {
     setSelectedHistory({ log, view: "summary" });
     setDeleteDate(null);
+    setDeleteSleepDate(null);
     setMessage("");
   };
 
@@ -400,6 +442,21 @@ export default function DashboardPage() {
               ? <ActivitiesEditor initial={activityInitial} onSave={saveActivities} onCancel={() => { setActivitiesOpen(false); setActivityInitial(null); }} />
               : <DailyCheckInFlow key={today} initial={{ ...(todayLog ?? emptyLog(today)) }} logs={logs} today={today} onPersist={saveCheckIn} onEditActivities={() => beginActivities()} />}
           </Card>}
+
+          {section === "journal" && <Card id="sleep" className="scroll-mt-28 space-y-5 p-5 sm:p-6" aria-labelledby="sleep-heading">
+            {sleepOpen
+              ? <SleepEditor key={`${today}-sleep`} date={today} initial={todayLog?.sleep} onSave={async (sleep) => { await saveSleep(today, sleep); }} onDelete={todayLog?.sleep ? () => setDeleteSleepDate(today) : undefined} deleting={saveRecoveryLog.isPending && deleteSleepDate === today} onCancel={() => { setSleepOpen(false); setDeleteSleepDate(null); }} />
+              : <>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Last night</p><h2 id="sleep-heading" className="mt-2 font-serif text-2xl font-medium">{sleepSummary(todayLog?.sleep)}</h2></div>
+                  <Button variant="outline" size="sm" onClick={() => { setSleepOpen(true); setMessage(""); }} data-testid={todayLog?.sleep ? "button-edit-sleep" : "button-log-sleep"}>{todayLog?.sleep ? "Edit sleep" : "Log sleep"}</Button>
+                </div>
+                {todayLog?.sleep ? <SleepDetailList sleep={todayLog.sleep} /> : <p className="text-sm leading-6 text-muted-foreground">Optional. Record bedtime, wake time, or how the night felt. Skip anything.</p>}
+                <div className="border-t border-border pt-4"><h3 className="mb-2 text-sm font-semibold">Past seven nights</h3><SleepWeekTable logs={logs} ending={today} /></div>
+              </>}
+            {deleteSleepDate === today && <SleepDeleteConfirm date={today} pending={saveRecoveryLog.isPending} onKeep={() => setDeleteSleepDate(null)} onDelete={() => void deleteSleep(today)} />}
+          </Card>}
+          {section === "journal" && <SleepTipsCard />}
         </div>
 
         {section === "journal" && <section className="space-y-4" aria-labelledby="history-heading">
@@ -414,10 +471,13 @@ export default function DashboardPage() {
                 setMessage(`${formatDate(saved.date)} check-in saved.`);
                 return saved;
               }} onEditActivities={() => setSelectedHistory((current) => current ? { ...current, view: "activities" } : null)} onExit={() => setSelectedHistory((current) => current ? { ...current, view: "summary" } : null)} exitLabel="Back to this day" />}
+              {selectedHistory.view === "sleep" && <SleepEditor key={`${selectedHistory.log.date}-sleep`} date={selectedHistory.log.date} initial={selectedHistory.log.sleep} onSave={async (sleep) => { await saveSleep(selectedHistory.log.date, sleep); }} onDelete={selectedHistory.log.sleep ? () => setDeleteSleepDate(selectedHistory.log.date) : undefined} deleting={saveRecoveryLog.isPending && deleteSleepDate === selectedHistory.log.date} onCancel={() => { setDeleteSleepDate(null); setSelectedHistory((current) => current ? { ...current, view: "summary" } : null); }} />}
+              {selectedHistory.view === "sleep" && deleteSleepDate === selectedHistory.log.date && <SleepDeleteConfirm date={selectedHistory.log.date} pending={saveRecoveryLog.isPending} onKeep={() => setDeleteSleepDate(null)} onDelete={() => void deleteSleep(selectedHistory.log.date)} />}
               {selectedHistory.view === "activities" && <ActivitiesEditor initial={{ ...selectedHistory.log }} onSave={saveActivities} onCancel={() => setSelectedHistory((current) => current ? { ...current, view: "summary" } : null)} />}
               {selectedHistory.view === "summary" && <div className="mt-5 flex flex-col gap-2 sm:flex-row">
                 <Button onClick={() => setSelectedHistory((current) => current ? { ...current, view: "check_in" } : null)}>Edit this day</Button>
                 <Button variant="outline" onClick={() => setSelectedHistory((current) => current ? { ...current, view: "activities" } : null)}>Edit food, movement and pacing</Button>
+                <Button variant="outline" onClick={() => setSelectedHistory((current) => current ? { ...current, view: "sleep" } : null)} data-testid="button-edit-history-sleep">{selectedHistory.log.sleep ? "Edit sleep" : "Log sleep"}</Button>
                 <Button variant="destructive" onClick={() => setDeleteDate(selectedHistory.log.date)} disabled={deleteRecoveryLog.isPending}><Trash2 />Delete this day</Button>
               </div>}
               {deleteDate === selectedHistory.log.date && <Card className="mt-4 space-y-3 border-destructive p-4">
@@ -435,7 +495,7 @@ export default function DashboardPage() {
                 : <div className="divide-y divide-border">{pastLogs.map((log) => {
                   const count = dailyCheckInFromLog(log).symptoms.filter((answer) => answer.status === "recorded").length;
                   return <article key={log.date} className="flex flex-col justify-between gap-3 py-4 sm:flex-row sm:items-center" data-testid={`history-entry-${log.date}`}>
-                    <div><p className="font-medium">{formatDate(log.date)}</p><p className="mt-1 text-sm text-muted-foreground">{count} symptom {count === 1 ? "response" : "responses"}{log.dailyCheckIn?.overallFeeling ? ` · Overall ${overallChoices.find((item) => item.value === log.dailyCheckIn?.overallFeeling)?.label}` : ""}</p></div>
+                    <div><p className="font-medium">{formatDate(log.date)}</p><p className="mt-1 text-sm text-muted-foreground">{count} symptom {count === 1 ? "response" : "responses"}{log.dailyCheckIn?.overallFeeling ? ` · Overall ${overallChoices.find((item) => item.value === log.dailyCheckIn?.overallFeeling)?.label}` : ""}</p><p className="mt-1 text-sm text-muted-foreground">{sleepSummary(log.sleep)}</p></div>
                     <Button variant="outline" size="sm" onClick={() => openHistoryDay(log)} aria-label={`View ${formatDate(log.date)}`}>View day <ArrowRight /></Button>
                   </article>;
                 })}</div>}

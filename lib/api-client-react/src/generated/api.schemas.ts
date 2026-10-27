@@ -153,6 +153,72 @@ export const ActivityStatus = {
   not_planned: 'not_planned',
 } as const;
 
+/**
+ * @nullable
+ */
+export type SleepLogQuality = typeof SleepLogQuality[keyof typeof SleepLogQuality] | null;
+
+
+export const SleepLogQuality = {
+  poor: 'poor',
+  fair: 'fair',
+  good: 'good',
+  great: 'great',
+} as const;
+
+/**
+ * 3 represents three or more awakenings.
+ * @nullable
+ */
+export type SleepLogWakings = typeof SleepLogWakings[keyof typeof SleepLogWakings] | null;
+
+
+export const SleepLogWakings = {
+  NUMBER_0: 0,
+  NUMBER_1: 1,
+  NUMBER_2: 2,
+  NUMBER_3: 3,
+} as const;
+
+/**
+ * @nullable
+ */
+export type SleepLogNap = typeof SleepLogNap[keyof typeof SleepLogNap] | null;
+
+
+export const SleepLogNap = {
+  none: 'none',
+  under_30: 'under_30',
+  '30_or_more': '30_or_more',
+} as const;
+
+/**
+ * Optional record of the night ending on the journal date. Local clock times; duration is derived, never stored as a score.
+ */
+export interface SleepLog {
+  /**
+     * @nullable
+     * @pattern ^([01]\d|2[0-3]):[0-5]\d$
+     */
+  bedtime?: string | null;
+  /**
+     * @nullable
+     * @pattern ^([01]\d|2[0-3]):[0-5]\d$
+     */
+  wakeTime?: string | null;
+  /** @nullable */
+  quality?: SleepLogQuality;
+  /**
+     * 3 represents three or more awakenings.
+     * @nullable
+     */
+  wakings?: SleepLogWakings;
+  /** @nullable */
+  nap?: SleepLogNap;
+  /** @maxLength 280 */
+  note?: string;
+}
+
 export interface RecoveryLogInput {
   /** @pattern ^\d{4}-\d{2}-\d{2}$ */
   date: string;
@@ -175,6 +241,7 @@ export interface RecoveryLogInput {
   /** @maxLength 2000 */
   note: string;
   dailyCheckIn?: DailyCheckIn;
+  sleep?: SleepLog | null;
 }
 
 /**
@@ -186,6 +253,7 @@ export type RecoveryLogSaveInputSection = typeof RecoveryLogSaveInputSection[key
 export const RecoveryLogSaveInputSection = {
   check_in: 'check_in',
   activities: 'activities',
+  sleep: 'sleep',
 } as const;
 
 export type RecoveryLogSaveInput = RecoveryLogInput & {
@@ -317,6 +385,7 @@ export interface SharedRecoveryLog {
   meditationNote?: string;
   note?: string;
   dailyCheckIn?: DailyCheckIn;
+  sleep?: SleepLog | null;
 }
 
 export interface SharedPatientJournal {
