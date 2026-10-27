@@ -6,6 +6,8 @@ Source: artifacts/website/src/components/ui/badge.tsx:1–42. License: local pro
 
 Public export: @workspace/stillwell-design-system/components/ui/badge. Exports: Badge, badgeVariants. Dependencies: react, class-variance-authority. Local component peers: none. Usage evidence: .
 
+The shared Badge also supports `asChild` (default false), using the existing Radix Slot primitive. Use it to retain native button semantics for an interactive badge without nesting a div inside a button. Its default div rendering and variants are unchanged.
+
 Before implementation, read the original source, referenced peers and caller examples. Keep the source behavior/API and rewrite aliases to package-relative imports; theme to tokens. Add exactly one family demo. Do not build before pilot approval.
 
 ## Original implementation snapshot

@@ -21,6 +21,8 @@ import {
 import { pendingInviteEmail, reconcileCareLink } from '@/lib/care-link';
 
 const queryClient = new QueryClient();
+import { PortalHeader } from '@/components/portal-shell';
+
 const clerkPubKey = publishableKeyFromHost(
   window.location.hostname,
   import.meta.env.VITE_CLERK_PUBLISHABLE_KEY,
@@ -135,7 +137,8 @@ function ClerkQueryClientCacheInvalidator() {
 }
 
 function Router() {
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
+  const pageHasHeader = ['/', '/join', '/profile', '/dashboard', '/privacy', '/terms'].includes(location);
 
   return (
     <RoutedErrorBoundary>
@@ -164,6 +167,7 @@ function Router() {
         routerReplace={(to) => setLocation(stripBase(to), { replace: true })}
       >
         <QueryClientProvider client={queryClient}>
+          {!pageHasHeader && <PortalHeader />}
           <ClerkQueryClientCacheInvalidator />
           <Switch>
             <Route path="/" component={HomePage} />

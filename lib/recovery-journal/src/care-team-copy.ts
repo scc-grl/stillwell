@@ -1,4 +1,7 @@
 /** Shared, privacy-safe care-team copy. Never display raw API/provider errors. */
+export const CLINICIAN_PROOF_LABEL = "Proof-of-concept";
+export const CLINICIAN_PROOF_DESCRIPTION = "Clinician tools are an early proof-of-concept. Clinician identities aren't verified, and features may change.";
+
 export type CareSender = "patient" | "clinician";
 export type InviteField = "firstName" | "lastName" | "email";
 

@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { BASE_PATH } from '@/lib/config';
 import { ArrowDown, ArrowRight, Check, Clock3, LockKeyhole, MoveUpRight, ShieldCheck } from 'lucide-react';
 import { useAuth } from '@clerk/react';
 import { Link, useLocation } from 'wouter';
@@ -263,6 +264,17 @@ export default function HomePage() {
                 </CardContent>
               </Card>
             </div>
+            <figure className="mt-10 overflow-hidden rounded-[28px] border border-border bg-background">
+              <img
+                src={`${BASE_PATH}/images/clinician-landing-journal-illustration.jpg`}
+                alt="Illustrative clinician journal showing patient-reported symptom trends, shared entries and a visit note."
+                className="h-auto w-full"
+                loading="lazy"
+              />
+              <figcaption className="border-t border-border px-5 py-3 text-sm text-muted-foreground">
+                Illustrative preview — fictional patient details.
+              </figcaption>
+            </figure>
           </div>
         </section>
 

@@ -267,7 +267,7 @@ export default function AuthScreen() {
   if (isSignedIn && mode === "sign-in") return <Redirect href={afterSignIn} />;
 
   return (
-    <Screen>
+    <Screen clinician={role === "clinician"}>
       <Text variant="display">
         {mode === "sign-up"
           ? role === "clinician"
