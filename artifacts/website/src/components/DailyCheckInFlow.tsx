@@ -79,7 +79,6 @@ export function DailyCheckInFlow({
   const preferences = useSymptomPreferences(!draftMode);
   const [daySelection, setDaySelection] = useState<CheckInSymptomName[] | null>(initial.dailyCheckIn?.selectedSymptoms ?? null);
   const [choosingSymptoms, setChoosingSymptoms] = useState(false);
-  const [addingSymptom, setAddingSymptom] = useState(false);
   const selectedNames = daySelection ?? selectedSymptoms ?? preferences.selected ?? defaultSymptoms;
   const flowSymptoms = checkInSymptoms.filter(item => selectedNames.includes(item.name) ||
     checkIn.symptoms.some(answer => answer.name === item.name && answer.status === "recorded"));
@@ -171,14 +170,6 @@ export function DailyCheckInFlow({
           onSelectSymptoms?.(names);
           setDaySelection(names); setCheckIn(current => ({ ...current, selectedSymptoms: names })); setSymptomIndex(0); setChoosingSymptoms(false);
         }} />}
-      <Button variant="outline" disabled={saving} onClick={() => setAddingSymptom(value => !value)}><Plus />Add a symptom</Button>
-      {addingSymptom && <Card className="space-y-3 p-5"><p className="text-sm">Add a symptom for this day only. Your usual choices stay the same.</p>
-        {checkInSymptoms.filter(item => !selectedNames.includes(item.name)).map(item => <Button key={item.name} variant="outline" onClick={() => {
-          const names = [...selectedNames, item.name];
-          setDaySelection(names); setAddingSymptom(false);
-          void persist({ ...checkIn, selectedSymptoms: names });
-        }}>{item.label}</Button>)}
-      </Card>}
     </div>}
 
     {page === "home" && <>

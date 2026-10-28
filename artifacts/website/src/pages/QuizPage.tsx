@@ -64,7 +64,6 @@ export default function QuizPage() {
       </div>
 
       <Card className="space-y-5 p-5 sm:p-8">
-        <h2 className="font-serif text-2xl font-medium">Your first daily summary</h2>
         {editingActivities
           ? <ActivitiesEditor
               initial={firstLog}
