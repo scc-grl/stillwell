@@ -85,6 +85,12 @@ The patient journal is for recording the person's own experience, not for displa
 
 **How to apply:** Keep journal screens focused on optional patient-entered observations and history. Do not add advice or recommendations to those screens unless the user asks.
 
+Journal drafts remain attached to the day they were started and must not be discarded at midnight.
+
+**Why:** The user explicitly required unfinished drafts to be kept as that day's entry.
+
+**How to apply:** Preserve access to unfinished past-day drafts without inventing entries or values for other dates. Deleting all recovery data must also clear the patient's local journal drafts.
+
 Journal calendar dates in URL paths must also be redacted from access logs.
 
 **Why:** Journal timing can reveal health-related activity even when notes and symptom ratings are absent.

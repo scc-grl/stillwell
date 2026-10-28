@@ -31,6 +31,10 @@ export default function PrivacyPage() {
     deletion.mutate(undefined, {
       onSuccess: () => {
         queryClient.setQueryData([...getGetRecoveryQueryKey(), user?.id ?? ""], { profile: null, logs: [] });
+        try {
+          const prefix = `stillwell.journal-draft:${encodeURIComponent(user?.id ?? "")}:`;
+          Object.keys(localStorage).filter((key) => key.startsWith(prefix)).forEach((key) => localStorage.removeItem(key));
+        } catch { /* No private journal data is logged if local storage is unavailable. */ }
         clearDraft(); setFeedback("Your Stillwell recovery data has been deleted. You can begin again whenever you choose.");
       },
       onError: () => setFeedback("We could not delete your data just now. Your existing journal is unchanged. Please try again."),

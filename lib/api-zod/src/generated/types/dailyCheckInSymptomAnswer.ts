@@ -13,6 +13,9 @@ export interface DailyCheckInSymptomAnswer {
   name: DailyCheckInSymptomAnswerName;
   status: DailyCheckInSymptomAnswerStatus;
   rating: DailyCheckInSymptomAnswerRating;
-  /** Date this symptom first appeared in the patient's tracked list. */
-  addedOn?: Date;
+  /**
+     * Date this symptom first appeared in the patient's tracked list.
+     * @pattern ^\d{4}-\d{2}-\d{2}$
+     */
+  addedOn?: string;
 }

@@ -163,10 +163,10 @@ test("approximate sleep hours persist through the section-specific save and do n
   assert.equal(row.dietNote, "Food");
 });
 test("generated API validation allows skipped fields and approximate hours through 24", () => {
-  for (const sleep of [{}, null, { bedtime: null, wakings: 0 }, { hoursSlept: 0 }, { hoursSlept: 24 }, { note: "x".repeat(280) }]) {
+  for (const sleep of [{}, null, { bedtime: null, wakings: 0 }, { hoursSlept: 0 }, { hoursSlept: 7.5 }, { hoursSlept: 24 }, { note: "x".repeat(280) }]) {
     assert.equal(SaveRecoveryLogBody.safeParse({ ...base, section: "sleep", sleep }).success, true);
   }
-  for (const sleep of [{ hoursSlept: -1 }, { hoursSlept: 25 }, { hoursSlept: 7.5 }, { bedtime: "24:00" }, { wakeTime: "07:99" }, { quality: "excellent" }, { wakings: 4 }, { nap: "long" }, { note: "x".repeat(281) }]) {
+  for (const sleep of [{ hoursSlept: -1 }, { hoursSlept: 25 }, { hoursSlept: 7.25 }, { bedtime: "24:00" }, { wakeTime: "07:99" }, { quality: "excellent" }, { wakings: 4 }, { nap: "long" }, { note: "x".repeat(281) }]) {
     assert.equal(SaveRecoveryLogBody.safeParse({ ...base, section: "sleep", sleep }).success, false);
   }
   const result = GetRecoveryResponse.parse({ profile: null, logs: [{ ...base, sleep, updatedAt: "2026-10-20T08:00:00Z" }] });

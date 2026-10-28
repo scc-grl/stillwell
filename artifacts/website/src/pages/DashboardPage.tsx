@@ -217,6 +217,25 @@ export default function DashboardPage() {
   const deleteRecoveryLog = useDeleteRecoveryLog();
   const profile = recoveryQuery.data?.profile;
   const section = sectionForPath(location);
+  useEffect(() => {
+    if (section !== "journal") return;
+    const root = document.documentElement;
+    const existingDark = root.classList.contains("dark");
+    const existingScheme = root.style.colorScheme;
+    const preference = window.matchMedia("(prefers-color-scheme: dark)");
+    const applyTheme = () => {
+      const dark = existingDark || preference.matches;
+      root.classList.toggle("dark", dark);
+      root.style.colorScheme = dark ? "dark" : "light";
+    };
+    applyTheme();
+    preference.addEventListener("change", applyTheme);
+    return () => {
+      preference.removeEventListener("change", applyTheme);
+      root.classList.toggle("dark", existingDark);
+      root.style.colorScheme = existingScheme;
+    };
+  }, [section]);
   const logs = useMemo(() => [...(recoveryQuery.data?.logs ?? [])].sort((a, b) => b.date.localeCompare(a.date)), [recoveryQuery.data?.logs]);
   const today = localDate();
   const defaultTrackedSymptoms = useMemo(() => checkInSymptoms.slice(0, 6).map((symptom) => symptom.name), []);

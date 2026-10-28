@@ -736,7 +736,7 @@ components:
           nullable: true
         addedOn:
           type: string
-          format: date
+          pattern: '^\d{4}-\d{2}-\d{2}$'
           description: Date this symptom first appeared in the patient's tracked list.
     DailyCheckIn:
       type: object

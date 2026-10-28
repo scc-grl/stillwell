@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { SaveRecoveryLogBody } from "@workspace/api-zod";
+import { SaveRecoveryLogBody } from "../../../../lib/api-zod/src/generated/api.ts";
 import { recoveryLogWrite } from "./recovery-log-write.ts";
 
 const original = {

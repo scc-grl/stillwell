@@ -35,6 +35,7 @@ import { ArrowLeft, ArrowRight, CalendarDays, Check, Plus, X } from "lucide-reac
 type JournalDraft = {
   date: string;
   updatedAt: string;
+  startedAt?: string;
   dailyCheckIn: DailyCheckIn;
   sleep: NonNullable<RecoveryLogInput["sleep"]>;
 };
@@ -163,7 +164,12 @@ export function JournalDatebook({
   const selectedSymptomsRef = useRef(selectedSymptoms);
   const undoSnapshot = useRef<{ names: CheckInSymptomName[]; checkIn: DailyCheckIn } | null>(null);
   const undoTimer = useRef<number | undefined>(undefined);
+  const pendingDraft = useRef<{ ownerId: string; draft: JournalDraft } | null>(null);
   selectedSymptomsRef.current = selectedSymptoms;
+  pendingDraft.current = mode === "form" && draftEnabled ? {
+    ownerId,
+    draft: { date: activeDate, updatedAt: new Date().toISOString(), startedAt: draftStartedAt ?? undefined, dailyCheckIn: { ...checkIn, selectedSymptoms: trackedNames }, sleep },
+  } : null;
   const historyCutoff = new Date(`${today}T12:00:00`);
   historyCutoff.setDate(historyCutoff.getDate() - 29);
   const historyCutoffDate = `${historyCutoff.getFullYear()}-${`${historyCutoff.getMonth() + 1}`.padStart(2, "0")}-${`${historyCutoff.getDate()}`.padStart(2, "0")}`;
@@ -187,7 +193,7 @@ export function JournalDatebook({
       setCheckIn(persisted.dailyCheckIn);
       setSleep(persisted.sleep);
       setDraftSavedAt(persisted.updatedAt);
-      setDraftStartedAt(persisted.updatedAt);
+      setDraftStartedAt(persisted.startedAt ?? persisted.updatedAt);
       setResumedDraft(true);
       setMode("form");
       setDraftEnabled(true);
@@ -214,18 +220,37 @@ export function JournalDatebook({
       const draft: JournalDraft = {
         date: activeDate,
         updatedAt: now,
+        startedAt: draftStartedAt ?? now,
         dailyCheckIn: { ...checkIn, selectedSymptoms: trackedNames },
         sleep,
       };
       try {
         localStorage.setItem(storageKey(ownerId, activeDate), JSON.stringify(draft));
         setDraftSavedAt(now);
+        setDraftStartedAt((started) => started ?? now);
       } catch {
         setDraftSavedAt(null);
       }
     }, 600);
     return () => window.clearTimeout(timeout);
-  }, [activeDate, checkIn, draftEnabled, mode, ownerId, sleep, trackedNames]);
+  }, [activeDate, checkIn, draftEnabled, draftStartedAt, mode, ownerId, sleep, trackedNames]);
+
+  function keepPendingDraft() {
+    const pending = pendingDraft.current;
+    if (!pending) return;
+    try {
+      localStorage.setItem(storageKey(pending.ownerId, pending.draft.date), JSON.stringify(pending.draft));
+    } catch { /* Do not log private journal drafts. */ }
+  }
+
+  useEffect(() => {
+    const keepDraft = () => keepPendingDraft();
+    window.addEventListener("pagehide", keepDraft);
+    return () => {
+      window.removeEventListener("pagehide", keepDraft);
+      keepDraft();
+    };
+  }, []);
 
   useEffect(() => {
     if (otherPrompt && openSection === "note") {
@@ -262,17 +287,19 @@ export function JournalDatebook({
       ...current,
       selectedSymptoms: trackedNames,
       symptoms: current.symptoms.map((answer) => answer.name === name
-        ? { name, status: rating === null ? "not_recorded" : "recorded", rating }
+        ? { ...answer, status: rating === null ? "not_recorded" : "recorded", rating }
         : answer),
     }));
   }
 
   function selectPast(date: string) {
+    keepPendingDraft();
+    pendingDraft.current = null;
     setActiveDate(date);
   }
 
   async function saveEntry() {
-    if (!checkIn.overallFeeling) return;
+    if (!checkIn.overallFeeling || saving) return;
     setSaving(true);
     setSaveError("");
     const current = activeLog;
@@ -298,6 +325,7 @@ export function JournalDatebook({
     } satisfies RecoveryLogInput;
     try {
       await onSave(input);
+      pendingDraft.current = null;
       try { localStorage.removeItem(storageKey(ownerId, activeDate)); } catch { /* storage may be disabled */ }
       setDraftSavedAt(null);
       setDraftEnabled(false);
@@ -308,6 +336,13 @@ export function JournalDatebook({
       setSaving(false);
     }
   }
+
+  useEffect(() => {
+    if (!saveError || mode !== "form") return;
+    const retry = () => { if (!saving) void saveEntry(); };
+    window.addEventListener("online", retry);
+    return () => window.removeEventListener("online", retry);
+  }, [saveError, saving, mode, checkIn, sleep, trackedNames, activeDate]);
 
   function openAddSymptoms() {
     setModalSelection([]);
@@ -353,7 +388,7 @@ export function JournalDatebook({
     try {
       await onUpdateTrackedSymptoms(nextNames);
     } catch {
-      setSaveError("Your symptom list could not be updated. Your current list is unchanged; try again.");
+      setSymptomSaveError("Your symptom list could not be updated. Your current list is unchanged; try again.");
       return;
     }
     setDraftEnabled(true);
@@ -383,7 +418,7 @@ export function JournalDatebook({
     </header>
     <div className="grid gap-5 lg:grid-cols-3">
       <Card className="space-y-5 p-5 sm:p-6 lg:col-start-2 lg:col-span-2" aria-label={`${shortDate} journal entry`}>
-        {activeDate !== today && <Button type="button" variant="ghost" className="min-h-11 px-0" onClick={() => setActiveDate(today)}><ArrowLeft aria-hidden="true" />Back to today</Button>}
+        {activeDate !== today && <Button type="button" variant="ghost" className="min-h-11 px-0" onClick={() => selectPast(today)}><ArrowLeft aria-hidden="true" />Back to today</Button>}
         <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border pb-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{isToday ? "Today" : "Past entry"}</p>
@@ -394,8 +429,8 @@ export function JournalDatebook({
 
           {mode === "readonly" && <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex gap-2">
-             <Button variant="outline" size="icon" className="min-h-[52px] min-w-[52px]" aria-label="Previous entry" disabled={!previousDate} onClick={() => previousDate && setActiveDate(previousDate)}><ArrowLeft /></Button>
-             <Button variant="outline" size="icon" className="min-h-[52px] min-w-[52px]" aria-label="Next entry" disabled={!nextDate} onClick={() => nextDate && setActiveDate(nextDate)}><ArrowRight /></Button>
+             <Button variant="outline" size="icon" className="min-h-[52px] min-w-[52px]" aria-label="Previous entry" disabled={!previousDate} onClick={() => previousDate && selectPast(previousDate)}><ArrowLeft /></Button>
+             <Button variant="outline" size="icon" className="min-h-[52px] min-w-[52px]" aria-label="Next entry" disabled={!nextDate} onClick={() => nextDate && selectPast(nextDate)}><ArrowRight /></Button>
           </div>
           <Button type="button" onClick={() => setMode("form")}>Edit this day</Button>
         </div>}
@@ -408,7 +443,6 @@ export function JournalDatebook({
           <fieldset disabled={saving} className="m-0 min-w-0 space-y-5 border-0 p-0">
           {resumedDraft && draftStartedAt && <Card className="border-secondary bg-secondary p-4 text-sm leading-6">You started today’s entry at {new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(new Date(draftStartedAt))}. Your draft is kept on this device.</Card>}
           <div className="space-y-3">
-            <h3 className="text-base font-semibold">How is today?</h3>
             <div role="group" aria-label="Overall" className="grid grid-cols-2 gap-2 sm:grid-cols-5">
               {overallChoices.map((choice) => {
                 const active = checkIn.overallFeeling === choice.value;
@@ -432,6 +466,7 @@ export function JournalDatebook({
                     <p className="max-w-xl text-sm leading-5 text-muted-foreground">These are your own observations, not a diagnosis. Choose what feels useful to record.</p>
                     <Link href="/quiz" className="inline-flex min-h-11 items-center text-sm font-medium text-primary underline underline-offset-4">Change my list</Link>
                   </div>
+                  {symptomSaveError && <p role="alert" className="text-sm text-destructive">{symptomSaveError}</p>}
                   <Button type="button" variant="outline" size="sm" onClick={openAddSymptoms}><Plus aria-hidden="true" />Something new today?</Button>
                 </div>
                 {listedSymptoms.map((symptom) => {
@@ -529,7 +564,7 @@ export function JournalDatebook({
             <p className="font-semibold">Overall · {activeOverall ?? "Not recorded"}</p>
             {listedSymptoms.map((symptom) => {
               const answer = checkIn.symptoms.find((item) => item.name === symptom.name);
-              const notTracked = !selectedOnDate.includes(symptom.name);
+              const notTracked = !selectedOnDate.includes(symptom.name) && answer?.status !== "recorded";
               return <div key={symptom.name} className="flex flex-wrap justify-between gap-2 border-t border-border pt-3 text-sm">
                 <span>{symptom.label}{mode === "saved" && newTodayNames.some((item) => item.name === symptom.name) && <span className="ml-2 rounded-full bg-secondary px-2 py-1 text-xs text-secondary-foreground">New today</span>}</span>
                 <span className={!answer?.status || answer.status !== "recorded" ? "italic text-muted-foreground" : ""}>{notTracked ? "Not tracked yet" : answer?.status === "recorded" ? ratingLabel(answer) : "Not recorded"}</span>

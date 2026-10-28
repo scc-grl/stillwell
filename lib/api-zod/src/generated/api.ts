@@ -854,6 +854,7 @@ export const getSharedPatientJournalResponseLogsItemSymptomsMax = 11;
 
 export const getSharedPatientJournalResponseLogsItemDailyCheckInSelectedSymptomsMax = 11;
 
+export const getSharedPatientJournalResponseLogsItemDailyCheckInSymptomsItemAddedOnRegExp = new RegExp('^\\d{4}-\\d{2}-\\d{2}$');
 export const getSharedPatientJournalResponseLogsItemDailyCheckInSymptomsMin = 6;
 export const getSharedPatientJournalResponseLogsItemDailyCheckInSymptomsMax = 11;
 
@@ -894,7 +895,7 @@ export const GetSharedPatientJournalResponse = zod.object({
   "name": zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light', 'dizziness', 'nausea', 'vision', 'noise', 'neck']),
   "status": zod.enum(['recorded', 'not_recorded']),
   "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3)]).nullable(),
-  "addedOn": zod.coerce.date().optional().describe('Date this symptom first appeared in the patient\'s tracked list.')
+  "addedOn": zod.string().regex(getSharedPatientJournalResponseLogsItemDailyCheckInSymptomsItemAddedOnRegExp).optional().describe('Date this symptom first appeared in the patient\'s tracked list.')
 })).min(getSharedPatientJournalResponseLogsItemDailyCheckInSymptomsMin).max(getSharedPatientJournalResponseLogsItemDailyCheckInSymptomsMax),
   "summary": zod.string().max(getSharedPatientJournalResponseLogsItemDailyCheckInSummaryMax)
 }).optional(),
@@ -981,6 +982,7 @@ export const getRecoveryResponseLogsItemOneNoteMax = 2000;
 
 export const getRecoveryResponseLogsItemOneDailyCheckInSelectedSymptomsMax = 11;
 
+export const getRecoveryResponseLogsItemOneDailyCheckInSymptomsItemAddedOnRegExp = new RegExp('^\\d{4}-\\d{2}-\\d{2}$');
 export const getRecoveryResponseLogsItemOneDailyCheckInSymptomsMin = 6;
 export const getRecoveryResponseLogsItemOneDailyCheckInSymptomsMax = 11;
 
@@ -1027,7 +1029,7 @@ export const GetRecoveryResponse = zod.object({
   "name": zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light', 'dizziness', 'nausea', 'vision', 'noise', 'neck']),
   "status": zod.enum(['recorded', 'not_recorded']),
   "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3)]).nullable(),
-  "addedOn": zod.coerce.date().optional().describe('Date this symptom first appeared in the patient\'s tracked list.')
+  "addedOn": zod.string().regex(getRecoveryResponseLogsItemOneDailyCheckInSymptomsItemAddedOnRegExp).optional().describe('Date this symptom first appeared in the patient\'s tracked list.')
 })).min(getRecoveryResponseLogsItemOneDailyCheckInSymptomsMin).max(getRecoveryResponseLogsItemOneDailyCheckInSymptomsMax),
   "summary": zod.string().max(getRecoveryResponseLogsItemOneDailyCheckInSummaryMax)
 }).optional(),
@@ -1079,6 +1081,7 @@ export const startRecoveryBodyFirstLogNoteMax = 2000;
 
 export const startRecoveryBodyFirstLogDailyCheckInSelectedSymptomsMax = 11;
 
+export const startRecoveryBodyFirstLogDailyCheckInSymptomsItemAddedOnRegExp = new RegExp('^\\d{4}-\\d{2}-\\d{2}$');
 export const startRecoveryBodyFirstLogDailyCheckInSymptomsMin = 6;
 export const startRecoveryBodyFirstLogDailyCheckInSymptomsMax = 11;
 
@@ -1123,7 +1126,7 @@ export const StartRecoveryBody = zod.object({
   "name": zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light', 'dizziness', 'nausea', 'vision', 'noise', 'neck']),
   "status": zod.enum(['recorded', 'not_recorded']),
   "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3)]).nullable(),
-  "addedOn": zod.coerce.date().optional().describe('Date this symptom first appeared in the patient\'s tracked list.')
+  "addedOn": zod.string().regex(startRecoveryBodyFirstLogDailyCheckInSymptomsItemAddedOnRegExp).optional().describe('Date this symptom first appeared in the patient\'s tracked list.')
 })).min(startRecoveryBodyFirstLogDailyCheckInSymptomsMin).max(startRecoveryBodyFirstLogDailyCheckInSymptomsMax),
   "summary": zod.string().max(startRecoveryBodyFirstLogDailyCheckInSummaryMax)
 }).optional(),
@@ -1163,6 +1166,7 @@ export const startRecoveryResponseLogsItemOneNoteMax = 2000;
 
 export const startRecoveryResponseLogsItemOneDailyCheckInSelectedSymptomsMax = 11;
 
+export const startRecoveryResponseLogsItemOneDailyCheckInSymptomsItemAddedOnRegExp = new RegExp('^\\d{4}-\\d{2}-\\d{2}$');
 export const startRecoveryResponseLogsItemOneDailyCheckInSymptomsMin = 6;
 export const startRecoveryResponseLogsItemOneDailyCheckInSymptomsMax = 11;
 
@@ -1209,7 +1213,7 @@ export const StartRecoveryResponse = zod.object({
   "name": zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light', 'dizziness', 'nausea', 'vision', 'noise', 'neck']),
   "status": zod.enum(['recorded', 'not_recorded']),
   "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3)]).nullable(),
-  "addedOn": zod.coerce.date().optional().describe('Date this symptom first appeared in the patient\'s tracked list.')
+  "addedOn": zod.string().regex(startRecoveryResponseLogsItemOneDailyCheckInSymptomsItemAddedOnRegExp).optional().describe('Date this symptom first appeared in the patient\'s tracked list.')
 })).min(startRecoveryResponseLogsItemOneDailyCheckInSymptomsMin).max(startRecoveryResponseLogsItemOneDailyCheckInSymptomsMax),
   "summary": zod.string().max(startRecoveryResponseLogsItemOneDailyCheckInSummaryMax)
 }).optional(),
@@ -1283,6 +1287,7 @@ export const saveRecoveryLogBodyOneNoteMax = 2000;
 
 export const saveRecoveryLogBodyOneDailyCheckInSelectedSymptomsMax = 11;
 
+export const saveRecoveryLogBodyOneDailyCheckInSymptomsItemAddedOnRegExp = new RegExp('^\\d{4}-\\d{2}-\\d{2}$');
 export const saveRecoveryLogBodyOneDailyCheckInSymptomsMin = 6;
 export const saveRecoveryLogBodyOneDailyCheckInSymptomsMax = 11;
 
@@ -1320,7 +1325,7 @@ export const SaveRecoveryLogBody = zod.object({
   "name": zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light', 'dizziness', 'nausea', 'vision', 'noise', 'neck']),
   "status": zod.enum(['recorded', 'not_recorded']),
   "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3)]).nullable(),
-  "addedOn": zod.coerce.date().optional().describe('Date this symptom first appeared in the patient\'s tracked list.')
+  "addedOn": zod.string().regex(saveRecoveryLogBodyOneDailyCheckInSymptomsItemAddedOnRegExp).optional().describe('Date this symptom first appeared in the patient\'s tracked list.')
 })).min(saveRecoveryLogBodyOneDailyCheckInSymptomsMin).max(saveRecoveryLogBodyOneDailyCheckInSymptomsMax),
   "summary": zod.string().max(saveRecoveryLogBodyOneDailyCheckInSummaryMax)
 }).optional(),
@@ -1356,6 +1361,7 @@ export const saveRecoveryLogResponseOneNoteMax = 2000;
 
 export const saveRecoveryLogResponseOneDailyCheckInSelectedSymptomsMax = 11;
 
+export const saveRecoveryLogResponseOneDailyCheckInSymptomsItemAddedOnRegExp = new RegExp('^\\d{4}-\\d{2}-\\d{2}$');
 export const saveRecoveryLogResponseOneDailyCheckInSymptomsMin = 6;
 export const saveRecoveryLogResponseOneDailyCheckInSymptomsMax = 11;
 
@@ -1393,7 +1399,7 @@ export const SaveRecoveryLogResponse = zod.object({
   "name": zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light', 'dizziness', 'nausea', 'vision', 'noise', 'neck']),
   "status": zod.enum(['recorded', 'not_recorded']),
   "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3)]).nullable(),
-  "addedOn": zod.coerce.date().optional().describe('Date this symptom first appeared in the patient\'s tracked list.')
+  "addedOn": zod.string().regex(saveRecoveryLogResponseOneDailyCheckInSymptomsItemAddedOnRegExp).optional().describe('Date this symptom first appeared in the patient\'s tracked list.')
 })).min(saveRecoveryLogResponseOneDailyCheckInSymptomsMin).max(saveRecoveryLogResponseOneDailyCheckInSymptomsMax),
   "summary": zod.string().max(saveRecoveryLogResponseOneDailyCheckInSummaryMax)
 }).optional(),
