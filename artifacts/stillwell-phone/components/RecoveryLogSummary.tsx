@@ -27,61 +27,75 @@ function Detail({ title, value }: { title: string; value: string }) {
 export function RecoveryLogSummary({ log }: { log: RecoveryLog }) {
   const colors = useColors();
   const dailyCheckIn = dailyCheckInFromLog(log);
+  const recordedCount = dailyCheckIn.symptoms.filter((answer) => answer.status === "recorded").length;
 
   return (
     <View style={styles.container}>
       <Card tone="sage" inset="compact">
-        {dailyCheckIn ? (
-          <>
-            <Text variant="label">Daily symptom check-in</Text>
-            <Text variant="caption">
-              Overall: {overallChoices.find((choice) => choice.value === dailyCheckIn.overallFeeling)?.label ?? "Not recorded"}
-            </Text>
-            <View style={styles.symptoms}>
-              {dailyCheckIn.symptoms.map((answer) => {
-                const label = checkInSymptoms.find((symptom) => symptom.name === answer.name)?.label ?? answer.name;
-                const value = ratingLabel(answer);
-                const level = answer.status === "recorded"
-                  ? ratingChoices.findIndex((choice) => choice.value === answer.rating) + 1
-                  : 0;
-                return (
-                  <View key={answer.name} style={styles.symptom}>
-                    <View style={styles.symptomHeading}>
-                      <Text variant="caption">{label}</Text>
-                      <Text variant="caption">{value}</Text>
-                    </View>
-                    <View
-                      style={styles.ratingBar}
-                      accessibilityRole="image"
-                      accessibilityLabel={`${label}: ${value}`}
-                    >
-                      {ratingChoices.map((choice, index) => (
-                        <View
-                          key={choice.value}
-                          style={[
-                            styles.ratingSegment,
-                            { backgroundColor: index < level ? colors.primary : colors.muted },
-                          ]}
-                        />
-                      ))}
-                    </View>
+        <View style={styles.checkInHeader}>
+          <View style={styles.checkInTitle}>
+            <Text variant="label">SYMPTOM CHECK-IN</Text>
+            <Text variant="caption">{recordedCount} of {checkInSymptoms.length} recorded</Text>
+          </View>
+          <Text variant="caption">
+            Overall · {overallChoices.find((choice) => choice.value === dailyCheckIn.overallFeeling)?.label ?? "Not recorded"}
+          </Text>
+        </View>
+        <View style={styles.symptoms}>
+          {dailyCheckIn.symptoms.map((answer) => {
+            const label = checkInSymptoms.find((symptom) => symptom.name === answer.name)?.label ?? answer.name;
+            const value = ratingLabel(answer);
+            const level = answer.status === "recorded"
+              ? ratingChoices.findIndex((choice) => choice.value === answer.rating) + 1
+              : 0;
+            return (
+              <View
+                key={answer.name}
+                style={[
+                  styles.symptom,
+                  { backgroundColor: colors.background, borderColor: colors.border },
+                ]}
+              >
+                <View style={styles.symptomHeading}>
+                  <View style={styles.symptomName}>
+                    <View style={[styles.symptomDot, { backgroundColor: colors.primary }]} />
+                    <Text variant="caption">{label}</Text>
                   </View>
-                );
-              })}
-            </View>
-            <Text variant="caption">
-              {dailyCheckIn.summary || "No summary added."}
-            </Text>
-            <Text variant="caption">{activityQuestion} {activityAnswerChoices.find(choice => choice.value === dailyCheckIn.worseWithActivity)?.label ?? "Not recorded"}</Text>
-          </>
-        ) : (
-          <>
-            <Text variant="label">Symptoms</Text>
-            <Text variant="caption">Not recorded</Text>
-          </>
-        )}
+                  <Text variant="caption" style={styles.ratingText}>{value}</Text>
+                </View>
+                <View
+                  style={styles.ratingBar}
+                  accessibilityRole="image"
+                  accessibilityLabel={`${label}: ${value}`}
+                >
+                  {ratingChoices.map((choice, index) => (
+                    <View
+                      key={choice.value}
+                      style={[
+                        styles.ratingSegment,
+                        { backgroundColor: index < level ? colors.primary : colors.muted },
+                      ]}
+                    />
+                  ))}
+                </View>
+                <View style={styles.scaleLabels}>
+                  <Text variant="caption">Not noticeable</Text>
+                  <Text variant="caption">More noticeable</Text>
+                </View>
+              </View>
+            );
+          })}
+        </View>
+        <Text variant="caption">
+          {activityQuestion} {activityAnswerChoices.find((choice) => choice.value === dailyCheckIn.worseWithActivity)?.label ?? "Not recorded"}
+        </Text>
+      </Card>
+      <Card>
+        <Text variant="label">YOUR NOTE</Text>
+        <Text variant="body">{dailyCheckIn.summary.trim() || "No note was recorded for this day."}</Text>
       </Card>
       <Card inset="compact">
+        <Text variant="label">FOOD, MOVEMENT AND PACING</Text>
         <Detail
           title="Food & hydration"
           value={`${statusText(log.dietStatus)}${log.dietNote ? ` · ${log.dietNote}` : ""}`}
@@ -111,6 +125,15 @@ const styles = StyleSheet.create({
   container: {
     gap: spacing * 3,
   },
+  checkInHeader: {
+    gap: spacing * 2,
+  },
+  checkInTitle: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing * 2,
+  },
   detail: {
     gap: spacing,
     paddingVertical: spacing,
@@ -119,21 +142,45 @@ const styles = StyleSheet.create({
     gap: spacing * 2,
   },
   symptom: {
-    gap: spacing,
+    gap: spacing * 1.5,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: spacing * 3,
+    padding: spacing * 3,
   },
   symptomHeading: {
     flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
     gap: spacing * 2,
+  },
+  symptomName: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing * 2,
+  },
+  symptomDot: {
+    width: spacing * 2,
+    height: spacing * 2,
+    borderRadius: spacing,
+  },
+  ratingText: {
+    flexShrink: 1,
+    textAlign: "right",
   },
   ratingBar: {
     flexDirection: "row",
     gap: spacing,
   },
   ratingSegment: {
-    height: spacing * 1.5,
+    height: spacing * 2,
     flex: 1,
     borderRadius: spacing,
+  },
+  scaleLabels: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: spacing * 2,
   },
   date: {
     textAlign: "right",

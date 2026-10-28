@@ -9,6 +9,7 @@ const CardDemo = lazy(() => import('./demos/card').then(m => ({ default: m.CardD
 const InputDemo = lazy(() => import('./demos/input').then(m => ({ default: m.InputDemo })));
 const TextareaDemo = lazy(() => import('./demos/textarea').then(m => ({ default: m.TextareaDemo })));
 const CheckboxDemo = lazy(() => import('./demos/checkbox').then(m => ({ default: m.CheckboxDemo })));
+const JournalDatebookDemo = lazy(() => import('./demos/journal-datebook').then(m => ({ default: m.JournalDatebookDemo })));
 export const NAV_GROUPS: NavGroup[] = [
  { name: 'Brand', entries: [{id:'brand-logo',name:'Logo',description:'Retained original mark',Page:BrandPage}] },
  { name: 'Colors', entries: [{id:'colors-palette',name:'Palette & semantic roles',description:'Light and dark token colors',Page:ColorsPage}] },
@@ -17,7 +18,8 @@ export const NAV_GROUPS: NavGroup[] = [
  { name: 'Actions', entries: [{id:'button',name:'Buttons',description:'Variants, sizes and states',Page:ButtonDemo}] },
  { name: 'Forms & inputs', entries: [{id:'input',name:'Inputs',description:'Text, date, invalid and disabled states',Page:InputDemo},{id:'textarea',name:'Text areas',description:'Optional reflections and native behavior',Page:TextareaDemo},{id:'checkbox',name:'Checkboxes',description:'Controlled, unchecked, checked and disabled states',Page:CheckboxDemo}] },
  { name: 'Surfaces', entries: [{id:'card',name:'Cards',description:'Header, content and footer composition',Page:CardDemo}] },
- { name: 'Content', entries: [{id:'content-voice',name:'Voice & tone',description:'Source conventions for calm, optional language',Page:ContentPage}] }
+  { name: 'Content', entries: [{id:'content-voice',name:'Voice & tone',description:'Source conventions for calm, optional language',Page:ContentPage}] },
+  { name: 'Applied examples', entries: [{id:'patient-journal-datebook',name:'Patient journal · past check-ins',description:'Month-grouped date index and selected-day symptom cards',Page:JournalDatebookDemo}] }
 ];
 export const ALL_ENTRIES = [OVERVIEW_ENTRY, ...NAV_GROUPS.flatMap(group => group.entries)];
 if (new Set(ALL_ENTRIES.map(entry => entry.id)).size !== ALL_ENTRIES.length) throw new Error('Duplicate design-system navigation id');

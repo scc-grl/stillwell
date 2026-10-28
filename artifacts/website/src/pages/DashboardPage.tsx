@@ -26,6 +26,7 @@ import {
   ArrowLeft,
   ArrowRight,
   CalendarDays,
+  Check,
   CircleAlert,
   Clock3,
   LayoutDashboard,
@@ -81,7 +82,7 @@ function sectionForPath(path: string): PatientSection {
 
 function PatientDashboardNav({ section }: { section: PatientSection }) {
   return <header className="sticky top-0 z-20 border-b border-border bg-background/95 shadow-sm backdrop-blur">
-    <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:px-8 md:flex-row md:items-center md:justify-between">
+    <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:px-8 md:flex-row md:items-center md:justify-between">
       <Brand />
       <div className="grid w-full grid-cols-[1fr_auto] gap-2 md:w-auto md:flex md:items-center">
         <nav aria-label="Main navigation" className="grid grid-cols-2 gap-1 md:flex md:items-center">
@@ -123,9 +124,13 @@ function StatusPill({ children }: { children: ReactNode }) {
 function HistorySummary({ log }: { log: RecoveryLog }) {
   const checkIn = dailyCheckInFromLog(log);
   const overall = overallChoices.find((choice) => choice.value === checkIn.overallFeeling)?.label;
+  const recordedCount = checkIn.symptoms.filter((answer) => answer.status === "recorded").length;
   return <div className="space-y-4">
-    <Card className="space-y-3 p-5">
-      <h3 className="font-serif text-2xl font-medium">Daily check-in</h3>
+    <Card className="space-y-4 p-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h3 className="font-serif text-2xl font-medium">Symptom check-in</h3>
+        <StatusPill>{recordedCount} of {checkInSymptoms.length} recorded</StatusPill>
+      </div>
       {overall ? <StatusPill>Overall · {overall}</StatusPill> : <p className="text-sm text-muted-foreground">No overall feeling recorded.</p>}
       <div className="grid gap-2 sm:grid-cols-2">
         {checkInSymptoms.map((symptom) => {
@@ -134,13 +139,18 @@ function HistorySummary({ log }: { log: RecoveryLog }) {
           const selectedLevel = answer?.status === "recorded"
             ? ratingChoices.findIndex((choice) => choice.value === answer.rating) + 1
             : 0;
-          return <div key={symptom.name} className="flex items-center justify-between gap-3 border-b border-border py-2 text-sm last:border-0">
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center justify-between gap-3">
-                <span>{symptom.label}</span><span className="shrink-0 text-muted-foreground">{label}</span>
+          return <div key={symptom.name} className="rounded-xl border border-border bg-secondary/30 p-3">
+            <div className="min-w-0">
+              <div className="flex items-center justify-between gap-3 text-sm">
+                <span className="flex min-w-0 items-center gap-2 font-medium"><span className="size-2 shrink-0 rounded-full bg-primary" aria-hidden="true" />{symptom.label}</span>
+                <span className="shrink-0 text-right text-xs text-muted-foreground">{label}</span>
               </div>
-              <div className="mt-2 flex gap-1" role="img" aria-label={`${symptom.label}: ${label}`}>
+              <div className="mt-3 flex gap-1" role="img" aria-label={`${symptom.label}: ${label}`}>
                 {ratingChoices.map((choice, index) => <span key={choice.value} className={`h-2 flex-1 rounded-full ${index < selectedLevel ? "bg-primary" : "bg-muted"}`} />)}
+              </div>
+              <div className="mt-1 flex justify-between gap-2 text-[10px] leading-4 text-muted-foreground">
+                <span>{ratingChoices[0].label}</span>
+                <span>{ratingChoices[ratingChoices.length - 1].label}</span>
               </div>
             </div>
           </div>;
@@ -190,12 +200,20 @@ export default function DashboardPage() {
   const logs = useMemo(() => [...(recoveryQuery.data?.logs ?? [])].sort((a, b) => b.date.localeCompare(a.date)), [recoveryQuery.data?.logs]);
   const today = localDate();
   const todayLog = logs.find((item) => item.date === today);
+  const todayCheckIn = todayLog ? dailyCheckInFromLog(todayLog) : null;
+  const hasTodayCheckIn = Boolean(todayCheckIn && (
+    todayCheckIn.overallFeeling
+    || todayCheckIn.summary.trim()
+    || todayCheckIn.worseWithActivity
+    || todayCheckIn.symptoms.some((answer) => answer.status === "recorded")
+  ));
   const pastLogs = logs.filter((item) => item.date < today).sort((a, b) => a.date.localeCompare(b.date));
   const [routineOpen, setRoutineOpen] = useState(false);
   const [priorities, setPriorities] = useState<RecoveryPreferences["priorities"]>([]);
   const [supportMode, setSupportMode] = useState<RecoveryPreferences["supportMode"]>("self_guided");
   const [activitiesOpen, setActivitiesOpen] = useState(false);
   const [activityInitial, setActivityInitial] = useState<RecoveryLogInput | null>(null);
+  const [todayCheckInOpen, setTodayCheckInOpen] = useState(false);
   const [selectedHistoryState, setSelectedHistory] = useState<SelectedHistory | null>(null);
   const [historyPeriod, setHistoryPeriod] = useState<"30" | "all">("30");
   const [deleteDate, setDeleteDate] = useState<string | null>(null);
@@ -208,6 +226,11 @@ export default function DashboardPage() {
   const historyCutoffDate = `${historyCutoff.getFullYear()}-${`${historyCutoff.getMonth() + 1}`.padStart(2, "0")}-${`${historyCutoff.getDate()}`.padStart(2, "0")}`;
   const recentPastLogs = pastLogs.filter((item) => item.date >= historyCutoffDate);
   const visiblePastLogs = historyPeriod === "all" ? pastLogs : recentPastLogs;
+  const historyMonthGroups = visiblePastLogs.reduce<Record<string, RecoveryLog[]>>((groups, log) => {
+    const month = formatHistoryDate(log.date, { month: "long", year: "numeric" });
+    groups[month] = [...(groups[month] ?? []), log];
+    return groups;
+  }, {});
   const selectedHistory = selectedHistoryState ?? (visiblePastLogs.length
     ? { log: visiblePastLogs[visiblePastLogs.length - 1], view: "summary" as const }
     : null);
@@ -217,6 +240,7 @@ export default function DashboardPage() {
     setRoutineOpen(false);
     setActivitiesOpen(false);
     setActivityInitial(null);
+    setTodayCheckInOpen(false);
     setSelectedHistory(null);
     setDeleteDate(null);
     setSleepOpen(false);
@@ -363,7 +387,7 @@ export default function DashboardPage() {
 
   return <main className="min-h-[100dvh] bg-background pb-12">
     <PatientDashboardNav section={section} />
-    <div className="mx-auto max-w-6xl space-y-6 px-4 pt-7 sm:px-8 sm:pt-10">
+    <div className="mx-auto max-w-7xl space-y-6 px-4 pt-7 sm:px-8 sm:pt-10">
       {section === "dashboard" && <section className="rounded-3xl bg-primary p-6 text-primary-foreground sm:p-9">
         <div className="grid gap-6 sm:grid-cols-[1fr_auto] sm:items-end">
           <div className="space-y-3">
@@ -374,10 +398,18 @@ export default function DashboardPage() {
           {profile && <Button variant="secondary" onClick={() => setLocation("/dashboard/journal")} data-testid="button-open-journal">Open journal</Button>}
         </div>
       </section>}
-      {section === "journal" && <section>
-        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Your personal record</p>
-        <h1 className="mt-2 font-serif text-4xl font-medium sm:text-5xl">Journal</h1>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">A daily check-in, your routine notes, and the days you chose to keep.</p>
+      {section === "journal" && <section className="flex flex-wrap items-end justify-between gap-4">
+        <div className="space-y-2">
+          <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-secondary-foreground"><span className="h-px w-6 bg-primary/50" aria-hidden="true" />Your private journal</p>
+          <h1 className="font-serif text-4xl font-medium leading-tight sm:text-5xl">Your past check-ins</h1>
+          <p className="max-w-2xl text-sm leading-6 text-muted-foreground">Revisit the days you chose to record. No values are filled in between entries.</p>
+        </div>
+        {profile && <Button
+          aria-expanded={todayCheckInOpen}
+          aria-controls="today-check-in"
+          onClick={() => setTodayCheckInOpen((open) => !open)}
+          data-testid="button-toggle-today-check-in"
+        >{todayCheckInOpen ? "Close today’s entry" : hasTodayCheckIn ? "Review today’s check-in" : "Start today’s check-in"} <ArrowRight /></Button>}
       </section>}
       {section === "account" && <section>
         <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Your settings</p>
@@ -393,7 +425,7 @@ export default function DashboardPage() {
         <Button variant="outline" asChild><Link href="/dashboard">Back to dashboard</Link></Button>
       </section>}
 
-      {(section === "dashboard" || section === "journal") && <Card className="flex gap-3 border-accent bg-accent/30 p-4 text-sm leading-6">
+      {section === "dashboard" && <Card className="flex gap-3 border-accent bg-accent/30 p-4 text-sm leading-6">
         <CircleAlert className="mt-0.5 size-5 shrink-0 text-accent-foreground" />
         <p><strong className="font-semibold">A safety note.</strong> Stillwell is not for a new injury or emergency. If symptoms are worsening, contact a clinician. Severe or urgent symptoms need emergency care now.</p>
       </Card>}
@@ -412,12 +444,6 @@ export default function DashboardPage() {
         <h2 className="font-serif text-3xl">Your first summary is waiting.</h2>
         <p className="text-sm leading-6 text-muted-foreground">We couldn’t finish saving the setup yet. It remains in this tab temporarily, and your existing preferences have not been replaced.</p>
         <Button className="w-fit" disabled={startRecovery.isPending} onClick={() => { const draft = readDraft(); if (draft) persistDraft(draft); else setMessage("This setup has expired. Start a new quiz to continue."); }}>{startRecovery.isPending ? "Trying…" : "Try again"} <ArrowRight /></Button>
-      </Card>}
-
-      {section === "journal" && <Card className="space-y-2 p-5 sm:p-6" aria-labelledby="clinician-support-note">
-        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Clinician support</p>
-        <h2 id="clinician-support-note" className="font-serif text-2xl font-medium">Your journal stays yours.</h2>
-        <p className="max-w-3xl text-sm leading-6 text-muted-foreground">You decide who can read your journal. A clinician can only see it after you share it with them, and you can stop sharing at any time. You can also bring your own reflections to a clinician outside Stillwell if you choose.</p>
       </Card>}
 
       {section === "care-team" && <>
@@ -485,25 +511,34 @@ export default function DashboardPage() {
             <Button variant="outline" onClick={() => setLocation("/dashboard/care-team")} data-testid="button-dashboard-care-team">View care team <ArrowRight /></Button>
           </Card>}
 
-          {section === "journal" && <Card id="daily-check-in" className="scroll-mt-28 space-y-5 p-5 sm:p-6">
-            {activitiesOpen && activityInitial
-              ? <ActivitiesEditor initial={activityInitial} onSave={saveActivities} onCancel={() => { setActivitiesOpen(false); setActivityInitial(null); }} />
-              : <DailyCheckInFlow key={today} initial={{ ...(todayLog ?? emptyLog(today)) }} logs={logs} today={today} onPersist={saveCheckIn} onEditActivities={() => beginActivities()} />}
-          </Card>}
+          {section === "journal" && todayCheckInOpen && <section id="today-check-in" className="space-y-4" aria-labelledby="today-check-in-heading">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Today</p>
+                <h2 id="today-check-in-heading" className="mt-1 font-serif text-2xl font-medium">Today’s journal entry</h2>
+              </div>
+              <Button variant="outline" onClick={() => { setTodayCheckInOpen(false); setActivitiesOpen(false); setActivityInitial(null); setSleepOpen(false); }}>Close today’s entry</Button>
+            </div>
+            <Card id="daily-check-in" className="scroll-mt-28 space-y-5 p-5 sm:p-6">
+              {activitiesOpen && activityInitial
+                ? <ActivitiesEditor initial={activityInitial} onSave={saveActivities} onCancel={() => { setActivitiesOpen(false); setActivityInitial(null); }} />
+                : <DailyCheckInFlow key={today} initial={{ ...(todayLog ?? emptyLog(today)) }} logs={logs} today={today} onPersist={saveCheckIn} onEditActivities={() => beginActivities()} />}
+            </Card>
 
-          {section === "journal" && <Card id="sleep" className="scroll-mt-28 space-y-5 p-5 sm:p-6" aria-labelledby="sleep-heading">
-            {sleepOpen
-              ? <SleepEditor key={`${today}-sleep`} date={today} initial={todayLog?.sleep} onSave={async (sleep) => { await saveSleep(today, sleep); }} onDelete={todayLog?.sleep ? () => setDeleteSleepDate(today) : undefined} deleting={saveRecoveryLog.isPending && deleteSleepDate === today} onCancel={() => { setSleepOpen(false); setDeleteSleepDate(null); }} />
-              : <>
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Last night</p><h2 id="sleep-heading" className="mt-2 font-serif text-2xl font-medium">{sleepSummary(todayLog?.sleep)}</h2></div>
-                  <Button variant="outline" size="sm" onClick={() => { setSleepOpen(true); setMessage(""); }} data-testid={todayLog?.sleep ? "button-edit-sleep" : "button-log-sleep"}>{todayLog?.sleep ? "Edit sleep" : "Log sleep"}</Button>
-                </div>
-                {todayLog?.sleep ? <SleepDetailList sleep={todayLog.sleep} /> : <p className="text-sm leading-6 text-muted-foreground">Optional. Record approximate hours slept or how the night felt. Skip anything.</p>}
-                <div className="border-t border-border pt-4"><h3 className="mb-2 text-sm font-semibold">Past seven nights</h3><SleepWeekTable logs={logs} ending={today} /></div>
-              </>}
-            {deleteSleepDate === today && <SleepDeleteConfirm date={today} pending={saveRecoveryLog.isPending} onKeep={() => setDeleteSleepDate(null)} onDelete={() => void deleteSleep(today)} />}
-          </Card>}
+            <Card id="sleep" className="scroll-mt-28 space-y-5 p-5 sm:p-6" aria-labelledby="sleep-heading">
+              {sleepOpen
+                ? <SleepEditor key={`${today}-sleep`} date={today} initial={todayLog?.sleep} onSave={async (sleep) => { await saveSleep(today, sleep); }} onDelete={todayLog?.sleep ? () => setDeleteSleepDate(today) : undefined} deleting={saveRecoveryLog.isPending && deleteSleepDate === today} onCancel={() => { setSleepOpen(false); setDeleteSleepDate(null); }} />
+                : <>
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Last night</p><h3 id="sleep-heading" className="mt-2 font-serif text-2xl font-medium">{sleepSummary(todayLog?.sleep)}</h3></div>
+                    <Button variant="outline" size="sm" onClick={() => { setSleepOpen(true); setMessage(""); }} data-testid={todayLog?.sleep ? "button-edit-sleep" : "button-log-sleep"}>{todayLog?.sleep ? "Edit sleep" : "Log sleep"}</Button>
+                  </div>
+                  {todayLog?.sleep ? <SleepDetailList sleep={todayLog.sleep} /> : <p className="text-sm leading-6 text-muted-foreground">Optional. Record approximate hours slept or how the night felt. Skip anything.</p>}
+                  <div className="border-t border-border pt-4"><h4 className="mb-2 text-sm font-semibold">Past seven nights</h4><SleepWeekTable logs={logs} ending={today} /></div>
+                </>}
+              {deleteSleepDate === today && <SleepDeleteConfirm date={today} pending={saveRecoveryLog.isPending} onKeep={() => setDeleteSleepDate(null)} onDelete={() => void deleteSleep(today)} />}
+            </Card>
+          </section>}
         </div>
 
         {section === "journal" && <section className="space-y-4" aria-labelledby="history-heading">
@@ -513,9 +548,11 @@ export default function DashboardPage() {
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Journal index</p>
                   <h2 id="history-heading" className="mt-2 font-serif text-2xl font-medium">Choose a day</h2>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">Dates appear only when an entry was saved.</p>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">Choose a day to revisit the responses and words you recorded.</p>
                 </div>
-                <CalendarDays className="mt-1 size-5 shrink-0 text-primary" aria-hidden="true" />
+                <span className="mt-1 flex size-10 shrink-0 items-center justify-center rounded-full bg-secondary text-primary">
+                  <CalendarDays className="size-5" aria-hidden="true" />
+                </span>
               </div>
               <div className="flex gap-1 rounded-full bg-muted p-1" aria-label="Filter journal dates">
                 <Button size="sm" className="min-h-11 flex-1" variant={historyPeriod === "30" ? "secondary" : "ghost"} aria-pressed={historyPeriod === "30"} onClick={() => {
@@ -530,26 +567,32 @@ export default function DashboardPage() {
                   <p className="text-sm font-medium">{pastLogs.length === 0 ? "Your history starts when you do." : "No saved check-ins in this period."}</p>
                   <p className="mt-2 text-xs leading-5 text-muted-foreground">{pastLogs.length === 0 ? "Previous days will appear after you choose to save them. Today is shown above." : "Choose All dates to look further back."}</p>
                 </div>
-                : <div className="max-h-[34rem] space-y-2 overflow-y-auto pr-1">
-                  {visiblePastLogs.map((log) => {
-                    const checkIn = dailyCheckInFromLog(log);
-                    const count = checkIn.symptoms.filter((answer) => answer.status === "recorded").length;
-                    const isSelected = selectedHistory?.log.date === log.date;
-                    return <article key={log.date} data-testid={`history-entry-${log.date}`}>
-                      <Button type="button" variant={isSelected ? "secondary" : "ghost"} className="h-auto min-h-14 w-full justify-start gap-3 whitespace-normal px-3 py-3 text-left" aria-current={isSelected ? "date" : undefined} onClick={() => openHistoryDay(log)} aria-label={`View ${formatDate(log.date)}`}>
-                        <span className={`flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-lg ${isSelected ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"}`}>
-                          <span className="text-xs uppercase leading-none">{formatHistoryDate(log.date, { weekday: "short" })}</span>
-                          <span className="mt-1 text-lg font-semibold leading-none">{Number(log.date.split("-")[2])}</span>
-                        </span>
-                        <span className="min-w-0 flex-1">
-                          <span className="block text-sm font-semibold">{formatHistoryDate(log.date, { month: "short", day: "numeric" })}</span>
-                          <span className="mt-1 block text-xs text-muted-foreground">{checkIn.summary.trim() ? "Reflection saved" : `${count} responses recorded`}</span>
-                          <span className="mt-1 block text-xs text-muted-foreground">{sleepSummary(log.sleep)}</span>
-                        </span>
-                        {isSelected && <span className="text-xs font-medium text-primary">Selected</span>}
-                      </Button>
-                    </article>;
-                  })}
+                : <div className="max-h-[34rem] space-y-5 overflow-y-auto pr-1">
+                  {Object.entries(historyMonthGroups).map(([month, monthLogs]) => <section key={month} aria-label={month}>
+                    <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{month}</p>
+                    <div className="space-y-2">
+                      {monthLogs.map((log) => {
+                        const checkIn = dailyCheckInFromLog(log);
+                        const count = checkIn.symptoms.filter((answer) => answer.status === "recorded").length;
+                        const isSelected = selectedHistory?.log.date === log.date;
+                        return <article key={log.date} data-testid={`history-entry-${log.date}`}>
+                          <Button type="button" variant={isSelected ? "secondary" : "ghost"} className="h-auto min-h-14 w-full justify-start gap-3 whitespace-normal px-3 py-3 text-left" aria-current={isSelected ? "date" : undefined} onClick={() => openHistoryDay(log)} aria-label={`View ${formatDate(log.date)}`}>
+                            <span className={`flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-lg ${isSelected ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"}`}>
+                              <span className="text-xs uppercase leading-none">{formatHistoryDate(log.date, { weekday: "short" })}</span>
+                              <span className="mt-1 text-lg font-semibold leading-none">{Number(log.date.split("-")[2])}</span>
+                            </span>
+                            <span className="min-w-0 flex-1">
+                              <span className="block text-sm font-semibold">{formatHistoryDate(log.date, { month: "short", day: "numeric" })}</span>
+                              <span className="mt-1 block text-xs text-muted-foreground">{checkIn.summary.trim() || log.note ? "Reflection saved" : `${count} responses recorded`}</span>
+                              {log.sleep && <span className="mt-1 block text-xs text-muted-foreground">{sleepSummary(log.sleep)}</span>}
+                            </span>
+                            {(checkIn.summary.trim() || log.note) && <NotebookPen className="size-4 shrink-0 text-muted-foreground" aria-label="Reflection available" />}
+                            {isSelected && <Check className="size-4 shrink-0 text-primary" aria-label="Selected day" />}
+                          </Button>
+                        </article>;
+                      })}
+                    </div>
+                  </section>)}
                 </div>}
               <p className="border-t border-border pt-3 text-xs leading-5 text-muted-foreground">No days or values are filled in between entries.</p>
             </Card>
@@ -607,6 +650,12 @@ export default function DashboardPage() {
             </Card>}
           </div>
         </section>}
+
+        {section === "journal" && profile && <Card className="space-y-2 p-5 sm:p-6" aria-labelledby="clinician-support-note">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Clinician support</p>
+          <h2 id="clinician-support-note" className="font-serif text-2xl font-medium">Your journal stays yours.</h2>
+          <p className="max-w-3xl text-sm leading-6 text-muted-foreground">You decide who can read your journal. A clinician can only see it after you share it with them, and you can stop sharing at any time. You can also bring your own reflections to a clinician outside Stillwell if you choose.</p>
+        </Card>}
       </>}
       {section === "account" && <div className="grid gap-5 lg:grid-cols-2">
         <Card className="space-y-5 p-5 sm:p-6">
