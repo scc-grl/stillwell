@@ -2,8 +2,9 @@ import { StyleSheet, View } from "react-native";
 import type { RecoveryLog } from "@workspace/api-client-react";
 import { Card } from "@workspace/stillwell-design-system/components/native/card";
 import { Text } from "@workspace/stillwell-design-system/components/native/text";
+import { useColors } from "@workspace/stillwell-design-system/hooks/use-colors";
 import { spacing } from "@/lib/layout";
-import { checkInSymptoms, overallChoices, dailyCheckInFromLog, ratingLabel } from "@workspace/recovery-journal";
+import { checkInSymptoms, overallChoices, dailyCheckInFromLog, ratingChoices, ratingLabel } from "@workspace/recovery-journal";
 import { activityQuestion, activityAnswerChoices } from "@workspace/recovery-journal";
 import { formatDate } from "@/lib/journal";
 import { SleepDetails } from "@/components/SleepDetails";
@@ -24,6 +25,7 @@ function Detail({ title, value }: { title: string; value: string }) {
 }
 
 export function RecoveryLogSummary({ log }: { log: RecoveryLog }) {
+  const colors = useColors();
   const dailyCheckIn = dailyCheckInFromLog(log);
 
   return (
@@ -35,15 +37,38 @@ export function RecoveryLogSummary({ log }: { log: RecoveryLog }) {
             <Text variant="caption">
               Overall: {overallChoices.find((choice) => choice.value === dailyCheckIn.overallFeeling)?.label ?? "Not recorded"}
             </Text>
-            {dailyCheckIn.symptoms.map((answer) => {
-              const label = checkInSymptoms.find((symptom) => symptom.name === answer.name)?.label ?? answer.name;
-              const value = ratingLabel(answer);
-              return (
-                <Text key={answer.name} variant="caption">
-                  {label}: {value}
-                </Text>
-              );
-            })}
+            <View style={styles.symptoms}>
+              {dailyCheckIn.symptoms.map((answer) => {
+                const label = checkInSymptoms.find((symptom) => symptom.name === answer.name)?.label ?? answer.name;
+                const value = ratingLabel(answer);
+                const level = answer.status === "recorded"
+                  ? ratingChoices.findIndex((choice) => choice.value === answer.rating) + 1
+                  : 0;
+                return (
+                  <View key={answer.name} style={styles.symptom}>
+                    <View style={styles.symptomHeading}>
+                      <Text variant="caption">{label}</Text>
+                      <Text variant="caption">{value}</Text>
+                    </View>
+                    <View
+                      style={styles.ratingBar}
+                      accessibilityRole="image"
+                      accessibilityLabel={`${label}: ${value}`}
+                    >
+                      {ratingChoices.map((choice, index) => (
+                        <View
+                          key={choice.value}
+                          style={[
+                            styles.ratingSegment,
+                            { backgroundColor: index < level ? colors.primary : colors.muted },
+                          ]}
+                        />
+                      ))}
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
             <Text variant="caption">
               {dailyCheckIn.summary || "No summary added."}
             </Text>
@@ -89,6 +114,26 @@ const styles = StyleSheet.create({
   detail: {
     gap: spacing,
     paddingVertical: spacing,
+  },
+  symptoms: {
+    gap: spacing * 2,
+  },
+  symptom: {
+    gap: spacing,
+  },
+  symptomHeading: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: spacing * 2,
+  },
+  ratingBar: {
+    flexDirection: "row",
+    gap: spacing,
+  },
+  ratingSegment: {
+    height: spacing * 1.5,
+    flex: 1,
+    borderRadius: spacing,
   },
   date: {
     textAlign: "right",

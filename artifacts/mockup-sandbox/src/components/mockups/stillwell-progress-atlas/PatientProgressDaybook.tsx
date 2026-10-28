@@ -416,7 +416,7 @@ function PlaceholderView({ view, onNavigate }: { view: PatientWorkspaceView; onN
 
 export function PatientProgressDaybook({ embedded = false }: { embedded?: boolean }) {
   const [activeView, setActiveView] = useState<PatientWorkspaceView>("journal");
-  const audience = embedded ? "patient" : "clinician";
+  const audience = "patient";
   const content = activeView === "journal"
     ? <JournalContent audience={audience} />
     : activeView === "dashboard"
@@ -430,13 +430,9 @@ export function PatientProgressDaybook({ embedded = false }: { embedded?: boolea
         <div className="flex items-center gap-3">
           <img src={stillwellMark} alt="" aria-hidden="true" className="size-9 shrink-0" />
           <span className="font-serif text-xl font-semibold tracking-tight">stillwell</span>
-          <span className="hidden text-sm text-muted-foreground sm:inline">Clinician portal · design preview</span>
+          <span className="hidden text-sm text-muted-foreground sm:inline">Patient workspace · design preview</span>
         </div>
-        <nav aria-label="Clinician navigation" className="grid grid-cols-3 gap-1 rounded-2xl border border-border bg-card p-1">
-          <Button type="button" size="sm" className="min-h-11" variant={activeView === "dashboard" ? "secondary" : "ghost"} aria-current={activeView === "dashboard" ? "page" : undefined} onClick={() => setActiveView("dashboard")} data-testid="nav-clinician-patients">Patients</Button>
-          <Button type="button" size="sm" className="min-h-11" variant={activeView === "journal" ? "secondary" : "ghost"} aria-current={activeView === "journal" ? "page" : undefined} onClick={() => setActiveView("journal")} data-testid="nav-clinician-journal">Jane’s journal</Button>
-          <Button type="button" size="sm" className="min-h-11" variant={activeView === "account" ? "secondary" : "ghost"} aria-current={activeView === "account" ? "page" : undefined} onClick={() => setActiveView("account")} data-testid="nav-clinician-profile">Profile</Button>
-        </nav>
+        <PatientWorkspaceNavigation active={activeView} onNavigate={setActiveView} />
       </div>
     </header>
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-8 sm:py-8">{content}</div>
