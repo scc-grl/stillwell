@@ -79,6 +79,12 @@ Journaling must remain patient-controlled and non-prescriptive.
 
 **How to apply:** Save health records only with explicit consent and authenticated, owner-scoped access. Keep symptom choices, health details, free text, and identifiers out of analytics. Self-guided personalization means user-chosen priorities and educational routines, not diagnoses or prescribed treatment. Follow replit.md's health-content exclusions and do not prescribe individualized exercise intensity/progression. Keep urgent-care boundaries clear and encourage appropriate medical review.
 
+The patient journal is for recording the person's own experience, not for displaying recommendations or treatment guidance.
+
+**Why:** The user explicitly asked to keep the journal as a journaling place and remove sleep-routine recommendations from it.
+
+**How to apply:** Keep journal screens focused on optional patient-entered observations and history. Do not add advice or recommendations to those screens unless the user asks.
+
 Journal calendar dates in URL paths must also be redacted from access logs.
 
 **Why:** Journal timing can reveal health-related activity even when notes and symptom ratings are absent.

@@ -42,7 +42,7 @@ import { SymptomPreferences } from "@/components/SymptomPreferences";
 import { activityQuestion, activityAnswerChoices } from "@workspace/recovery-journal";
 import { PatientProgressChart } from "@/components/PatientProgressChart";
 import { SleepEditor } from "@/components/SleepEditor";
-import { SleepDetailList, SleepTipsCard, SleepWeekTable } from "@/components/SleepDetails";
+import { SleepDetailList, SleepWeekTable } from "@/components/SleepDetails";
 import { clearDraft, emptyLog, localDate, priorityChoices, readDraft, routinePrompts, type DraftEnvelope } from "@/lib/recovery";
 import {
   activityChoices,
@@ -66,11 +66,9 @@ function Brand() {
 }
 
 type PatientSection = "dashboard" | "journal" | "care-team" | "account";
-const patientNavigation: { id: PatientSection; label: string; path: string; icon: typeof LayoutDashboard }[] = [
+const patientNavigation: { id: "dashboard" | "journal"; label: string; path: string; icon: typeof LayoutDashboard }[] = [
   { id: "dashboard", label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { id: "journal", label: "Journal", path: "/dashboard/journal", icon: NotebookPen },
-  { id: "care-team", label: "Care team", path: "/dashboard/care-team", icon: UsersRound },
-  { id: "account", label: "Account", path: "/dashboard/account", icon: Settings2 },
 ];
 
 function sectionForPath(path: string): PatientSection {
@@ -84,19 +82,26 @@ function PatientDashboardNav({ section }: { section: PatientSection }) {
   return <header className="sticky top-0 z-20 border-b border-border bg-background/95 shadow-sm backdrop-blur">
     <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-3 sm:px-8 md:flex-row md:items-center md:justify-between">
       <Brand />
-      <nav aria-label="Patient journal" className="grid grid-cols-2 gap-1 sm:grid-cols-4 md:flex md:items-center">
-        {patientNavigation.map(({ id, label, path, icon: Icon }) => <Button
-          key={id}
-          variant={section === id ? "secondary" : "ghost"}
-          size="sm"
-          className="min-h-11 justify-start"
-          asChild
-        >
-          <Link href={path} aria-current={section === id ? "page" : undefined} data-testid={`link-patient-${id}`}>
-            <Icon className="size-4" />{label}
+      <div className="grid w-full grid-cols-[1fr_auto] gap-2 md:w-auto md:flex md:items-center">
+        <nav aria-label="Main navigation" className="grid grid-cols-2 gap-1 md:flex md:items-center">
+          {patientNavigation.map(({ id, label, path, icon: Icon }) => <Button
+            key={id}
+            variant={section === id ? "secondary" : "ghost"}
+            size="sm"
+            className="min-h-11 justify-start"
+            asChild
+          >
+            <Link href={path} aria-current={section === id ? "page" : undefined} data-testid={`link-patient-${id}`}>
+              <Icon className="size-4" />{label}
+            </Link>
+          </Button>)}
+        </nav>
+        <Button variant={section === "account" ? "secondary" : "ghost"} size="sm" className="min-h-11" asChild>
+          <Link href="/dashboard/account" aria-current={section === "account" ? "page" : undefined} data-testid="link-patient-account">
+            <Settings2 className="size-4" />Account
           </Link>
-        </Button>)}
-      </nav>
+        </Button>
+      </div>
     </div>
   </header>;
 }
@@ -348,6 +353,14 @@ export default function DashboardPage() {
         <h1 className="mt-2 font-serif text-4xl font-medium sm:text-5xl">Account</h1>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">Your Stillwell sign-in and private data controls.</p>
       </section>}
+      {section === "care-team" && <section className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Your dashboard</p>
+          <h1 className="mt-2 font-serif text-4xl font-medium sm:text-5xl">Care team</h1>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">Choose who can read your journal. You can stop sharing at any time.</p>
+        </div>
+        <Button variant="outline" asChild><Link href="/dashboard">Back to dashboard</Link></Button>
+      </section>}
 
       {(section === "dashboard" || section === "journal") && <Card className="flex gap-3 border-accent bg-accent/30 p-4 text-sm leading-6">
         <CircleAlert className="mt-0.5 size-5 shrink-0 text-accent-foreground" />
@@ -400,7 +413,7 @@ export default function DashboardPage() {
         <div className="space-y-5">
           {section === "dashboard" && <Card className="space-y-5 p-5 sm:p-6">
             <div className="flex items-start justify-between gap-3">
-              <div><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Your chosen routine</p><h2 className="mt-2 font-serif text-2xl font-medium">{supportModes.find((mode) => mode.value === profile.supportMode)?.title}</h2></div>
+              <div><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Your care protocol</p><h2 className="mt-2 font-serif text-2xl font-medium">{supportModes.find((mode) => mode.value === profile.supportMode)?.title}</h2></div>
               <Button variant="outline" size="sm" onClick={() => { setRoutineOpen((value) => !value); setActivitiesOpen(false); }}>{routineOpen ? "Close" : "Edit routine"}</Button>
             </div>
             <div className="flex flex-wrap gap-2">{profile.priorities.map((id) => <StatusPill key={id}>{priorityChoices.find((choice) => choice.id === id)?.title ?? id}</StatusPill>)}</div>
@@ -455,12 +468,11 @@ export default function DashboardPage() {
                   <div><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Last night</p><h2 id="sleep-heading" className="mt-2 font-serif text-2xl font-medium">{sleepSummary(todayLog?.sleep)}</h2></div>
                   <Button variant="outline" size="sm" onClick={() => { setSleepOpen(true); setMessage(""); }} data-testid={todayLog?.sleep ? "button-edit-sleep" : "button-log-sleep"}>{todayLog?.sleep ? "Edit sleep" : "Log sleep"}</Button>
                 </div>
-                {todayLog?.sleep ? <SleepDetailList sleep={todayLog.sleep} /> : <p className="text-sm leading-6 text-muted-foreground">Optional. Record bedtime, wake time, or how the night felt. Skip anything.</p>}
+                {todayLog?.sleep ? <SleepDetailList sleep={todayLog.sleep} /> : <p className="text-sm leading-6 text-muted-foreground">Optional. Record approximate hours slept or how the night felt. Skip anything.</p>}
                 <div className="border-t border-border pt-4"><h3 className="mb-2 text-sm font-semibold">Past seven nights</h3><SleepWeekTable logs={logs} ending={today} /></div>
               </>}
             {deleteSleepDate === today && <SleepDeleteConfirm date={today} pending={saveRecoveryLog.isPending} onKeep={() => setDeleteSleepDate(null)} onDelete={() => void deleteSleep(today)} />}
           </Card>}
-          {section === "journal" && <SleepTipsCard />}
         </div>
 
         {section === "journal" && <section className="space-y-4" aria-labelledby="history-heading">

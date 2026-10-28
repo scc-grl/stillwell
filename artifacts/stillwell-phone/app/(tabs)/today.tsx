@@ -17,7 +17,7 @@ import { RecoveryLogEditor } from "@/components/RecoveryLogEditor";
 import { RecoveryLogSummary } from "@/components/RecoveryLogSummary";
 import { SafetyNotice } from "@/components/SafetyNotice";
 import { SleepEditor } from "@/components/SleepEditor";
-import { SleepDetails, SleepTipsCard, SleepWeek } from "@/components/SleepDetails";
+import { SleepDetails, SleepWeek } from "@/components/SleepDetails";
 import { Screen } from "@/components/Screen";
 import { usePatientData } from "@/contexts/PatientDataContext";
 import {
@@ -396,12 +396,11 @@ export default function TodayScreen() {
         </View>
         {currentLog?.sleep ? <SleepDetails sleep={currentLog.sleep} /> : (
           <Text variant="caption">
-            Optional. Record bedtime, wake time, or how the night felt. Skip anything.
+            Optional. Record approximate hours slept or how the night felt. Skip anything.
           </Text>
         )}
         <SleepWeek logs={recovery.logs} ending={today} />
       </Card>
-      <SleepTipsCard />
 
       <Card>
         <View style={styles.cardHeading}>

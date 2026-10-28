@@ -10,9 +10,16 @@ import type { SleepLogQuality } from './sleepLogQuality';
 import type { SleepLogWakings } from './sleepLogWakings';
 
 /**
- * Optional record of the night ending on the journal date. Local clock times; duration is derived, never stored as a score.
+ * Optional record of the night ending on the journal date. Patients may enter approximate whole hours; older entries may use local clock times.
  */
 export interface SleepLog {
+  /**
+     * Optional approximate whole hours slept. Older entries may contain bedtime and wakeTime instead.
+     * @minimum 0
+     * @maximum 24
+     * @nullable
+     */
+  hoursSlept?: number | null;
   /**
      * @nullable
      * @pattern ^([01]\d|2[0-3]):[0-5]\d$

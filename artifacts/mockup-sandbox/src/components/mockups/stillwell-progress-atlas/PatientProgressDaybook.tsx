@@ -30,8 +30,6 @@ export type PatientWorkspaceView = "dashboard" | "journal" | "care-protocol" | "
 const navigationItems: { id: PatientWorkspaceView; label: string; icon: typeof LayoutDashboard }[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "journal", label: "Journal", icon: NotebookPen },
-  { id: "care-protocol", label: "Care protocol", icon: CalendarDays },
-  { id: "care-team", label: "Care team", icon: UsersRound },
   { id: "account", label: "Account", icon: Settings },
 ];
 
@@ -107,18 +105,31 @@ export function PatientWorkspaceNavigation({
   active: PatientWorkspaceView;
   onNavigate: (view: PatientWorkspaceView) => void;
 }) {
-  return <nav aria-label="Patient journal navigation" className="grid w-full grid-cols-2 gap-1 sm:grid-cols-3 lg:flex lg:w-auto lg:items-center">
-    {navigationItems.map(({ id, label, icon: Icon }) => <Button
-      key={id}
+  const current = active === "care-protocol" || active === "care-team" ? "dashboard" : active;
+  return <nav aria-label="Patient workspace navigation" className="flex w-full items-center gap-1 rounded-2xl border border-border bg-card p-1 sm:w-auto">
+    <div className="grid flex-1 grid-cols-2 gap-1 sm:flex">
+      {navigationItems.filter((item) => item.id !== "account").map(({ id, label, icon: Icon }) => <Button
+        key={id}
+        type="button"
+        variant={current === id ? "secondary" : "ghost"}
+        className="min-h-11 w-full justify-center sm:w-auto"
+        aria-current={current === id ? "page" : undefined}
+        onClick={() => onNavigate(id)}
+        data-testid={`nav-patient-${id}`}
+      >
+        <Icon aria-hidden="true" className="size-4" />{label}
+      </Button>)}
+    </div>
+    <Button
       type="button"
-      variant={active === id ? "secondary" : "ghost"}
-      className="min-h-11 w-full justify-start lg:w-auto"
-      aria-current={active === id ? "page" : undefined}
-      onClick={() => onNavigate(id)}
-      data-testid={`nav-patient-${id}`}
+      variant={current === "account" ? "secondary" : "ghost"}
+      className="min-h-11 shrink-0 justify-center"
+      aria-current={current === "account" ? "page" : undefined}
+      onClick={() => onNavigate("account")}
+      data-testid="nav-patient-account"
     >
-      <Icon aria-hidden="true" className="size-4" />{label}
-    </Button>)}
+      <Settings aria-hidden="true" className="size-4" /><span className="hidden sm:inline">Account</span><span className="sm:hidden">More</span>
+    </Button>
   </nav>;
 }
 
@@ -308,7 +319,82 @@ function JournalContent({ audience = "patient" }: { audience?: "patient" | "clin
   </section>;
 }
 
-function PlaceholderView({ view, onJournal }: { view: PatientWorkspaceView; onJournal: () => void }) {
+function DashboardOverview({ audience, onNavigate }: {
+  audience: "patient" | "clinician";
+  onNavigate: (view: PatientWorkspaceView) => void;
+}) {
+  if (audience === "clinician") {
+    return <main className="mx-auto max-w-5xl space-y-6">
+      <header className="space-y-2">
+        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">CLINICIAN PORTAL · DESIGN PREVIEW</p>
+        <h1 className="font-serif text-4xl font-medium">Your patients</h1>
+        <p className="max-w-2xl text-sm leading-6 text-muted-foreground">Choose a patient to review the journal they have shared with you.</p>
+      </header>
+      <Card>
+        <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="font-semibold">Jane Smith</p>
+            <p className="mt-1 text-sm text-muted-foreground">Patient journal · illustrative preview</p>
+          </div>
+          <Button type="button" onClick={() => onNavigate("journal")} data-testid="button-open-jane-journal">
+            <NotebookPen aria-hidden="true" className="size-4" />Open journal
+          </Button>
+        </CardContent>
+      </Card>
+    </main>;
+  }
+
+  const progress = entries.slice(-7).map((entry) => {
+    const recorded = Object.values(entry.ratings).filter((value): value is Rating => value !== null);
+    const average = recorded.length ? recorded.reduce((total, value) => total + value, 0) / recorded.length : 0;
+    return { entry, height: recorded.length ? 30 + Math.round((average / 3) * 64) : 0 };
+  });
+
+  return <main className="mx-auto max-w-5xl space-y-6">
+    <header className="space-y-2">
+      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">YOUR PRIVATE SPACE</p>
+      <h1 className="font-serif text-4xl font-medium">Your dashboard</h1>
+      <p className="max-w-2xl text-sm leading-6 text-muted-foreground">A quick view of your saved check-ins, with your journal and support choices kept separate.</p>
+    </header>
+    <Card>
+      <CardHeader>
+        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">ILLUSTRATIVE VIEW</p>
+        <CardTitle className="font-serif text-2xl">Your check-in pattern</CardTitle>
+        <p className="text-sm text-muted-foreground">A visual summary of recorded entries. No interpretation is added.</p>
+      </CardHeader>
+      <CardContent>
+        <div className="flex h-32 items-end justify-between gap-2 border-b border-border px-1" role="img" aria-label="Illustrative check-in pattern across the seven most recent entries">
+          {progress.map(({ entry, height }) => <div key={entry.date} className="flex h-full flex-1 flex-col items-center justify-end gap-2">
+            <span className="w-full rounded-t-md bg-primary/80" style={{ height: `${height}%` }} />
+            <span className="text-[10px] text-muted-foreground">{formatDate(entry.date, { month: "short", day: "numeric" })}</span>
+          </div>)}
+        </div>
+        <p className="mt-3 text-xs text-muted-foreground">Illustrative check-in visualization · not a diagnosis</p>
+      </CardContent>
+    </Card>
+    <div className="grid gap-4 sm:grid-cols-2">
+      <Card>
+        <CardHeader>
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">YOUR PLAN</p>
+          <CardTitle className="font-serif text-2xl">Care protocol</CardTitle>
+          <p className="text-sm leading-6 text-muted-foreground">Review the self-guided plan and the parts you chose to focus on.</p>
+        </CardHeader>
+        <CardContent><Button type="button" variant="outline" onClick={() => onNavigate("care-protocol")}><CalendarDays aria-hidden="true" className="size-4" />View care protocol</Button></CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">YOUR CHOICE</p>
+          <CardTitle className="font-serif text-2xl">Care team</CardTitle>
+          <p className="text-sm leading-6 text-muted-foreground">Manage who you have chosen to share your journal with.</p>
+        </CardHeader>
+        <CardContent><Button type="button" variant="outline" onClick={() => onNavigate("care-team")}><UsersRound aria-hidden="true" className="size-4" />View care team</Button></CardContent>
+      </Card>
+    </div>
+    <SafetyNote />
+  </main>;
+}
+
+function PlaceholderView({ view, onNavigate }: { view: PatientWorkspaceView; onNavigate: (view: PatientWorkspaceView) => void }) {
   const messages: Record<Exclude<PatientWorkspaceView, "journal">, { title: string; description: string }> = {
     dashboard: { title: "Your dashboard", description: "A calm overview for your saved journal entries and the personal routine choices you want to keep." },
     "care-protocol": { title: "Care protocol", description: "Choose between a self-guided draft and Stillwell’s optional roadmap. This is a design preview, not treatment guidance." },
@@ -323,26 +409,34 @@ function PlaceholderView({ view, onJournal }: { view: PatientWorkspaceView; onJo
       <p className="mt-2 text-sm leading-6 text-muted-foreground">{content.description}</p>
     </CardHeader>
     <CardContent className="px-6 pb-6 sm:px-8 sm:pb-8">
-      <Button type="button" onClick={onJournal}><NotebookPen aria-hidden="true" />Open journal</Button>
+      <Button type="button" variant="outline" onClick={() => onNavigate("dashboard")}><LayoutDashboard aria-hidden="true" />Back to dashboard</Button>
     </CardContent>
   </Card>;
 }
 
 export function PatientProgressDaybook({ embedded = false }: { embedded?: boolean }) {
   const [activeView, setActiveView] = useState<PatientWorkspaceView>("journal");
+  const audience = embedded ? "patient" : "clinician";
   const content = activeView === "journal"
-    ? <JournalContent audience={embedded ? "patient" : "clinician"} />
-    : <PlaceholderView view={activeView} onJournal={() => setActiveView("journal")} />;
+    ? <JournalContent audience={audience} />
+    : activeView === "dashboard"
+      ? <DashboardOverview audience={audience} onNavigate={setActiveView} />
+      : <PlaceholderView view={activeView} onNavigate={setActiveView} />;
 
   if (embedded) return content;
   return <main className="min-h-[100dvh] bg-background text-foreground">
     <header className="sticky top-0 z-20 border-b border-border bg-background/95 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-8">
+      <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-8">
         <div className="flex items-center gap-3">
           <img src={stillwellMark} alt="" aria-hidden="true" className="size-9 shrink-0" />
           <span className="font-serif text-xl font-semibold tracking-tight">stillwell</span>
+          <span className="hidden text-sm text-muted-foreground sm:inline">Clinician portal · design preview</span>
         </div>
-        <span className="rounded-full bg-secondary px-3 py-2 text-xs font-medium text-secondary-foreground">Clinician portal · design preview</span>
+        <nav aria-label="Clinician navigation" className="grid grid-cols-3 gap-1 rounded-2xl border border-border bg-card p-1">
+          <Button type="button" size="sm" className="min-h-11" variant={activeView === "dashboard" ? "secondary" : "ghost"} aria-current={activeView === "dashboard" ? "page" : undefined} onClick={() => setActiveView("dashboard")} data-testid="nav-clinician-patients">Patients</Button>
+          <Button type="button" size="sm" className="min-h-11" variant={activeView === "journal" ? "secondary" : "ghost"} aria-current={activeView === "journal" ? "page" : undefined} onClick={() => setActiveView("journal")} data-testid="nav-clinician-journal">Jane’s journal</Button>
+          <Button type="button" size="sm" className="min-h-11" variant={activeView === "account" ? "secondary" : "ghost"} aria-current={activeView === "account" ? "page" : undefined} onClick={() => setActiveView("account")} data-testid="nav-clinician-profile">Profile</Button>
+        </nav>
       </div>
     </header>
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-8 sm:py-8">{content}</div>

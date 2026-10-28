@@ -1,15 +1,11 @@
-import { useState } from "react";
 import type { RecoveryLog } from "@workspace/api-client-react";
 import {
   formatDate,
   sleepDetails,
   sleepDurationNote,
-  sleepTips,
   sleepWeek,
   type SleepLog,
 } from "@workspace/recovery-journal";
-import { Button } from "@workspace/stillwell-design-system/components/ui/button";
-import { Card } from "@workspace/stillwell-design-system/components/ui/card";
 
 /** Read-only sleep fields for one day, with "Not recorded" for skipped fields. */
 export function SleepDetailList({ sleep }: { sleep?: SleepLog | null }) {
@@ -40,13 +36,3 @@ export function SleepWeekTable({ logs, ending }: { logs: readonly RecoveryLog[];
   </div>;
 }
 
-/** Optional, collapsed-by-default general routine ideas. */
-export function SleepTipsCard() {
-  const [open, setOpen] = useState(false);
-  return <Card className="space-y-3 bg-secondary p-5">
-    <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">General sleep routine ideas</p>
-    <p className="text-sm leading-6 text-muted-foreground">General information, not medical advice. Ask a clinician about your sleep.</p>
-    {open && <ul id="sleep-tips" className="list-disc space-y-1 pl-5 text-sm leading-6">{sleepTips.map((tip) => <li key={tip}>{tip}</li>)}</ul>}
-    <Button variant="outline" size="sm" aria-expanded={open} aria-controls="sleep-tips" onClick={() => setOpen((value) => !value)} data-testid="button-toggle-sleep-tips">{open ? "Hide routine ideas" : "Show routine ideas"}</Button>
-  </Card>;
-}

@@ -14,22 +14,19 @@ export const sleepNapChoices = [
   { value: "under_30", label: "Under 30 minutes" },
   { value: "30_or_more", label: "30 minutes or more" },
 ] as const;
-export const sleepTips = [
-  "A consistent wake time can help make your sleep routine more predictable.",
-  "Morning daylight can be part of a regular daily routine.",
-  "Fewer screens before bed may make it easier to wind down.",
-  "Avoiding alcohol can support a steadier sleep routine.",
-] as const;
-export const sleepDurationNote = "Calculated from bedtime and wake time. Time awake during the night is not subtracted.";
+export const sleepDurationNote = "Older entries may show an estimate based on bedtime and wake time.";
 export const validSleepTime = (value: unknown): value is string =>
   typeof value === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
+export const validHoursSlept = (value: unknown): value is number =>
+  typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= 24;
 
 export function emptySleep(): SleepLog {
-  return { bedtime: null, wakeTime: null, quality: null, wakings: null, nap: null, note: "" };
+  return { hoursSlept: null, bedtime: null, wakeTime: null, quality: null, wakings: null, nap: null, note: "" };
 }
 
-/** Local clock-time estimate, including crossing midnight; no duration target. */
+/** Prefer the patient's approximate whole-hour entry; support older clock-time entries. */
 export function sleepDurationMinutes(sleep?: SleepLog | null): number | null {
+  if (validHoursSlept(sleep?.hoursSlept)) return sleep.hoursSlept * 60;
   if (!validSleepTime(sleep?.bedtime) || !validSleepTime(sleep?.wakeTime)) return null;
   const minutes = (time: string) => Number(time.slice(0, 2)) * 60 + Number(time.slice(3));
   return (minutes(sleep.wakeTime) - minutes(sleep.bedtime) + 1440) % 1440;
@@ -45,6 +42,7 @@ export function normalizeSleep(value: unknown): SleepLog | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const row = value as Record<string, unknown>;
   return {
+    hoursSlept: validHoursSlept(row.hoursSlept) ? row.hoursSlept : null,
     bedtime: validSleepTime(row.bedtime) ? row.bedtime : null,
     wakeTime: validSleepTime(row.wakeTime) ? row.wakeTime : null,
     quality: sleepQualityChoices.find(choice => choice.value === row.quality)?.value ?? null,
@@ -67,9 +65,7 @@ export function sleepSummary(sleep?: SleepLog | null): string {
 
 export function sleepDetails(sleep?: SleepLog | null) {
   return [
-    { label: "Bedtime", value: sleep?.bedtime ?? "Not recorded" },
-    { label: "Wake time", value: sleep?.wakeTime ?? "Not recorded" },
-    { label: "Hours slept (calculated)", value: sleepDurationLabel(sleep) },
+    { label: "Hours slept", value: sleepDurationLabel(sleep) },
     { label: "Sleep quality", value: sleepQualityLabel(sleep) },
     { label: "Times woke up", value: sleepWakingChoices.find(choice => choice.value === sleep?.wakings)?.label ?? "Not recorded" },
     { label: "Daytime nap", value: sleepNapChoices.find(choice => choice.value === sleep?.nap)?.label ?? "Not recorded" },

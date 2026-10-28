@@ -1,14 +1,11 @@
-import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import type { RecoveryLog } from "@workspace/api-client-react";
 import {
   sleepDetails,
   sleepDurationNote,
-  sleepTips,
   sleepWeek,
   type SleepLog,
 } from "@workspace/recovery-journal";
-import { Button } from "@workspace/stillwell-design-system/components/native/button";
 import { Card } from "@workspace/stillwell-design-system/components/native/card";
 import { Text } from "@workspace/stillwell-design-system/components/native/text";
 import { useColors } from "@workspace/stillwell-design-system/hooks/use-colors";
@@ -65,34 +62,6 @@ export function SleepWeek({ logs, ending }: { logs: readonly RecoveryLog[]; endi
       ))}
       <Text variant="caption">{sleepDurationNote}</Text>
     </View>
-  );
-}
-
-/** Optional, collapsed-by-default general routine ideas. */
-export function SleepTipsCard() {
-  const [open, setOpen] = useState(false);
-  return (
-    <Card tone="sage" inset="compact">
-      <Text variant="label">GENERAL SLEEP ROUTINE IDEAS</Text>
-      <Text variant="caption">
-        General information, not medical advice. Ask a clinician about your sleep.
-      </Text>
-      {open
-        ? sleepTips.map((tip) => (
-            <Text key={tip} variant="caption">
-              {"\u2022"} {tip}
-            </Text>
-          ))
-        : null}
-      <Button
-        tone="outline"
-        onPress={() => setOpen((value) => !value)}
-        accessibilityState={{ expanded: open }}
-        testID="toggle-sleep-tips"
-      >
-        {open ? "Hide routine ideas" : "Show routine ideas"}
-      </Button>
-    </Card>
   );
 }
 

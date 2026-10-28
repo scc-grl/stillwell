@@ -143,7 +143,8 @@ export default function HomePage() {
       <PortalHeader />
 
       <main>
-        <section className="mx-auto grid max-w-7xl items-center gap-12 px-6 pb-20 pt-12 md:grid-cols-2 md:gap-16 md:pb-28 md:pt-20">
+        <section className="mx-auto max-w-7xl px-6 pb-20 pt-10 md:pb-28 md:pt-16">
+          <div className="grid items-center gap-10 rounded-[28px] border border-border bg-secondary/60 p-5 sm:p-8 md:grid-cols-2 md:gap-14 md:p-10">
           <div>
             <div className="mb-5">
               <Eyebrow>For clinicians, programs & researchers</Eyebrow>
@@ -171,6 +172,7 @@ export default function HomePage() {
             </p>
           </div>
           <TrendIllustration />
+          </div>
         </section>
 
         <section className="bg-secondary/60 py-20 md:py-24" aria-labelledby="planned-connect-title">

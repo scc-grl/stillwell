@@ -4,11 +4,10 @@ import {
   formatDate,
   sleepDurationLabel,
   sleepDurationMinutes,
-  sleepDurationNote,
   sleepNapChoices,
   sleepQualityChoices,
   sleepWakingChoices,
-  validSleepTime,
+  validHoursSlept,
   type SleepLog,
 } from "@workspace/recovery-journal";
 import { Button } from "@workspace/stillwell-design-system/components/ui/button";
@@ -64,8 +63,9 @@ export function SleepEditor({ date, initial, onSave, onDelete, onCancel, deletin
     try {
       await onSave({
         ...sleep,
-        bedtime: validSleepTime(sleep.bedtime) ? sleep.bedtime : null,
-        wakeTime: validSleepTime(sleep.wakeTime) ? sleep.wakeTime : null,
+        hoursSlept: validHoursSlept(sleep.hoursSlept) ? sleep.hoursSlept : null,
+        bedtime: sleep.hoursSlept == null ? sleep.bedtime ?? null : null,
+        wakeTime: sleep.hoursSlept == null ? sleep.wakeTime ?? null : null,
         note: (sleep.note ?? "").slice(0, 280),
       });
     } catch {
@@ -84,19 +84,28 @@ export function SleepEditor({ date, initial, onSave, onDelete, onCancel, deletin
     </header>
 
     <Card className="space-y-5 p-5">
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <label htmlFor="sleep-bedtime" className="text-sm font-medium">Bedtime</label>
-          <Input id="sleep-bedtime" type="time" value={sleep.bedtime ?? ""} onChange={(event) => patch("bedtime", event.target.value || null)} data-testid="input-sleep-bedtime" />
-        </div>
-        <div className="space-y-2">
-          <label htmlFor="sleep-wake" className="text-sm font-medium">Wake time</label>
-          <Input id="sleep-wake" type="time" value={sleep.wakeTime ?? ""} onChange={(event) => patch("wakeTime", event.target.value || null)} data-testid="input-sleep-wake" />
-        </div>
-      </div>
-      <div className="rounded-xl bg-muted p-4" aria-live="polite">
-        <p className="text-sm font-medium">Hours slept (calculated): {sleepDurationMinutes(sleep) === null ? "Not recorded" : sleepDurationLabel(sleep)}</p>
-        <p className="mt-1 text-xs leading-5 text-muted-foreground">{sleepDurationNote}</p>
+      <div className="space-y-2">
+        <label htmlFor="sleep-hours" className="text-sm font-medium">Hours slept (approximate)</label>
+        <Input
+          id="sleep-hours"
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]{1,2}"
+          maxLength={2}
+          value={sleep.hoursSlept == null ? "" : String(sleep.hoursSlept)}
+          onChange={(event) => {
+            const value = event.target.value;
+            if (value === "") patch("hoursSlept", null);
+            else if (/^\d{1,2}$/.test(value) && Number(value) <= 24) {
+              patch("hoursSlept", Number(value));
+              patch("bedtime", null);
+              patch("wakeTime", null);
+            }
+          }}
+          aria-describedby="sleep-hours-help"
+          data-testid="input-sleep-hours"
+        />
+        <p id="sleep-hours-help" className="text-xs text-muted-foreground">Enter a whole number from 0 to 24. This is optional.</p>
       </div>
       <ChoiceGroup label="Sleep quality" choices={sleepQualityChoices} value={sleep.quality} onChange={(value) => patch("quality", value)} />
       <ChoiceGroup label="Times woke up" choices={sleepWakingChoices} value={sleep.wakings} onChange={(value) => patch("wakings", value)} />

@@ -102,11 +102,19 @@ test("legacy clients omitting sleep preserve it; deleting a day removes it", asy
   await pool.query("DELETE FROM recovery_logs WHERE owner_id=$1", ["isolated-sleep-patient"]);
   assert.equal((await pool.query("SELECT count(*)::integer AS count FROM recovery_logs")).rows[0].count, 0);
 });
-test("generated API validation allows skipped fields and rejects invalid times, values and long notes", () => {
-  for (const sleep of [{}, null, { bedtime: null, wakings: 0 }, { note: "x".repeat(280) }]) {
+test("approximate sleep hours persist through the section-specific save and do not replace other sections", async () => {
+  await save({ ...base, sleep: { hoursSlept: 8, quality: "good" } });
+  await save({ ...base, section: "check_in", dailyCheckIn: { ...base.dailyCheckIn, summary: "Updated check-in" } });
+  const row = await saved();
+  assert.deepEqual(row.sleep, { hoursSlept: 8, quality: "good" });
+  assert.equal(row.dailyCheckIn.summary, "Updated check-in");
+  assert.equal(row.dietNote, "Food");
+});
+test("generated API validation allows skipped fields and approximate hours through 24", () => {
+  for (const sleep of [{}, null, { bedtime: null, wakings: 0 }, { hoursSlept: 0 }, { hoursSlept: 24 }, { note: "x".repeat(280) }]) {
     assert.equal(SaveRecoveryLogBody.safeParse({ ...base, section: "sleep", sleep }).success, true);
   }
-  for (const sleep of [{ bedtime: "24:00" }, { wakeTime: "07:99" }, { quality: "excellent" }, { wakings: 4 }, { nap: "long" }, { note: "x".repeat(281) }]) {
+  for (const sleep of [{ hoursSlept: -1 }, { hoursSlept: 25 }, { hoursSlept: 7.5 }, { bedtime: "24:00" }, { wakeTime: "07:99" }, { quality: "excellent" }, { wakings: 4 }, { nap: "long" }, { note: "x".repeat(281) }]) {
     assert.equal(SaveRecoveryLogBody.safeParse({ ...base, section: "sleep", sleep }).success, false);
   }
   const result = GetRecoveryResponse.parse({ profile: null, logs: [{ ...base, sleep, updatedAt: "2026-10-20T08:00:00Z" }] });
