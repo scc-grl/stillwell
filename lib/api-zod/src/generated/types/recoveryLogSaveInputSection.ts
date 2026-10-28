@@ -7,7 +7,7 @@
  */
 
 /**
- * Atomically update only this journal section, preserving fields written on another device. Omit for backwards-compatible merge.
+ * Atomically update only this journal section, preserving fields written on another device. Journal updates include check-in and sleep together. Omit for backwards-compatible merge.
  */
 export type RecoveryLogSaveInputSection = typeof RecoveryLogSaveInputSection[keyof typeof RecoveryLogSaveInputSection];
 
@@ -16,4 +16,5 @@ export const RecoveryLogSaveInputSection = {
   check_in: 'check_in',
   activities: 'activities',
   sleep: 'sleep',
+  journal: 'journal',
 } as const;

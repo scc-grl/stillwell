@@ -9,6 +9,6 @@ import type { RecoveryLogInput } from './recoveryLogInput';
 import type { RecoveryLogSaveInputSection } from './recoveryLogSaveInputSection';
 
 export type RecoveryLogSaveInput = RecoveryLogInput & {
-  /** Atomically update only this journal section, preserving fields written on another device. Omit for backwards-compatible merge. */
+  /** Atomically update only this journal section, preserving fields written on another device. Journal updates include check-in and sleep together. Omit for backwards-compatible merge. */
   section?: RecoveryLogSaveInputSection;
 };

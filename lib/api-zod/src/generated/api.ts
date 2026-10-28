@@ -861,6 +861,7 @@ export const getSharedPatientJournalResponseLogsItemDailyCheckInSummaryMax = 500
 
 export const getSharedPatientJournalResponseLogsItemSleepOneHoursSleptMin = 0;
 export const getSharedPatientJournalResponseLogsItemSleepOneHoursSleptMax = 24;
+export const getSharedPatientJournalResponseLogsItemSleepOneHoursSleptMultipleOf = 0.5;
 
 export const getSharedPatientJournalResponseLogsItemSleepOneBedtimeRegExp = new RegExp('^([01]\\d|2[0-3]):[0-5]\\d$');
 export const getSharedPatientJournalResponseLogsItemSleepOneWakeTimeRegExp = new RegExp('^([01]\\d|2[0-3]):[0-5]\\d$');
@@ -892,19 +893,20 @@ export const GetSharedPatientJournalResponse = zod.object({
   "symptoms": zod.array(zod.object({
   "name": zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light', 'dizziness', 'nausea', 'vision', 'noise', 'neck']),
   "status": zod.enum(['recorded', 'not_recorded']),
-  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3)]).nullable()
+  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3)]).nullable(),
+  "addedOn": zod.coerce.date().optional().describe('Date this symptom first appeared in the patient\'s tracked list.')
 })).min(getSharedPatientJournalResponseLogsItemDailyCheckInSymptomsMin).max(getSharedPatientJournalResponseLogsItemDailyCheckInSymptomsMax),
   "summary": zod.string().max(getSharedPatientJournalResponseLogsItemDailyCheckInSummaryMax)
 }).optional(),
   "sleep": zod.union([zod.object({
-  "hoursSlept": zod.number().int().min(getSharedPatientJournalResponseLogsItemSleepOneHoursSleptMin).max(getSharedPatientJournalResponseLogsItemSleepOneHoursSleptMax).nullish().describe('Optional approximate whole hours slept. Older entries may contain bedtime and wakeTime instead.'),
+  "hoursSlept": zod.number().min(getSharedPatientJournalResponseLogsItemSleepOneHoursSleptMin).max(getSharedPatientJournalResponseLogsItemSleepOneHoursSleptMax).multipleOf(getSharedPatientJournalResponseLogsItemSleepOneHoursSleptMultipleOf).nullish().describe('Optional approximate hours slept in half-hour steps. The journal input stepper offers 0 to 14 hours. Older entries may contain bedtime and wakeTime instead.'),
   "bedtime": zod.string().regex(getSharedPatientJournalResponseLogsItemSleepOneBedtimeRegExp).nullish(),
   "wakeTime": zod.string().regex(getSharedPatientJournalResponseLogsItemSleepOneWakeTimeRegExp).nullish(),
   "quality": zod.union([zod.literal('poor'),zod.literal('fair'),zod.literal('good'),zod.literal('great'),zod.literal(null)]).nullish(),
   "wakings": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3),zod.literal(null)]).nullish().describe('3 represents three or more awakenings.'),
   "nap": zod.union([zod.literal('none'),zod.literal('under_30'),zod.literal('30_or_more'),zod.literal(null)]).nullish(),
   "note": zod.string().max(getSharedPatientJournalResponseLogsItemSleepOneNoteMax).optional()
-}).describe('Optional record of the night ending on the journal date. Patients may enter approximate whole hours; older entries may use local clock times.'),zod.null()]).optional()
+}).describe('Optional record of the night ending on the journal date. Patients may enter approximate hours in half-hour steps; older entries may use local clock times.'),zod.null()]).optional()
 }))
 })
 
@@ -986,6 +988,7 @@ export const getRecoveryResponseLogsItemOneDailyCheckInSummaryMax = 500;
 
 export const getRecoveryResponseLogsItemOneSleepOneHoursSleptMin = 0;
 export const getRecoveryResponseLogsItemOneSleepOneHoursSleptMax = 24;
+export const getRecoveryResponseLogsItemOneSleepOneHoursSleptMultipleOf = 0.5;
 
 export const getRecoveryResponseLogsItemOneSleepOneBedtimeRegExp = new RegExp('^([01]\\d|2[0-3]):[0-5]\\d$');
 export const getRecoveryResponseLogsItemOneSleepOneWakeTimeRegExp = new RegExp('^([01]\\d|2[0-3]):[0-5]\\d$');
@@ -1023,19 +1026,20 @@ export const GetRecoveryResponse = zod.object({
   "symptoms": zod.array(zod.object({
   "name": zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light', 'dizziness', 'nausea', 'vision', 'noise', 'neck']),
   "status": zod.enum(['recorded', 'not_recorded']),
-  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3)]).nullable()
+  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3)]).nullable(),
+  "addedOn": zod.coerce.date().optional().describe('Date this symptom first appeared in the patient\'s tracked list.')
 })).min(getRecoveryResponseLogsItemOneDailyCheckInSymptomsMin).max(getRecoveryResponseLogsItemOneDailyCheckInSymptomsMax),
   "summary": zod.string().max(getRecoveryResponseLogsItemOneDailyCheckInSummaryMax)
 }).optional(),
   "sleep": zod.union([zod.object({
-  "hoursSlept": zod.number().int().min(getRecoveryResponseLogsItemOneSleepOneHoursSleptMin).max(getRecoveryResponseLogsItemOneSleepOneHoursSleptMax).nullish().describe('Optional approximate whole hours slept. Older entries may contain bedtime and wakeTime instead.'),
+  "hoursSlept": zod.number().min(getRecoveryResponseLogsItemOneSleepOneHoursSleptMin).max(getRecoveryResponseLogsItemOneSleepOneHoursSleptMax).multipleOf(getRecoveryResponseLogsItemOneSleepOneHoursSleptMultipleOf).nullish().describe('Optional approximate hours slept in half-hour steps. The journal input stepper offers 0 to 14 hours. Older entries may contain bedtime and wakeTime instead.'),
   "bedtime": zod.string().regex(getRecoveryResponseLogsItemOneSleepOneBedtimeRegExp).nullish(),
   "wakeTime": zod.string().regex(getRecoveryResponseLogsItemOneSleepOneWakeTimeRegExp).nullish(),
   "quality": zod.union([zod.literal('poor'),zod.literal('fair'),zod.literal('good'),zod.literal('great'),zod.literal(null)]).nullish(),
   "wakings": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3),zod.literal(null)]).nullish().describe('3 represents three or more awakenings.'),
   "nap": zod.union([zod.literal('none'),zod.literal('under_30'),zod.literal('30_or_more'),zod.literal(null)]).nullish(),
   "note": zod.string().max(getRecoveryResponseLogsItemOneSleepOneNoteMax).optional()
-}).describe('Optional record of the night ending on the journal date. Patients may enter approximate whole hours; older entries may use local clock times.'),zod.null()]).optional()
+}).describe('Optional record of the night ending on the journal date. Patients may enter approximate hours in half-hour steps; older entries may use local clock times.'),zod.null()]).optional()
 }).and(zod.object({
   "updatedAt": zod.coerce.date()
 })))
@@ -1082,6 +1086,7 @@ export const startRecoveryBodyFirstLogDailyCheckInSummaryMax = 500;
 
 export const startRecoveryBodyFirstLogSleepOneHoursSleptMin = 0;
 export const startRecoveryBodyFirstLogSleepOneHoursSleptMax = 24;
+export const startRecoveryBodyFirstLogSleepOneHoursSleptMultipleOf = 0.5;
 
 export const startRecoveryBodyFirstLogSleepOneBedtimeRegExp = new RegExp('^([01]\\d|2[0-3]):[0-5]\\d$');
 export const startRecoveryBodyFirstLogSleepOneWakeTimeRegExp = new RegExp('^([01]\\d|2[0-3]):[0-5]\\d$');
@@ -1117,19 +1122,20 @@ export const StartRecoveryBody = zod.object({
   "symptoms": zod.array(zod.object({
   "name": zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light', 'dizziness', 'nausea', 'vision', 'noise', 'neck']),
   "status": zod.enum(['recorded', 'not_recorded']),
-  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3)]).nullable()
+  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3)]).nullable(),
+  "addedOn": zod.coerce.date().optional().describe('Date this symptom first appeared in the patient\'s tracked list.')
 })).min(startRecoveryBodyFirstLogDailyCheckInSymptomsMin).max(startRecoveryBodyFirstLogDailyCheckInSymptomsMax),
   "summary": zod.string().max(startRecoveryBodyFirstLogDailyCheckInSummaryMax)
 }).optional(),
   "sleep": zod.union([zod.object({
-  "hoursSlept": zod.number().int().min(startRecoveryBodyFirstLogSleepOneHoursSleptMin).max(startRecoveryBodyFirstLogSleepOneHoursSleptMax).nullish().describe('Optional approximate whole hours slept. Older entries may contain bedtime and wakeTime instead.'),
+  "hoursSlept": zod.number().min(startRecoveryBodyFirstLogSleepOneHoursSleptMin).max(startRecoveryBodyFirstLogSleepOneHoursSleptMax).multipleOf(startRecoveryBodyFirstLogSleepOneHoursSleptMultipleOf).nullish().describe('Optional approximate hours slept in half-hour steps. The journal input stepper offers 0 to 14 hours. Older entries may contain bedtime and wakeTime instead.'),
   "bedtime": zod.string().regex(startRecoveryBodyFirstLogSleepOneBedtimeRegExp).nullish(),
   "wakeTime": zod.string().regex(startRecoveryBodyFirstLogSleepOneWakeTimeRegExp).nullish(),
   "quality": zod.union([zod.literal('poor'),zod.literal('fair'),zod.literal('good'),zod.literal('great'),zod.literal(null)]).nullish(),
   "wakings": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3),zod.literal(null)]).nullish().describe('3 represents three or more awakenings.'),
   "nap": zod.union([zod.literal('none'),zod.literal('under_30'),zod.literal('30_or_more'),zod.literal(null)]).nullish(),
   "note": zod.string().max(startRecoveryBodyFirstLogSleepOneNoteMax).optional()
-}).describe('Optional record of the night ending on the journal date. Patients may enter approximate whole hours; older entries may use local clock times.'),zod.null()]).optional()
+}).describe('Optional record of the night ending on the journal date. Patients may enter approximate hours in half-hour steps; older entries may use local clock times.'),zod.null()]).optional()
 })
 })
 
@@ -1164,6 +1170,7 @@ export const startRecoveryResponseLogsItemOneDailyCheckInSummaryMax = 500;
 
 export const startRecoveryResponseLogsItemOneSleepOneHoursSleptMin = 0;
 export const startRecoveryResponseLogsItemOneSleepOneHoursSleptMax = 24;
+export const startRecoveryResponseLogsItemOneSleepOneHoursSleptMultipleOf = 0.5;
 
 export const startRecoveryResponseLogsItemOneSleepOneBedtimeRegExp = new RegExp('^([01]\\d|2[0-3]):[0-5]\\d$');
 export const startRecoveryResponseLogsItemOneSleepOneWakeTimeRegExp = new RegExp('^([01]\\d|2[0-3]):[0-5]\\d$');
@@ -1201,19 +1208,20 @@ export const StartRecoveryResponse = zod.object({
   "symptoms": zod.array(zod.object({
   "name": zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light', 'dizziness', 'nausea', 'vision', 'noise', 'neck']),
   "status": zod.enum(['recorded', 'not_recorded']),
-  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3)]).nullable()
+  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3)]).nullable(),
+  "addedOn": zod.coerce.date().optional().describe('Date this symptom first appeared in the patient\'s tracked list.')
 })).min(startRecoveryResponseLogsItemOneDailyCheckInSymptomsMin).max(startRecoveryResponseLogsItemOneDailyCheckInSymptomsMax),
   "summary": zod.string().max(startRecoveryResponseLogsItemOneDailyCheckInSummaryMax)
 }).optional(),
   "sleep": zod.union([zod.object({
-  "hoursSlept": zod.number().int().min(startRecoveryResponseLogsItemOneSleepOneHoursSleptMin).max(startRecoveryResponseLogsItemOneSleepOneHoursSleptMax).nullish().describe('Optional approximate whole hours slept. Older entries may contain bedtime and wakeTime instead.'),
+  "hoursSlept": zod.number().min(startRecoveryResponseLogsItemOneSleepOneHoursSleptMin).max(startRecoveryResponseLogsItemOneSleepOneHoursSleptMax).multipleOf(startRecoveryResponseLogsItemOneSleepOneHoursSleptMultipleOf).nullish().describe('Optional approximate hours slept in half-hour steps. The journal input stepper offers 0 to 14 hours. Older entries may contain bedtime and wakeTime instead.'),
   "bedtime": zod.string().regex(startRecoveryResponseLogsItemOneSleepOneBedtimeRegExp).nullish(),
   "wakeTime": zod.string().regex(startRecoveryResponseLogsItemOneSleepOneWakeTimeRegExp).nullish(),
   "quality": zod.union([zod.literal('poor'),zod.literal('fair'),zod.literal('good'),zod.literal('great'),zod.literal(null)]).nullish(),
   "wakings": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3),zod.literal(null)]).nullish().describe('3 represents three or more awakenings.'),
   "nap": zod.union([zod.literal('none'),zod.literal('under_30'),zod.literal('30_or_more'),zod.literal(null)]).nullish(),
   "note": zod.string().max(startRecoveryResponseLogsItemOneSleepOneNoteMax).optional()
-}).describe('Optional record of the night ending on the journal date. Patients may enter approximate whole hours; older entries may use local clock times.'),zod.null()]).optional()
+}).describe('Optional record of the night ending on the journal date. Patients may enter approximate hours in half-hour steps; older entries may use local clock times.'),zod.null()]).optional()
 }).and(zod.object({
   "updatedAt": zod.coerce.date()
 })))
@@ -1282,6 +1290,7 @@ export const saveRecoveryLogBodyOneDailyCheckInSummaryMax = 500;
 
 export const saveRecoveryLogBodyOneSleepOneHoursSleptMin = 0;
 export const saveRecoveryLogBodyOneSleepOneHoursSleptMax = 24;
+export const saveRecoveryLogBodyOneSleepOneHoursSleptMultipleOf = 0.5;
 
 export const saveRecoveryLogBodyOneSleepOneBedtimeRegExp = new RegExp('^([01]\\d|2[0-3]):[0-5]\\d$');
 export const saveRecoveryLogBodyOneSleepOneWakeTimeRegExp = new RegExp('^([01]\\d|2[0-3]):[0-5]\\d$');
@@ -1310,21 +1319,22 @@ export const SaveRecoveryLogBody = zod.object({
   "symptoms": zod.array(zod.object({
   "name": zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light', 'dizziness', 'nausea', 'vision', 'noise', 'neck']),
   "status": zod.enum(['recorded', 'not_recorded']),
-  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3)]).nullable()
+  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3)]).nullable(),
+  "addedOn": zod.coerce.date().optional().describe('Date this symptom first appeared in the patient\'s tracked list.')
 })).min(saveRecoveryLogBodyOneDailyCheckInSymptomsMin).max(saveRecoveryLogBodyOneDailyCheckInSymptomsMax),
   "summary": zod.string().max(saveRecoveryLogBodyOneDailyCheckInSummaryMax)
 }).optional(),
   "sleep": zod.union([zod.object({
-  "hoursSlept": zod.number().int().min(saveRecoveryLogBodyOneSleepOneHoursSleptMin).max(saveRecoveryLogBodyOneSleepOneHoursSleptMax).nullish().describe('Optional approximate whole hours slept. Older entries may contain bedtime and wakeTime instead.'),
+  "hoursSlept": zod.number().min(saveRecoveryLogBodyOneSleepOneHoursSleptMin).max(saveRecoveryLogBodyOneSleepOneHoursSleptMax).multipleOf(saveRecoveryLogBodyOneSleepOneHoursSleptMultipleOf).nullish().describe('Optional approximate hours slept in half-hour steps. The journal input stepper offers 0 to 14 hours. Older entries may contain bedtime and wakeTime instead.'),
   "bedtime": zod.string().regex(saveRecoveryLogBodyOneSleepOneBedtimeRegExp).nullish(),
   "wakeTime": zod.string().regex(saveRecoveryLogBodyOneSleepOneWakeTimeRegExp).nullish(),
   "quality": zod.union([zod.literal('poor'),zod.literal('fair'),zod.literal('good'),zod.literal('great'),zod.literal(null)]).nullish(),
   "wakings": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3),zod.literal(null)]).nullish().describe('3 represents three or more awakenings.'),
   "nap": zod.union([zod.literal('none'),zod.literal('under_30'),zod.literal('30_or_more'),zod.literal(null)]).nullish(),
   "note": zod.string().max(saveRecoveryLogBodyOneSleepOneNoteMax).optional()
-}).describe('Optional record of the night ending on the journal date. Patients may enter approximate whole hours; older entries may use local clock times.'),zod.null()]).optional()
+}).describe('Optional record of the night ending on the journal date. Patients may enter approximate hours in half-hour steps; older entries may use local clock times.'),zod.null()]).optional()
 }).and(zod.object({
-  "section": zod.enum(['check_in', 'activities', 'sleep']).optional().describe('Atomically update only this journal section, preserving fields written on another device. Omit for backwards-compatible merge.')
+  "section": zod.enum(['check_in', 'activities', 'sleep', 'journal']).optional().describe('Atomically update only this journal section, preserving fields written on another device. Journal updates include check-in and sleep together. Omit for backwards-compatible merge.')
 }))
 
 export const saveRecoveryLogResponseOneDateRegExp = new RegExp('^\\d{4}-\\d{2}-\\d{2}$');
@@ -1353,6 +1363,7 @@ export const saveRecoveryLogResponseOneDailyCheckInSummaryMax = 500;
 
 export const saveRecoveryLogResponseOneSleepOneHoursSleptMin = 0;
 export const saveRecoveryLogResponseOneSleepOneHoursSleptMax = 24;
+export const saveRecoveryLogResponseOneSleepOneHoursSleptMultipleOf = 0.5;
 
 export const saveRecoveryLogResponseOneSleepOneBedtimeRegExp = new RegExp('^([01]\\d|2[0-3]):[0-5]\\d$');
 export const saveRecoveryLogResponseOneSleepOneWakeTimeRegExp = new RegExp('^([01]\\d|2[0-3]):[0-5]\\d$');
@@ -1381,19 +1392,20 @@ export const SaveRecoveryLogResponse = zod.object({
   "symptoms": zod.array(zod.object({
   "name": zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light', 'dizziness', 'nausea', 'vision', 'noise', 'neck']),
   "status": zod.enum(['recorded', 'not_recorded']),
-  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3)]).nullable()
+  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3)]).nullable(),
+  "addedOn": zod.coerce.date().optional().describe('Date this symptom first appeared in the patient\'s tracked list.')
 })).min(saveRecoveryLogResponseOneDailyCheckInSymptomsMin).max(saveRecoveryLogResponseOneDailyCheckInSymptomsMax),
   "summary": zod.string().max(saveRecoveryLogResponseOneDailyCheckInSummaryMax)
 }).optional(),
   "sleep": zod.union([zod.object({
-  "hoursSlept": zod.number().int().min(saveRecoveryLogResponseOneSleepOneHoursSleptMin).max(saveRecoveryLogResponseOneSleepOneHoursSleptMax).nullish().describe('Optional approximate whole hours slept. Older entries may contain bedtime and wakeTime instead.'),
+  "hoursSlept": zod.number().min(saveRecoveryLogResponseOneSleepOneHoursSleptMin).max(saveRecoveryLogResponseOneSleepOneHoursSleptMax).multipleOf(saveRecoveryLogResponseOneSleepOneHoursSleptMultipleOf).nullish().describe('Optional approximate hours slept in half-hour steps. The journal input stepper offers 0 to 14 hours. Older entries may contain bedtime and wakeTime instead.'),
   "bedtime": zod.string().regex(saveRecoveryLogResponseOneSleepOneBedtimeRegExp).nullish(),
   "wakeTime": zod.string().regex(saveRecoveryLogResponseOneSleepOneWakeTimeRegExp).nullish(),
   "quality": zod.union([zod.literal('poor'),zod.literal('fair'),zod.literal('good'),zod.literal('great'),zod.literal(null)]).nullish(),
   "wakings": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3),zod.literal(null)]).nullish().describe('3 represents three or more awakenings.'),
   "nap": zod.union([zod.literal('none'),zod.literal('under_30'),zod.literal('30_or_more'),zod.literal(null)]).nullish(),
   "note": zod.string().max(saveRecoveryLogResponseOneSleepOneNoteMax).optional()
-}).describe('Optional record of the night ending on the journal date. Patients may enter approximate whole hours; older entries may use local clock times.'),zod.null()]).optional()
+}).describe('Optional record of the night ending on the journal date. Patients may enter approximate hours in half-hour steps; older entries may use local clock times.'),zod.null()]).optional()
 }).and(zod.object({
   "updatedAt": zod.coerce.date()
 }))

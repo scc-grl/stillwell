@@ -15,6 +15,8 @@ export function recoveryLogWrite(input: RecoveryLogSaveInput) {
       ? activityFields
       : section === "sleep"
         ? ["sleep"] as const
+        : section === "journal"
+          ? ["symptoms", "dailyCheckIn", "sleep"] as const
         : Object.keys(initial) as (keyof typeof initial)[];
   for (const field of fields) {
     if (initial[field] !== undefined) patch[field] = initial[field];

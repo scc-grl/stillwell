@@ -120,11 +120,15 @@ router.post("/recovery/logs", async (req, res): Promise<void> => {
     return;
   }
   const ownerId = owner(req);
-  if (parsed.data.section === "check_in" && !parsed.data.dailyCheckIn) {
+  if ((parsed.data.section === "check_in" || parsed.data.section === "journal") && !parsed.data.dailyCheckIn) {
     res.status(400).json({ error: "Include the symptom check-in for this update." });
     return;
   }
   if (parsed.data.section === "sleep" && parsed.data.sleep === undefined) {
+    res.status(400).json({ error: "Include the sleep section, or null to remove it." });
+    return;
+  }
+  if (parsed.data.section === "journal" && parsed.data.sleep === undefined) {
     res.status(400).json({ error: "Include the sleep section, or null to remove it." });
     return;
   }

@@ -46,6 +46,7 @@ import { activityQuestion, activityAnswerChoices } from "@workspace/recovery-jou
 import { PatientProgressChart } from "@/components/PatientProgressChart";
 import { SleepEditor } from "@/components/SleepEditor";
 import { SleepDetailList, SleepWeekTable } from "@/components/SleepDetails";
+import { JournalDatebook } from "@/components/JournalDatebook";
 import { clearDraft, emptyLog, localDate, priorityChoices, readDraft, routinePrompts, type DraftEnvelope } from "@/lib/recovery";
 import {
   activityChoices,
@@ -59,6 +60,7 @@ import {
   supportModes,
   type SleepLog,
 } from "@workspace/recovery-journal";
+import type { CheckInSymptomName } from "@workspace/recovery-journal";
 
 type SelectedHistory = { log: RecoveryLog; view: "summary" | "check_in" | "activities" | "sleep" };
 
@@ -217,6 +219,8 @@ export default function DashboardPage() {
   const section = sectionForPath(location);
   const logs = useMemo(() => [...(recoveryQuery.data?.logs ?? [])].sort((a, b) => b.date.localeCompare(a.date)), [recoveryQuery.data?.logs]);
   const today = localDate();
+  const defaultTrackedSymptoms = useMemo(() => checkInSymptoms.slice(0, 6).map((symptom) => symptom.name), []);
+  const journalTrackedSymptoms = profile?.selectedSymptoms ?? defaultTrackedSymptoms;
   const todayLog = logs.find((item) => item.date === today);
   const todayCheckIn = todayLog ? dailyCheckInFromLog(todayLog) : null;
   const hasTodayCheckIn = Boolean(todayCheckIn && (
@@ -250,9 +254,10 @@ export default function DashboardPage() {
     groups[month] = [...(groups[month] ?? []), log];
     return groups;
   }, {});
-  const selectedHistory = selectedHistoryState ?? (visiblePastLogs.length
-    ? { log: visiblePastLogs[visiblePastLogs.length - 1], view: "summary" as const }
-    : null);
+  const selectedHistory = selectedHistoryState ?? {
+    log: visiblePastLogs[visiblePastLogs.length - 1] ?? (emptyLog(today) as RecoveryLog),
+    view: "summary" as const,
+  };
 
   useEffect(() => {
     startedOnce.current = false;
@@ -330,6 +335,24 @@ export default function DashboardPage() {
       ? { ...old, logs: [...old.logs.filter((item) => item.date !== saved.date), saved].sort((a, b) => b.date.localeCompare(a.date)) }
       : { profile: null, logs: [saved] });
     return saved;
+  }
+
+  async function saveCombinedJournal(input: RecoveryLogInput): Promise<RecoveryLog> {
+    const saved = await saveRecoveryLog.mutateAsync({ data: { ...input, section: "journal" } });
+    queryClient.setQueryData<RecoveryState>(recoveryKey, (old) => old
+      ? { ...old, logs: [...old.logs.filter((item) => item.date !== saved.date), saved].sort((a, b) => b.date.localeCompare(a.date)) }
+      : { profile: null, logs: [saved] });
+    return saved;
+  }
+
+  async function updateJournalTrackedSymptoms(names: CheckInSymptomName[]) {
+    if (!profile) return;
+    const next = await updateProfile.mutateAsync({
+      data: { supportMode: profile.supportMode, priorities: profile.priorities, selectedSymptoms: names },
+    });
+    queryClient.setQueryData<RecoveryState>(recoveryKey, (old) => old
+      ? { ...old, profile: next }
+      : { profile: next, logs: [] });
   }
 
   async function saveActivities(input: RecoveryLogInput) {
@@ -421,19 +444,6 @@ export default function DashboardPage() {
         </div>
         {profile && !recoveryQuery.isLoading && !recoveryQuery.isError && <PatientProgressChart logs={logs} today={today} />}
       </section>}
-      {section === "journal" && <section className="flex flex-wrap items-end justify-between gap-4">
-        <div className="space-y-2">
-          <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-secondary-foreground"><span className="h-px w-6 bg-primary/50" aria-hidden="true" />Your private journal</p>
-          <h1 className="font-serif text-4xl font-medium leading-tight sm:text-5xl">Your past check-ins</h1>
-          <p className="max-w-2xl text-sm leading-6 text-muted-foreground">Revisit the days you chose to record. No values are filled in between entries.</p>
-        </div>
-        {profile && <Button
-          aria-expanded={todayCheckInOpen}
-          aria-controls="today-check-in"
-          onClick={() => setTodayCheckInOpen((open) => !open)}
-          data-testid="button-toggle-today-check-in"
-        >{todayCheckInOpen ? "Close today’s entry" : hasTodayCheckIn ? "Review today’s check-in" : "Start today’s check-in"} <ArrowRight /></Button>}
-      </section>}
       {section === "account" && <section>
         <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Your settings</p>
         <h1 className="mt-2 font-serif text-4xl font-medium sm:text-5xl">Account</h1>
@@ -476,6 +486,15 @@ export default function DashboardPage() {
         <p className="text-sm leading-6 text-muted-foreground">We couldn’t finish saving the setup yet. It remains in this tab temporarily, and your existing preferences have not been replaced.</p>
         <Button className="w-fit" disabled={startRecovery.isPending} onClick={() => { const draft = readDraft(); if (draft) persistDraft(draft); else setMessage("This setup has expired. Start a new quiz to continue."); }}>{startRecovery.isPending ? "Trying…" : "Try again"} <ArrowRight /></Button>
       </Card>}
+
+      {!recoveryQuery.isLoading && !recoveryQuery.isError && profile && section === "journal" && <JournalDatebook
+        logs={logs}
+        today={today}
+        ownerId={userId}
+        selectedSymptoms={journalTrackedSymptoms}
+        onSave={saveCombinedJournal}
+        onUpdateTrackedSymptoms={updateJournalTrackedSymptoms}
+      />}
 
       {section === "care-team" && <>
         {recoveryQuery.isError && <Card role="status" className="p-4 text-sm text-muted-foreground">Your journal profile could not be checked right now. Try again before inviting a clinician.</Card>}
@@ -581,7 +600,7 @@ export default function DashboardPage() {
             </Card>
           </>}
 
-          {section === "journal" && todayCheckInOpen && <section id="today-check-in" className="space-y-4" aria-labelledby="today-check-in-heading">
+          {false && section === "journal" && todayCheckInOpen && <section id="today-check-in" className="space-y-4" aria-labelledby="today-check-in-heading">
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Today</p>
@@ -591,7 +610,7 @@ export default function DashboardPage() {
             </div>
             <Card id="daily-check-in" className="scroll-mt-28 space-y-5 p-5 sm:p-6">
               {activitiesOpen && activityInitial
-                ? <ActivitiesEditor initial={activityInitial} onSave={saveActivities} onCancel={() => { setActivitiesOpen(false); setActivityInitial(null); }} />
+                ? <ActivitiesEditor initial={activityInitial!} onSave={saveActivities} onCancel={() => { setActivitiesOpen(false); setActivityInitial(null); }} />
                 : <DailyCheckInFlow key={today} initial={{ ...(todayLog ?? emptyLog(today)) }} logs={logs} today={today} onPersist={saveCheckIn} onEditActivities={() => beginActivities()} />}
             </Card>
 
@@ -603,7 +622,9 @@ export default function DashboardPage() {
                     <div><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Last night</p><h3 id="sleep-heading" className="mt-2 font-serif text-2xl font-medium">{sleepSummary(todayLog?.sleep)}</h3></div>
                     <Button variant="outline" size="sm" onClick={() => { setSleepOpen(true); setMessage(""); }} data-testid={todayLog?.sleep ? "button-edit-sleep" : "button-log-sleep"}>{todayLog?.sleep ? "Edit sleep" : "Log sleep"}</Button>
                   </div>
-                  {todayLog?.sleep ? <SleepDetailList sleep={todayLog.sleep} /> : <p className="text-sm leading-6 text-muted-foreground">Optional. Record approximate hours slept or how the night felt. Skip anything.</p>}
+                  {todayLog?.sleep
+                    ? <SleepDetailList sleep={todayLog?.sleep} />
+                    : <p className="text-sm leading-6 text-muted-foreground">Optional. Record approximate hours slept or how the night felt. Skip anything.</p>}
                   <div className="border-t border-border pt-4"><h4 className="mb-2 text-sm font-semibold">Past seven nights</h4><SleepWeekTable logs={logs} ending={today} /></div>
                 </>}
               {deleteSleepDate === today && <SleepDeleteConfirm date={today} pending={saveRecoveryLog.isPending} onKeep={() => setDeleteSleepDate(null)} onDelete={() => void deleteSleep(today)} />}
@@ -611,7 +632,7 @@ export default function DashboardPage() {
           </section>}
         </div>
 
-        {section === "journal" && <section className="space-y-4" aria-labelledby="history-heading">
+        {false && section === "journal" && <section className="space-y-4" aria-labelledby="history-heading">
           <div className="grid gap-5 lg:grid-cols-3">
             <Card className="h-fit space-y-4 p-5 sm:p-6">
               <div className="flex items-start justify-between gap-3">
@@ -726,7 +747,7 @@ export default function DashboardPage() {
           </div>
         </section>}
 
-        {section === "journal" && profile && <Card className="space-y-2 p-5 sm:p-6" aria-labelledby="clinician-support-note">
+        {false && section === "journal" && profile && <Card className="space-y-2 p-5 sm:p-6" aria-labelledby="clinician-support-note">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Clinician support</p>
           <h2 id="clinician-support-note" className="font-serif text-2xl font-medium">Your journal stays yours.</h2>
           <p className="max-w-3xl text-sm leading-6 text-muted-foreground">You decide who can read your journal. A clinician can only see it after you share it with them, and you can stop sharing at any time. You can also bring your own reflections to a clinician outside Stillwell if you choose.</p>

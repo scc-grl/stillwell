@@ -148,6 +148,8 @@ export interface DailyCheckInSymptomAnswer {
   name: DailyCheckInSymptomAnswerName;
   status: DailyCheckInSymptomAnswerStatus;
   rating: DailyCheckInSymptomAnswerRating;
+  /** Date this symptom first appeared in the patient's tracked list. */
+  addedOn?: string;
 }
 
 export type DailyCheckInSelectedSymptomsItem = typeof DailyCheckInSelectedSymptomsItem[keyof typeof DailyCheckInSelectedSymptomsItem];
@@ -250,11 +252,11 @@ export const SleepLogNap = {
 } as const;
 
 /**
- * Optional record of the night ending on the journal date. Patients may enter approximate whole hours; older entries may use local clock times.
+ * Optional record of the night ending on the journal date. Patients may enter approximate hours in half-hour steps; older entries may use local clock times.
  */
 export interface SleepLog {
   /**
-     * Optional approximate whole hours slept. Older entries may contain bedtime and wakeTime instead.
+     * Optional approximate hours slept in half-hour steps. The journal input stepper offers 0 to 14 hours. Older entries may contain bedtime and wakeTime instead.
      * @minimum 0
      * @maximum 24
      * @nullable
@@ -309,7 +311,7 @@ export interface RecoveryLogInput {
 }
 
 /**
- * Atomically update only this journal section, preserving fields written on another device. Omit for backwards-compatible merge.
+ * Atomically update only this journal section, preserving fields written on another device. Journal updates include check-in and sleep together. Omit for backwards-compatible merge.
  */
 export type RecoveryLogSaveInputSection = typeof RecoveryLogSaveInputSection[keyof typeof RecoveryLogSaveInputSection];
 
@@ -318,10 +320,11 @@ export const RecoveryLogSaveInputSection = {
   check_in: 'check_in',
   activities: 'activities',
   sleep: 'sleep',
+  journal: 'journal',
 } as const;
 
 export type RecoveryLogSaveInput = RecoveryLogInput & {
-  /** Atomically update only this journal section, preserving fields written on another device. Omit for backwards-compatible merge. */
+  /** Atomically update only this journal section, preserving fields written on another device. Journal updates include check-in and sleep together. Omit for backwards-compatible merge. */
   section?: RecoveryLogSaveInputSection;
 };
 

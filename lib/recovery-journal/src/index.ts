@@ -96,8 +96,9 @@ export function dailyCheckInFromLog(log: Pick<RecoveryLogInput, "symptoms" | "da
       ...log.dailyCheckIn,
       symptoms: empty.symptoms.map((missing) => {
         const answer = log.dailyCheckIn!.symptoms.find((item) => item.name === missing.name);
-        return answer?.status === "recorded" && ratingChoices.some((item) => item.value === answer.rating)
-          ? answer : missing;
+        if (!answer) return missing;
+        if (answer.status === "recorded" && ratingChoices.some((item) => item.value === answer.rating)) return answer;
+        return answer.addedOn ? { ...missing, addedOn: answer.addedOn } : missing;
       }),
     };
   }

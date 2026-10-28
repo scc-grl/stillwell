@@ -734,6 +734,10 @@ components:
           type: integer
           enum: [0, 1, 2, 3]
           nullable: true
+        addedOn:
+          type: string
+          format: date
+          description: Date this symptom first appeared in the patient's tracked list.
     DailyCheckIn:
       type: object
       additionalProperties: false
@@ -769,13 +773,14 @@ components:
     SleepLog:
       type: object
       additionalProperties: false
-      description: Optional record of the night ending on the journal date. Patients may enter approximate whole hours; older entries may use local clock times.
+      description: Optional record of the night ending on the journal date. Patients may enter approximate hours in half-hour steps; older entries may use local clock times.
       properties:
         hoursSlept:
-          type: [integer, "null"]
+          type: [number, "null"]
           minimum: 0
           maximum: 24
-          description: Optional approximate whole hours slept. Older entries may contain bedtime and wakeTime instead.
+          multipleOf: 0.5
+          description: Optional approximate hours slept in half-hour steps. The journal input stepper offers 0 to 14 hours. Older entries may contain bedtime and wakeTime instead.
         bedtime:
           type: [string, "null"]
           pattern: '^([01]\d|2[0-3]):[0-5]\d$'
@@ -843,8 +848,8 @@ components:
           properties:
             section:
               type: string
-              enum: [check_in, activities, sleep]
-              description: Atomically update only this journal section, preserving fields written on another device. Omit for backwards-compatible merge.
+              enum: [check_in, activities, sleep, journal]
+              description: Atomically update only this journal section, preserving fields written on another device. Journal updates include check-in and sleep together. Omit for backwards-compatible merge.
     RecoveryStartInput:
       type: object
       additionalProperties: false

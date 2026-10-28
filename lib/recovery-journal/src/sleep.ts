@@ -18,7 +18,7 @@ export const sleepDurationNote = "Older entries may show an estimate based on be
 export const validSleepTime = (value: unknown): value is string =>
   typeof value === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
 export const validHoursSlept = (value: unknown): value is number =>
-  typeof value === "number" && Number.isInteger(value) && value >= 0 && value <= 24;
+  typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 24 && Number.isInteger(value * 2);
 
 export function emptySleep(): SleepLog {
   return { hoursSlept: null, bedtime: null, wakeTime: null, quality: null, wakings: null, nap: null, note: "" };
