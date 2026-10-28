@@ -850,6 +850,8 @@ export const getSharedPatientJournalResponseLogsItemDateRegExp = new RegExp('^\\
 export const getSharedPatientJournalResponseLogsItemSymptomsItemSeverityMin = 0;
 export const getSharedPatientJournalResponseLogsItemSymptomsItemSeverityMax = 10;
 
+export const getSharedPatientJournalResponseLogsItemSymptomsMax = 11;
+
 export const getSharedPatientJournalResponseLogsItemDailyCheckInSelectedSymptomsMax = 11;
 
 export const getSharedPatientJournalResponseLogsItemDailyCheckInSymptomsMin = 6;
@@ -874,7 +876,7 @@ export const GetSharedPatientJournalResponse = zod.object({
   "symptoms": zod.array(zod.object({
   "name": zod.enum(['headache', 'dizziness', 'focus', 'fatigue', 'sleep', 'light_sound', 'mood', 'nausea', 'vision', 'noise', 'neck']),
   "severity": zod.number().int().min(getSharedPatientJournalResponseLogsItemSymptomsItemSeverityMin).max(getSharedPatientJournalResponseLogsItemSymptomsItemSeverityMax)
-})).optional(),
+})).max(getSharedPatientJournalResponseLogsItemSymptomsMax).optional(),
   "dietStatus": zod.enum(['done', 'not_done', 'not_planned']).optional(),
   "dietNote": zod.string().optional(),
   "exerciseStatus": zod.enum(['done', 'not_done', 'not_planned']).optional(),
@@ -962,7 +964,7 @@ export const getRecoveryResponseLogsItemOneDateRegExp = new RegExp('^\\d{4}-\\d{
 export const getRecoveryResponseLogsItemOneSymptomsItemSeverityMin = 0;
 export const getRecoveryResponseLogsItemOneSymptomsItemSeverityMax = 10;
 
-export const getRecoveryResponseLogsItemOneSymptomsMax = 7;
+export const getRecoveryResponseLogsItemOneSymptomsMax = 11;
 
 export const getRecoveryResponseLogsItemOneDietNoteMax = 2000;
 
@@ -1058,7 +1060,7 @@ export const startRecoveryBodyFirstLogDateRegExp = new RegExp('^\\d{4}-\\d{2}-\\
 export const startRecoveryBodyFirstLogSymptomsItemSeverityMin = 0;
 export const startRecoveryBodyFirstLogSymptomsItemSeverityMax = 10;
 
-export const startRecoveryBodyFirstLogSymptomsMax = 7;
+export const startRecoveryBodyFirstLogSymptomsMax = 11;
 
 export const startRecoveryBodyFirstLogDietNoteMax = 2000;
 
@@ -1140,7 +1142,7 @@ export const startRecoveryResponseLogsItemOneDateRegExp = new RegExp('^\\d{4}-\\
 export const startRecoveryResponseLogsItemOneSymptomsItemSeverityMin = 0;
 export const startRecoveryResponseLogsItemOneSymptomsItemSeverityMax = 10;
 
-export const startRecoveryResponseLogsItemOneSymptomsMax = 7;
+export const startRecoveryResponseLogsItemOneSymptomsMax = 11;
 
 export const startRecoveryResponseLogsItemOneDietNoteMax = 2000;
 
@@ -1258,7 +1260,7 @@ export const saveRecoveryLogBodyOneDateRegExp = new RegExp('^\\d{4}-\\d{2}-\\d{2
 export const saveRecoveryLogBodyOneSymptomsItemSeverityMin = 0;
 export const saveRecoveryLogBodyOneSymptomsItemSeverityMax = 10;
 
-export const saveRecoveryLogBodyOneSymptomsMax = 7;
+export const saveRecoveryLogBodyOneSymptomsMax = 11;
 
 export const saveRecoveryLogBodyOneDietNoteMax = 2000;
 
@@ -1329,7 +1331,7 @@ export const saveRecoveryLogResponseOneDateRegExp = new RegExp('^\\d{4}-\\d{2}-\
 export const saveRecoveryLogResponseOneSymptomsItemSeverityMin = 0;
 export const saveRecoveryLogResponseOneSymptomsItemSeverityMax = 10;
 
-export const saveRecoveryLogResponseOneSymptomsMax = 7;
+export const saveRecoveryLogResponseOneSymptomsMax = 11;
 
 export const saveRecoveryLogResponseOneDietNoteMax = 2000;
 

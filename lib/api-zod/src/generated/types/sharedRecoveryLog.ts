@@ -13,6 +13,7 @@ import type { SymptomEntry } from './symptomEntry';
 export interface SharedRecoveryLog {
   /** @pattern ^\d{4}-\d{2}-\d{2}$ */
   date: string;
+  /** @maxItems 11 */
   symptoms?: SymptomEntry[];
   dietStatus?: ActivityStatus;
   dietNote?: string;

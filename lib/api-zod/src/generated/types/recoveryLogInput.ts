@@ -13,7 +13,7 @@ import type { SymptomEntry } from './symptomEntry';
 export interface RecoveryLogInput {
   /** @pattern ^\d{4}-\d{2}-\d{2}$ */
   date: string;
-  /** @maxItems 7 */
+  /** @maxItems 11 */
   symptoms: SymptomEntry[];
   dietStatus: ActivityStatus;
   /** @maxLength 2000 */

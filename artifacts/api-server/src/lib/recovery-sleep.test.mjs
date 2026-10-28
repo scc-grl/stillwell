@@ -5,15 +5,23 @@ import { createRequire } from "node:module";
 import { buildSync } from "esbuild";
 import { fileURLToPath } from "node:url";
 import { recoveryLogWrite } from "./recovery-log-write.ts";
+import {
+  checkInSymptoms,
+  makeEmptyDailyCheckIn,
+  symptomsForRecoveryLog,
+} from "../../../../lib/recovery-journal/src/index.ts";
 
 const compiled = buildSync({
   stdin: {
-    contents: 'export { SaveRecoveryLogBody, GetRecoveryResponse, UpdateRecoveryProfileBody } from "@workspace/api-zod";',
+    contents: 'export { SaveRecoveryLogBody, StartRecoveryBody, GetRecoveryResponse, GetSharedPatientJournalResponse, UpdateRecoveryProfileBody } from "@workspace/api-zod";',
     resolveDir: fileURLToPath(new URL(".", import.meta.url)),
   },
   bundle: true, platform: "node", format: "esm", write: false,
 });
-const { SaveRecoveryLogBody, GetRecoveryResponse, UpdateRecoveryProfileBody } = await import(
+const {
+  SaveRecoveryLogBody, StartRecoveryBody, GetRecoveryResponse,
+  GetSharedPatientJournalResponse, UpdateRecoveryProfileBody,
+} = await import(
   `data:text/javascript;base64,${Buffer.from(compiled.outputFiles[0].text).toString("base64")}`
 );
 const { Pool } = createRequire(new URL("../../../../lib/db/package.json", import.meta.url))("pg");
@@ -30,6 +38,22 @@ const base = {
   ].map(name => ({ name, status: "not_recorded", rating: null })), summary: "Check-in" },
 };
 const sleep = { bedtime: "23:30", wakeTime: "07:00", quality: "fair", wakings: 1, nap: "none", note: "Night note" };
+function fullCheckIn() {
+  const checkIn = makeEmptyDailyCheckIn();
+  checkIn.selectedSymptoms = checkInSymptoms.map(({ name }) => name);
+  checkIn.symptoms = checkInSymptoms.map(({ name }, index) => ({
+    name, status: "recorded", rating: index % 4,
+  }));
+  return checkIn;
+}
+function fullSymptomLog() {
+  const dailyCheckIn = fullCheckIn();
+  return {
+    ...base,
+    symptoms: symptomsForRecoveryLog(dailyCheckIn, []),
+    dailyCheckIn,
+  };
+}
 
 before(async () => {
   await admin.query(`CREATE SCHEMA ${schema}`);
@@ -45,18 +69,46 @@ after(async () => {
   await admin.end();
 });
 
-async function save(input) {
+async function save(input, ownerId = "isolated-sleep-patient") {
   const { initial, patch } = recoveryLogWrite(SaveRecoveryLogBody.parse(input));
   const { rows: [row] } = await pool.query(
     `INSERT INTO recovery_logs(owner_id,date,data) VALUES($1,$2,$3)
      ON CONFLICT(owner_id,date) DO UPDATE SET data=recovery_logs.data || $4::jsonb,updated_at=now()
      RETURNING data`,
-    ["isolated-sleep-patient", initial.date, initial, patch],
+    [ownerId, initial.date, initial, patch],
   );
   return row.data;
 }
 async function saved() {
   return (await pool.query("SELECT data FROM recovery_logs")).rows[0].data;
+}
+async function recoveryState(ownerId) {
+  const [profile] = (await pool.query(
+    "SELECT preferences, consent_version, consented_at FROM recovery_profiles WHERE owner_id=$1",
+    [ownerId],
+  )).rows;
+  const logs = (await pool.query(
+    "SELECT date, data, updated_at FROM recovery_logs WHERE owner_id=$1 ORDER BY date DESC",
+    [ownerId],
+  )).rows;
+  return GetRecoveryResponse.parse({
+    profile: profile ? {
+      ...profile.preferences,
+      consentVersion: profile.consent_version,
+      consentedAt: profile.consented_at.toISOString(),
+    } : null,
+    logs: logs.map(({ date, data, updated_at }) => ({
+      ...data,
+      date: date instanceof Date ? date.toISOString().slice(0, 10) : date,
+      updatedAt: updated_at.toISOString(),
+    })),
+  });
+}
+async function createProfile(ownerId, preferences) {
+  await pool.query(
+    "INSERT INTO recovery_profiles(owner_id, preferences, consent_version) VALUES($1,$2,$3)",
+    [ownerId, preferences, "test-consent"],
+  );
 }
 
 test("sleep atomically merges with latest check-in and activities despite a stale client", async () => {
@@ -141,6 +193,72 @@ test("new check-in symptoms and activity survive independent section saves and d
   assert.equal((await saved()).dailyCheckIn.worseWithActivity, null);
   assert.equal((await saved()).dietNote, "Most recent food");
   assert.deepEqual((await saved()).sleep, { quality: "good" });
+});
+test("daily check-in with all 11 symptoms saves and reads back through the API schemas", async () => {
+  const ownerId = "isolated-eleven-symptom-patient";
+  const preferences = {
+    supportMode: "self_guided",
+    priorities: ["movement"],
+    selectedSymptoms: checkInSymptoms.map(({ name }) => name),
+  };
+  await createProfile(ownerId, preferences);
+
+  const input = { ...fullSymptomLog(), section: "check_in" };
+  assert.equal(SaveRecoveryLogBody.parse(input).symptoms.length, 11);
+  await save(input, ownerId);
+
+  const state = await recoveryState(ownerId);
+  assert.equal(state.logs[0].symptoms.length, 11);
+  assert.equal(state.logs[0].dailyCheckIn.symptoms.filter(answer => answer.status === "recorded").length, 11);
+  const clinicianView = GetSharedPatientJournalResponse.parse({
+    patientLabel: "Jordan",
+    shareAreas: ["symptoms"],
+    logs: state.logs,
+  });
+  assert.equal(clinicianView.logs[0].symptoms.length, 11);
+});
+test("starting quiz first log with all 11 symptoms saves and reads back", async () => {
+  const ownerId = "isolated-start-with-eleven-symptoms-patient";
+  const firstLog = fullSymptomLog();
+  const preferences = {
+    supportMode: "self_guided",
+    priorities: ["movement"],
+    selectedSymptoms: checkInSymptoms.map(({ name }) => name),
+  };
+  const payload = StartRecoveryBody.parse({
+    preferences,
+    consentAccepted: true,
+    firstLog,
+  });
+
+  await createProfile(ownerId, preferences);
+  await pool.query(
+    "INSERT INTO recovery_logs(owner_id,date,data) VALUES($1,$2,$3)",
+    [ownerId, payload.firstLog.date, payload.firstLog],
+  );
+
+  const state = await recoveryState(ownerId);
+  assert.equal(state.logs[0].symptoms.length, 11);
+  assert.equal(state.logs[0].dailyCheckIn.symptoms.filter(answer => answer.status === "recorded").length, 11);
+});
+test("daily, starting-quiz, and shared-journal schemas reject more than 11 legacy symptoms", () => {
+  const validLog = fullSymptomLog();
+  const tooMany = [...validLog.symptoms, validLog.symptoms[0]];
+  const saveBody = { ...validLog, symptoms: tooMany, section: "check_in" };
+  const preferences = {
+    supportMode: "self_guided",
+    priorities: ["movement"],
+    selectedSymptoms: checkInSymptoms.map(({ name }) => name),
+  };
+
+  assert.equal(SaveRecoveryLogBody.safeParse(saveBody).success, false);
+  assert.equal(StartRecoveryBody.safeParse({
+    preferences, consentAccepted: true, firstLog: { ...validLog, symptoms: tooMany },
+  }).success, false);
+  assert.equal(GetSharedPatientJournalResponse.safeParse({
+    patientLabel: "Jordan", shareAreas: ["symptoms"],
+    logs: [{ date: validLog.date, symptoms: tooMany }],
+  }).success, false);
 });
 test("symptom preferences persist in the profile and routine-only updates preserve them", async () => {
   const preferences = UpdateRecoveryProfileBody.parse({

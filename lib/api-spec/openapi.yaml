@@ -805,7 +805,7 @@ components:
           pattern: '^\d{4}-\d{2}-\d{2}$'
         symptoms:
           type: array
-          maxItems: 7
+          maxItems: 11
           items:
             $ref: "#/components/schemas/SymptomEntry"
         dietStatus:
@@ -1007,6 +1007,7 @@ components:
           pattern: '^\d{4}-\d{2}-\d{2}$'
         symptoms:
           type: array
+          maxItems: 11
           items:
             $ref: "#/components/schemas/SymptomEntry"
         dietStatus:

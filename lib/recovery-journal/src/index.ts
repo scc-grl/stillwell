@@ -18,6 +18,7 @@ export const checkInSymptoms = [
   { name: "neck", label: "Neck pain", legacyName: "neck" },
 ] as const;
 
+export const MAX_RECOVERY_LOG_SYMPTOMS = 11;
 export type CheckInSymptomName = typeof checkInSymptoms[number]["name"];
 export const defaultSymptoms: CheckInSymptomName[] = checkInSymptoms.slice(0, 6).map(item => item.name);
 export const activityQuestion = "Worse with activity today?";
@@ -122,7 +123,9 @@ export function symptomsForRecoveryLog(checkIn: DailyCheckIn, existing: readonly
     const config = checkInSymptoms.find((item) => item.name === answer.name);
     return config ? [{ name: config.legacyName, severity: legacySeverity[answer.rating] }] : [];
   });
-  return [...preserved, ...tracked];
+  const boundedTracked = tracked.slice(0, MAX_RECOVERY_LOG_SYMPTOMS);
+  const boundedPreserved = preserved.slice(0, MAX_RECOVERY_LOG_SYMPTOMS - boundedTracked.length);
+  return [...boundedPreserved, ...boundedTracked];
 }
 
 export function ratingLabel(answer: DailyCheckInSymptomAnswer): string {

@@ -286,7 +286,7 @@ export interface SleepLog {
 export interface RecoveryLogInput {
   /** @pattern ^\d{4}-\d{2}-\d{2}$ */
   date: string;
-  /** @maxItems 7 */
+  /** @maxItems 11 */
   symptoms: SymptomEntry[];
   dietStatus: ActivityStatus;
   /** @maxLength 2000 */
@@ -439,6 +439,7 @@ export interface ConnectedPatientList {
 export interface SharedRecoveryLog {
   /** @pattern ^\d{4}-\d{2}-\d{2}$ */
   date: string;
+  /** @maxItems 11 */
   symptoms?: SymptomEntry[];
   dietStatus?: ActivityStatus;
   dietNote?: string;
