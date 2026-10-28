@@ -8,12 +8,12 @@ import { recoveryLogWrite } from "./recovery-log-write.ts";
 
 const compiled = buildSync({
   stdin: {
-    contents: 'export { SaveRecoveryLogBody, GetRecoveryResponse } from "@workspace/api-zod";',
+    contents: 'export { SaveRecoveryLogBody, GetRecoveryResponse, UpdateRecoveryProfileBody } from "@workspace/api-zod";',
     resolveDir: fileURLToPath(new URL(".", import.meta.url)),
   },
   bundle: true, platform: "node", format: "esm", write: false,
 });
-const { SaveRecoveryLogBody, GetRecoveryResponse } = await import(
+const { SaveRecoveryLogBody, GetRecoveryResponse, UpdateRecoveryProfileBody } = await import(
   `data:text/javascript;base64,${Buffer.from(compiled.outputFiles[0].text).toString("base64")}`
 );
 const { Pool } = createRequire(new URL("../../../../lib/db/package.json", import.meta.url))("pg");
@@ -36,8 +36,9 @@ before(async () => {
   pool = new Pool({ connectionString: process.env.DATABASE_URL, options: `-c search_path=${schema},public` });
   // Use the actual Drizzle-managed table definition, without touching user rows.
   await pool.query(`CREATE TABLE recovery_logs (LIKE public.recovery_logs INCLUDING ALL)`);
+  await pool.query(`CREATE TABLE recovery_profiles (LIKE public.recovery_profiles INCLUDING ALL)`);
 });
-beforeEach(async () => { await pool.query("TRUNCATE recovery_logs"); });
+beforeEach(async () => { await pool.query("TRUNCATE recovery_logs, recovery_profiles"); });
 after(async () => {
   if (pool) await pool.end();
   await admin.query(`DROP SCHEMA IF EXISTS ${schema} CASCADE`);
@@ -110,4 +111,46 @@ test("generated API validation allows skipped fields and rejects invalid times, 
   }
   const result = GetRecoveryResponse.parse({ profile: null, logs: [{ ...base, sleep, updatedAt: "2026-10-20T08:00:00Z" }] });
   assert.deepEqual(result.logs[0].sleep, sleep);
+});
+
+test("new check-in symptoms and activity survive independent section saves and database reload", async () => {
+  const dailyCheckIn = {
+    ...base.dailyCheckIn, worseWithActivity: "not_sure",
+    selectedSymptoms: ["headache", "vision"],
+    symptoms: [...base.dailyCheckIn.symptoms, ...["dizziness", "nausea", "vision", "noise", "neck"].map(name => ({
+      name, status: name === "vision" ? "recorded" : "not_recorded", rating: name === "vision" ? 2 : null,
+    }))],
+  };
+  await save({ ...base, section: "sleep", sleep });
+  await save({ ...base, section: "check_in", dailyCheckIn });
+  await save({ ...base, section: "activities", dietNote: "Most recent food" });
+  await save({ ...base, section: "sleep", sleep: { quality: "good" } });
+  const reloaded = await saved();
+  assert.deepEqual(reloaded.dailyCheckIn, dailyCheckIn);
+  assert.equal(reloaded.dietNote, "Most recent food");
+  assert.deepEqual(reloaded.sleep, { quality: "good" });
+  await save({ ...base, section: "check_in", dailyCheckIn: { ...dailyCheckIn, worseWithActivity: null } });
+  assert.equal((await saved()).dailyCheckIn.worseWithActivity, null);
+  assert.equal((await saved()).dietNote, "Most recent food");
+  assert.deepEqual((await saved()).sleep, { quality: "good" });
+});
+test("symptom preferences persist in the profile and routine-only updates preserve them", async () => {
+  const preferences = UpdateRecoveryProfileBody.parse({
+    supportMode: "self_guided", priorities: [], selectedSymptoms: ["fog", "noise", "neck"],
+  });
+  await pool.query("INSERT INTO recovery_profiles(owner_id,preferences,consent_version) VALUES($1,$2,$3)", ["isolated-selection-patient", preferences, "test"]);
+  const routineEdit = UpdateRecoveryProfileBody.parse({ supportMode: "clinician_supported", priorities: ["movement"] });
+  await pool.query("UPDATE recovery_profiles SET preferences=preferences || $1::jsonb WHERE owner_id=$2", [routineEdit, "isolated-selection-patient"]);
+  const { rows: [row] } = await pool.query("SELECT preferences FROM recovery_profiles WHERE owner_id=$1", ["isolated-selection-patient"]);
+  assert.deepEqual(row.preferences.selectedSymptoms, ["fog", "noise", "neck"]);
+  assert.equal(row.preferences.supportMode, "clinician_supported");
+  assert.equal(UpdateRecoveryProfileBody.safeParse({ ...preferences, selectedSymptoms: ["unknown"] }).success, false);
+});
+test("invalid activity responses and out-of-scale new ratings are rejected", () => {
+  for (const worseWithActivity of ["maybe", true, 1]) {
+    assert.equal(SaveRecoveryLogBody.safeParse({ ...base, dailyCheckIn: { ...base.dailyCheckIn, worseWithActivity } }).success, false);
+  }
+  assert.equal(SaveRecoveryLogBody.safeParse({ ...base, dailyCheckIn: {
+    ...base.dailyCheckIn, symptoms: [...base.dailyCheckIn.symptoms, { name: "nausea", status: "recorded", rating: 4 }],
+  } }).success, false);
 });

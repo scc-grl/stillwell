@@ -24,6 +24,7 @@ import { requestHref, usePendingRequest } from "@/contexts/PendingRequestContext
 import { priorityChoices, recoveryQueryKey } from "@/lib/journal";
 import { clearConsentedDraft, setPendingPatientSignup } from "@/lib/draft";
 import { spacing } from "@/lib/layout";
+import { SymptomPreferences } from "@/components/SymptomPreferences";
 
 export default function AccountScreen() {
   const { signOut } = useClerk();
@@ -138,6 +139,7 @@ export default function AccountScreen() {
         </Text>
       </View>
 
+      {recovery?.profile ? <SymptomPreferences /> : null}
       {recovery?.profile ? (
         <Card>
           <Text variant="heading">Your routine</Text>

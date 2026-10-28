@@ -6,9 +6,12 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { RecoveryPreferencesPrioritiesItem } from './recoveryPreferencesPrioritiesItem';
+import type { RecoveryPreferencesSelectedSymptomsItem } from './recoveryPreferencesSelectedSymptomsItem';
 import type { RecoveryPreferencesSupportMode } from './recoveryPreferencesSupportMode';
 
 export interface RecoveryPreferences {
+  /** @maxItems 11 */
+  selectedSymptoms?: RecoveryPreferencesSelectedSymptomsItem[];
   supportMode: RecoveryPreferencesSupportMode;
   /**
      * @minItems 0

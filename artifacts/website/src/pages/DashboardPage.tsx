@@ -38,6 +38,8 @@ import {
 } from "lucide-react";
 import { ActivitiesEditor } from "@/components/ActivitiesEditor";
 import { DailyCheckInFlow } from "@/components/DailyCheckInFlow";
+import { SymptomPreferences } from "@/components/SymptomPreferences";
+import { activityQuestion, activityAnswerChoices } from "@workspace/recovery-journal";
 import { PatientProgressChart } from "@/components/PatientProgressChart";
 import { SleepEditor } from "@/components/SleepEditor";
 import { SleepDetailList, SleepTipsCard, SleepWeekTable } from "@/components/SleepDetails";
@@ -123,6 +125,7 @@ function HistorySummary({ log }: { log: RecoveryLog }) {
           </div>;
         })}
       </div>
+      <p className="text-sm">{activityQuestion} {activityAnswerChoices.find(choice => choice.value === checkIn.worseWithActivity)?.label ?? "Not recorded"}</p>
       {checkIn.summary.trim() && <p className="whitespace-pre-wrap border-t border-border pt-3 text-sm leading-6">{checkIn.summary}</p>}
     </Card>
     <Card className="space-y-3 p-5">
@@ -393,6 +396,7 @@ export default function DashboardPage() {
 
       {!recoveryQuery.isLoading && !recoveryQuery.isError && profile && (section === "dashboard" || section === "journal") && <>
         {section === "dashboard" && <PatientProgressChart logs={logs} today={today} />}
+        {section === "dashboard" && <details className="space-y-4"><summary className="min-h-12 cursor-pointer py-3 font-semibold">Journal settings · symptoms to track</summary><SymptomPreferences /></details>}
         <div className="space-y-5">
           {section === "dashboard" && <Card className="space-y-5 p-5 sm:p-6">
             <div className="flex items-start justify-between gap-3">

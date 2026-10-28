@@ -16,4 +16,9 @@ export const DailyCheckInSymptomAnswerName = {
   sleep: 'sleep',
   mood: 'mood',
   light: 'light',
+  dizziness: 'dizziness',
+  nausea: 'nausea',
+  vision: 'vision',
+  noise: 'noise',
+  neck: 'neck',
 } as const;

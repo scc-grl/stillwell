@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ProofOfConceptBadge } from './ProofOfConceptBadge';
+import { ProofOfConceptBanner } from './ProofOfConceptBanner';
 import { Link, useLocation } from 'wouter';
 import { useAuth, useClerk, useUser } from '@clerk/react';
 import { useQueryClient } from '@tanstack/react-query';
@@ -76,19 +76,17 @@ function Header({ name }: { name: string }) {
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-3 md:px-6">
-        <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
         <Link href="/clinician/portal" className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full font-serif text-xl font-semibold text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Stillwell clinician portal" data-testid="link-portal-home">
           <img src={markUrl} alt="" className="size-9" width="36" height="36" />
           <span>stillwell</span>
         </Link>
-          <ProofOfConceptBadge />
-        </div>
         <div className="flex min-w-0 items-center gap-1 sm:gap-2">
           <a href="/clinicians/profile" title={name} className="inline-flex min-h-11 min-w-0 max-w-32 items-center rounded-full px-2 text-sm font-semibold text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:max-w-xs sm:px-3" data-testid="link-clinician-profile"><span className="truncate">{name}</span></a>
           <Button variant="ghost" onClick={() => void onSignOut()} data-testid="button-sign-out">Sign out</Button>
         </div>
       </div>
       {error ? <p role="alert" className="mx-auto max-w-7xl px-4 pb-3 text-sm text-destructive md:px-6">{error}</p> : null}
+      <ProofOfConceptBanner />
     </header>
   );
 }

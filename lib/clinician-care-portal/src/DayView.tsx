@@ -1,7 +1,7 @@
 import { Link } from 'wouter';
 import { ArrowLeft, ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import { careSymptoms, type CareRoutine } from '@workspace/recovery-journal/clinician-journal';
-import { sleepDetails, sleepDurationNote } from '@workspace/recovery-journal';
+import { sleepDetails, sleepDurationNote, activityQuestion } from '@workspace/recovery-journal';
 import { Button } from '@workspace/stillwell-design-system/components/ui/button';
 import { Card } from '@workspace/stillwell-design-system/components/ui/card';
 import type { FullJournal } from './queries';
@@ -72,7 +72,9 @@ export function DayView({ data, date }: { data: FullJournal; date: string }) {
                   <li key={symptom.key}>
                     <Card className="flex h-full flex-col gap-2 p-4 shadow-none" data-testid={`tile-symptom-${symptom.key}`}>
                       <span className="text-xs font-semibold text-muted-foreground">{symptom.label}</span>
-                      {value === null
+                      {entry.checkInRatings[symptom.key]
+                        ? <span className="text-sm text-foreground">{entry.checkInRatings[symptom.key]}</span>
+                        : value === null
                         ? <span className="text-sm text-muted-foreground">Not recorded</span>
                         : <span className="font-serif text-4xl font-medium text-foreground">{value}</span>}
                     </Card>
@@ -82,6 +84,7 @@ export function DayView({ data, date }: { data: FullJournal; date: string }) {
             </ul>
           </section>
 
+          <Card className="space-y-2 p-5"><h2 className="font-serif text-xl">{activityQuestion}</h2><p>{entry.activityAnswer}</p></Card>
           <section aria-labelledby="day-routines" className="space-y-3">
             <h2 id="day-routines" className="font-serif text-2xl font-medium text-foreground">Routines</h2>
             <ul className="grid gap-3 md:grid-cols-3">

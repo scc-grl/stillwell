@@ -37,6 +37,23 @@ export interface CompleteAccountRegistrationInput {
   registrationToken: string;
 }
 
+export type RecoveryPreferencesSelectedSymptomsItem = typeof RecoveryPreferencesSelectedSymptomsItem[keyof typeof RecoveryPreferencesSelectedSymptomsItem];
+
+
+export const RecoveryPreferencesSelectedSymptomsItem = {
+  headache: 'headache',
+  fatigue: 'fatigue',
+  fog: 'fog',
+  sleep: 'sleep',
+  mood: 'mood',
+  light: 'light',
+  dizziness: 'dizziness',
+  nausea: 'nausea',
+  vision: 'vision',
+  noise: 'noise',
+  neck: 'neck',
+} as const;
+
 export type RecoveryPreferencesSupportMode = typeof RecoveryPreferencesSupportMode[keyof typeof RecoveryPreferencesSupportMode];
 
 
@@ -56,6 +73,8 @@ export const RecoveryPreferencesPrioritiesItem = {
 } as const;
 
 export interface RecoveryPreferences {
+  /** @maxItems 11 */
+  selectedSymptoms?: RecoveryPreferencesSelectedSymptomsItem[];
   supportMode: RecoveryPreferencesSupportMode;
   /**
      * @minItems 0
@@ -75,6 +94,10 @@ export const SymptomEntryName = {
   sleep: 'sleep',
   light_sound: 'light_sound',
   mood: 'mood',
+  nausea: 'nausea',
+  vision: 'vision',
+  noise: 'noise',
+  neck: 'neck',
 } as const;
 
 export interface SymptomEntry {
@@ -96,6 +119,11 @@ export const DailyCheckInSymptomAnswerName = {
   sleep: 'sleep',
   mood: 'mood',
   light: 'light',
+  dizziness: 'dizziness',
+  nausea: 'nausea',
+  vision: 'vision',
+  noise: 'noise',
+  neck: 'neck',
 } as const;
 
 export type DailyCheckInSymptomAnswerStatus = typeof DailyCheckInSymptomAnswerStatus[keyof typeof DailyCheckInSymptomAnswerStatus];
@@ -122,6 +150,32 @@ export interface DailyCheckInSymptomAnswer {
   rating: DailyCheckInSymptomAnswerRating;
 }
 
+export type DailyCheckInSelectedSymptomsItem = typeof DailyCheckInSelectedSymptomsItem[keyof typeof DailyCheckInSelectedSymptomsItem];
+
+
+export const DailyCheckInSelectedSymptomsItem = {
+  headache: 'headache',
+  fatigue: 'fatigue',
+  fog: 'fog',
+  sleep: 'sleep',
+  mood: 'mood',
+  light: 'light',
+  dizziness: 'dizziness',
+  nausea: 'nausea',
+  vision: 'vision',
+  noise: 'noise',
+  neck: 'neck',
+} as const;
+
+export type DailyCheckInWorseWithActivity = typeof DailyCheckInWorseWithActivity[keyof typeof DailyCheckInWorseWithActivity] | null;
+
+
+export const DailyCheckInWorseWithActivity = {
+  yes: 'yes',
+  no: 'no',
+  not_sure: 'not_sure',
+} as const;
+
 export type DailyCheckInOverallFeeling = typeof DailyCheckInOverallFeeling[keyof typeof DailyCheckInOverallFeeling] | null;
 
 
@@ -134,10 +188,13 @@ export const DailyCheckInOverallFeeling = {
 } as const;
 
 export interface DailyCheckIn {
+  /** @maxItems 11 */
+  selectedSymptoms?: DailyCheckInSelectedSymptomsItem[];
+  worseWithActivity?: DailyCheckInWorseWithActivity;
   overallFeeling: DailyCheckInOverallFeeling;
   /**
      * @minItems 6
-     * @maxItems 6
+     * @maxItems 11
      */
   symptoms: DailyCheckInSymptomAnswer[];
   /** @maxLength 500 */

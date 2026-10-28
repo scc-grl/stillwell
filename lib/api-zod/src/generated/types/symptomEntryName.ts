@@ -17,4 +17,8 @@ export const SymptomEntryName = {
   sleep: 'sleep',
   light_sound: 'light_sound',
   mood: 'mood',
+  nausea: 'nausea',
+  vision: 'vision',
+  noise: 'noise',
+  neck: 'neck',
 } as const;

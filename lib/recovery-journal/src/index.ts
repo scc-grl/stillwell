@@ -11,7 +11,22 @@ export const checkInSymptoms = [
   { name: "sleep", label: "Sleep", legacyName: "sleep" },
   { name: "mood", label: "Mood", legacyName: "mood" },
   { name: "light", label: "Light", legacyName: "light_sound" },
+  { name: "dizziness", label: "Dizziness / balance", legacyName: "dizziness" },
+  { name: "nausea", label: "Nausea", legacyName: "nausea" },
+  { name: "vision", label: "Vision (blurry or double)", legacyName: "vision" },
+  { name: "noise", label: "Noise sensitivity", legacyName: "noise" },
+  { name: "neck", label: "Neck pain", legacyName: "neck" },
 ] as const;
+
+export type CheckInSymptomName = typeof checkInSymptoms[number]["name"];
+export const defaultSymptoms: CheckInSymptomName[] = checkInSymptoms.slice(0, 6).map(item => item.name);
+export const activityQuestion = "Worse with activity today?";
+export const activityAnswerChoices = [
+  { value: "yes", label: "Yes" }, { value: "no", label: "No" }, { value: "not_sure", label: "Not sure" },
+] as const;
+export function selectedCheckInSymptoms(preferences?: { selectedSymptoms?: readonly string[] } | null) {
+  return checkInSymptoms.filter(item => (preferences?.selectedSymptoms ?? defaultSymptoms).includes(item.name));
+}
 
 export const overallChoices = [
   { value: "rough", label: "Rough" }, { value: "low", label: "Low" },
@@ -57,7 +72,7 @@ export const setupCopy = {
 } as const;
 
 const legacySeverity = [0, 3, 6, 9] as const;
-const trackedLegacyNames = new Set<string>(checkInSymptoms.map((symptom) => symptom.legacyName));
+const trackedLegacyNames = new Set<string>(checkInSymptoms.slice(0, 6).map((symptom) => symptom.legacyName));
 
 /** Historical severities remain storage-compatible; new UI always uses named ratings. */
 export function legacyScoreToRating(severity: number): 0 | 1 | 2 | 3 {
@@ -67,6 +82,7 @@ export function legacyScoreToRating(severity: number): 0 | 1 | 2 | 3 {
 export function makeEmptyDailyCheckIn(): DailyCheckIn {
   return {
     overallFeeling: null,
+    worseWithActivity: null,
     symptoms: checkInSymptoms.map(({ name }) => ({ name, status: "not_recorded", rating: null })),
     summary: "",
   };
@@ -88,14 +104,19 @@ export function dailyCheckInFromLog(log: Pick<RecoveryLogInput, "symptoms" | "da
     ...empty,
     symptoms: empty.symptoms.map((answer) => {
       const config = checkInSymptoms.find((item) => item.name === answer.name)!;
-      const prior = log.symptoms.find((item) => item.name === config.legacyName);
+      // Only the original six have a legacy check-in mapping. Missing new
+      // answers are never inferred from old, differently scoped symptom logs.
+      const prior = defaultSymptoms.includes(config.name)
+        ? log.symptoms.find((item) => item.name === config.legacyName) : undefined;
       return prior ? { ...answer, status: "recorded", rating: legacyScoreToRating(prior.severity) } : answer;
     }),
   };
 }
 
 export function symptomsForRecoveryLog(checkIn: DailyCheckIn, existing: readonly SymptomEntry[]): SymptomEntry[] {
-  const preserved = existing.filter((item) => !trackedLegacyNames.has(item.name));
+  const recordedLegacyNames = new Set(checkIn.symptoms.filter(item => item.status === "recorded").map(answer =>
+    checkInSymptoms.find(item => item.name === answer.name)?.legacyName));
+  const preserved = existing.filter((item) => !trackedLegacyNames.has(item.name) && !recordedLegacyNames.has(item.name));
   const tracked = checkIn.symptoms.flatMap((answer) => {
     if (answer.status !== "recorded" || answer.rating === null) return [];
     const config = checkInSymptoms.find((item) => item.name === answer.name);

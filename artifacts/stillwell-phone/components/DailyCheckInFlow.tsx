@@ -32,6 +32,8 @@ import {
   hasSavedCheckIn,
 } from "@workspace/recovery-journal";
 import { formatDate } from "@/lib/journal";
+import { SymptomSelector, useSymptomPreferences } from "./SymptomPreferences";
+import { defaultSymptoms, activityQuestion, activityAnswerChoices, type CheckInSymptomName } from "@workspace/recovery-journal";
 
 type Page = "home" | "symptoms" | "voice" | "review" | "edit" | "saved";
 type StartAt = "home" | "review" | "edit" | "saved";
@@ -46,6 +48,8 @@ type Props = {
   onExit?: () => void;
   exitLabel?: string;
   draftMode?: boolean;
+  selectedSymptoms?: CheckInSymptomName[];
+  onSelectSymptoms?: (names: CheckInSymptomName[]) => void;
 };
 
 function responseFor(
@@ -66,6 +70,8 @@ export function DailyCheckInFlow({
   onExit,
   exitLabel,
   draftMode = false,
+  selectedSymptoms,
+  onSelectSymptoms,
 }: Props) {
   const colors = useColors();
   const [page, setPage] = useState<Page>(startAt);
@@ -80,9 +86,17 @@ export function DailyCheckInFlow({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [voiceDraft, setVoiceDraft] = useState(initial.dailyCheckIn?.summary ?? "");
+  const preferences = useSymptomPreferences();
+  const [daySelection, setDaySelection] = useState<CheckInSymptomName[] | null>(initial.dailyCheckIn?.selectedSymptoms ?? null);
+  const [choosingSymptoms, setChoosingSymptoms] = useState(false);
+  const [addingSymptom, setAddingSymptom] = useState(false);
+  const selectedNames = daySelection ?? selectedSymptoms ?? preferences.selected ?? defaultSymptoms;
+  const flowSymptoms = checkInSymptoms.filter(item => selectedNames.includes(item.name) ||
+    checkIn.symptoms.some(answer => answer.name === item.name && answer.status === "recorded"));
 
   const persistCheckIn = useCallback(
     async (next: DailyCheckIn) => {
+      next = { ...next, selectedSymptoms: next.selectedSymptoms ?? selectedNames };
       const nextLog: RecoveryLogInput = {
         ...log,
         symptoms: symptomsForRecoveryLog(next, log.symptoms),
@@ -103,7 +117,7 @@ export function DailyCheckInFlow({
         setSaving(false);
       }
     },
-    [log, onPersist],
+    [log, onPersist, selectedNames],
   );
 
   async function leaveFlow() {
@@ -128,7 +142,7 @@ export function DailyCheckInFlow({
       ),
     };
     if (await persistCheckIn(next)) {
-      if (nextIndex >= checkInSymptoms.length) setPage("review");
+      if (nextIndex >= flowSymptoms.length) setPage("review");
       else setSymptomIndex(nextIndex);
     }
   }
@@ -147,7 +161,7 @@ export function DailyCheckInFlow({
 
   const dates = weekDates(today);
   const savedDates = new Set(logs.filter(hasSavedCheckIn).map((entry) => entry.date));
-  const symptom = checkInSymptoms[symptomIndex];
+  const symptom = flowSymptoms[symptomIndex];
   const currentAnswer = symptom
     ? responseFor(checkIn, symptom.name)
     : undefined;
@@ -169,6 +183,23 @@ export function DailyCheckInFlow({
 
   return (
     <View style={styles.container}>
+      {(page === "home" || page === "symptoms" || page === "review" || page === "edit") ? <View style={{ gap: spacing * 2 }}>
+        <Button tone="outline" disabled={saving} onPress={() => setChoosingSymptoms(value => !value)}>Choose symptoms to track</Button>
+        {((!initial.dailyCheckIn && preferences.profile && !preferences.profile.selectedSymptoms) || choosingSymptoms || draftMode && page === "home") ?
+          <SymptomSelector key={(draftMode ? selectedSymptoms ?? defaultSymptoms : preferences.selected).join(",")} selected={draftMode ? selectedSymptoms ?? defaultSymptoms : preferences.selected} onSave={async names => {
+            if (!draftMode) await preferences.save(names);
+            onSelectSymptoms?.(names);
+            setDaySelection(names); setCheckIn(current => ({ ...current, selectedSymptoms: names })); setSymptomIndex(0); setChoosingSymptoms(false);
+          }} /> : null}
+        <Button tone="outline" disabled={saving} onPress={() => setAddingSymptom(value => !value)}>Add a symptom</Button>
+        {addingSymptom ? <Card><Text>Add a symptom for this day only. Your usual choices stay the same.</Text>
+          {checkInSymptoms.filter(item => !selectedNames.includes(item.name)).map(item => <Button key={item.name} tone="outline" onPress={() => {
+            const names = [...selectedNames, item.name];
+            setDaySelection(names); setAddingSymptom(false);
+            void persistCheckIn({ ...checkIn, selectedSymptoms: names });
+          }}>{item.label}</Button>)}
+        </Card> : null}
+      </View> : null}
       {onExit ? (
         <Button
           tone="outline"
@@ -229,7 +260,7 @@ export function DailyCheckInFlow({
           </Card>
           <Button tone="outline" leading={<Text variant="label">＋</Text>} onPress={() => {
             setSymptomIndex(0);
-            setPage("symptoms");
+            setPage(flowSymptoms.length ? "symptoms" : "review");
           }}>
             Add symptoms
           </Button>
@@ -247,14 +278,14 @@ export function DailyCheckInFlow({
       {page === "symptoms" && symptom && currentAnswer ? (
         <>
           <View style={styles.progressHeader}>
-            <Text variant="label">Progress {symptomIndex + 1} of {checkInSymptoms.length}</Text>
+            <Text variant="label">Progress {symptomIndex + 1} of {flowSymptoms.length}</Text>
             <View style={[styles.progressTrack, { backgroundColor: colors.border }]}>
               <View
                 style={[
                   styles.progressFill,
                   {
                     backgroundColor: colors.primary,
-                    width: `${((symptomIndex + 1) / checkInSymptoms.length) * 100}%`,
+                    width: `${((symptomIndex + 1) / flowSymptoms.length) * 100}%`,
                   },
                 ]}
               />
@@ -338,7 +369,7 @@ export function DailyCheckInFlow({
             tone="outline"
             onPress={() => {
               setCheckIn((current) => ({ ...current, summary: voiceDraft }));
-              setPage("symptoms");
+              setPage(flowSymptoms.length ? "symptoms" : "review");
               setSymptomIndex(0);
             }}
           >
@@ -379,7 +410,7 @@ export function DailyCheckInFlow({
               ))}
             </View>
           </Card>
-          {checkIn.symptoms.map((answer) => {
+          {checkIn.symptoms.filter(answer => flowSymptoms.some(item => item.name === answer.name)).map((answer) => {
             const config = checkInSymptoms.find((item) => item.name === answer.name)!;
             return (
               <Card key={answer.name} inset="compact">
@@ -466,7 +497,7 @@ export function DailyCheckInFlow({
                 style={styles.rowButton}
                 onPress={() => {
                   setSymptomIndex(0);
-                  setPage("symptoms");
+                  setPage(flowSymptoms.length ? "symptoms" : "review");
                 }}
               >
                 Rate symptoms
@@ -505,7 +536,7 @@ export function DailyCheckInFlow({
                   </Text>
                 </View>
               ) : null}
-              {checkIn.symptoms.map((answer) => {
+              {checkIn.symptoms.filter(answer => flowSymptoms.some(item => item.name === answer.name)).map((answer) => {
                 const config = checkInSymptoms.find((item) => item.name === answer.name)!;
                 const label = answer.status === "recorded"
                   ? ratingChoices.find((choice) => choice.value === answer.rating)?.label
@@ -568,6 +599,15 @@ export function DailyCheckInFlow({
           <Text variant="caption">Saving privately to your journal…</Text>
         </View>
       ) : null}
+      {(page === "home" || page === "review" || page === "edit" || page === "saved") ? <Card>
+        <Text variant="heading">{activityQuestion}</Text>
+        <Text variant="caption">Optional. Skip if you’re not sure what to record.</Text>
+        <View style={styles.choiceWrap}>
+          {activityAnswerChoices.map(choice => <Button key={choice.value} tone={checkIn.worseWithActivity === choice.value ? "primary" : "outline"} accessibilityState={{ selected: checkIn.worseWithActivity === choice.value }} disabled={saving} onPress={() => void persistCheckIn({ ...checkIn, worseWithActivity: choice.value })}>{choice.label}</Button>)}
+          <Button tone="outline" disabled={saving} onPress={() => void persistCheckIn({ ...checkIn, worseWithActivity: null })}>Skip</Button>
+        </View>
+        {page === "edit" ? <Text variant="caption">Was: {activityAnswerChoices.find(choice => choice.value === originalCheckIn.worseWithActivity)?.label ?? "Not recorded"}</Text> : null}
+      </Card> : null}
       {error ? (
         <Card tone="sage">
           <Text variant="caption" accessibilityLiveRegion="polite">{error}</Text>

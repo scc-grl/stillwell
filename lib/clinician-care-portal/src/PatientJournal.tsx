@@ -58,6 +58,7 @@ function entrySummary(entry: ClinicalEntry): string {
   const done = entry.routines.filter((routine) => routine.status === 'done').length;
   if (done) parts.push(`${done} routine${done === 1 ? '' : 's'}`);
   if (entry.sleep) parts.push(sleepDurationMinutes(entry.sleep) !== null ? `sleep ${sleepDurationLabel(entry.sleep)}` : 'sleep');
+  parts.push(`Worse with activity: ${entry.activityAnswer}`);
   if (entry.note.trim() || entry.summary.trim()) parts.push('note');
   return parts.length ? parts.join(' · ') : 'Nothing recorded';
 }

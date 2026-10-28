@@ -9,6 +9,7 @@ import { Button } from "@workspace/stillwell-design-system/components/ui/button"
 import { Card } from "@workspace/stillwell-design-system/components/ui/card";
 import { Textarea } from "@workspace/stillwell-design-system/components/ui/textarea";
 import { ArrowLeft, ArrowRight, Check, Plus } from "lucide-react";
+import { SymptomSelector, useSymptomPreferences } from "./SymptomPreferences";
 import {
   checkInSymptoms,
   dailyCheckInFromLog,
@@ -23,6 +24,7 @@ import {
   weekDates,
   weeklyInsight,
   hasSavedCheckIn,
+  defaultSymptoms, activityQuestion, activityAnswerChoices, type CheckInSymptomName,
 } from "@workspace/recovery-journal";
 
 type FlowPage = "home" | "symptoms" | "voice" | "review" | "edit" | "saved";
@@ -38,6 +40,8 @@ type Props = {
   onEditActivities?: () => void;
   onExit?: () => void;
   exitLabel?: string;
+  selectedSymptoms?: CheckInSymptomName[];
+  onSelectSymptoms?: (names: CheckInSymptomName[]) => void;
 };
 
 function answerFor(checkIn: DailyCheckIn, name: DailyCheckInSymptomAnswer["name"]) {
@@ -57,6 +61,8 @@ export function DailyCheckInFlow({
   onEditActivities,
   onExit,
   exitLabel = "Back",
+  selectedSymptoms,
+  onSelectSymptoms,
 }: Props) {
   const initialCheckIn = useMemo(
     () => dailyCheckInFromLog(initial),
@@ -70,9 +76,16 @@ export function DailyCheckInFlow({
   const [voiceDraft, setVoiceDraft] = useState(initialCheckIn.summary);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const preferences = useSymptomPreferences(!draftMode);
+  const [daySelection, setDaySelection] = useState<CheckInSymptomName[] | null>(initial.dailyCheckIn?.selectedSymptoms ?? null);
+  const [choosingSymptoms, setChoosingSymptoms] = useState(false);
+  const [addingSymptom, setAddingSymptom] = useState(false);
+  const selectedNames = daySelection ?? selectedSymptoms ?? preferences.selected ?? defaultSymptoms;
+  const flowSymptoms = checkInSymptoms.filter(item => selectedNames.includes(item.name) ||
+    checkIn.symptoms.some(answer => answer.name === item.name && answer.status === "recorded"));
   const dates = weekDates(today);
   const savedDates = new Set(logs.filter(hasSavedCheckIn).map((entry) => entry.date));
-  const symptom = checkInSymptoms[symptomIndex];
+  const symptom = flowSymptoms[symptomIndex];
   const currentAnswer = symptom ? answerFor(checkIn, symptom.name) : undefined;
   const insight = draftMode ? null : weeklyInsight(logs, today);
   const overallLabel = overallChoices.find((choice) => choice.value === checkIn.overallFeeling)?.label;
@@ -83,6 +96,7 @@ export function DailyCheckInFlow({
   }
 
   async function persist(nextCheckIn: DailyCheckIn) {
+    nextCheckIn = { ...nextCheckIn, selectedSymptoms: nextCheckIn.selectedSymptoms ?? selectedNames };
     const nextLog: RecoveryLogInput = {
       ...log,
       dailyCheckIn: nextCheckIn,
@@ -122,7 +136,7 @@ export function DailyCheckInFlow({
       symptoms: checkIn.symptoms.map((item) => item.name === answer.name ? answer : item),
     };
     if (await persist(next)) {
-      if (nextIndex >= checkInSymptoms.length) setPage("review");
+      if (nextIndex >= flowSymptoms.length) setPage("review");
       else setSymptomIndex(nextIndex);
     }
   }
@@ -149,6 +163,23 @@ export function DailyCheckInFlow({
       <h2 className="font-serif text-3xl font-medium leading-tight text-foreground">{title}</h2>
       <p className="text-sm text-muted-foreground">{formatDate(initial.date)}</p>
     </header>
+    {(page === "home" || page === "symptoms" || page === "review" || page === "edit") && <div className="space-y-3">
+      <Button variant="outline" disabled={saving} onClick={() => setChoosingSymptoms(value => !value)}>Choose symptoms to track</Button>
+      {((!initial.dailyCheckIn && preferences.profile && !preferences.profile.selectedSymptoms) || choosingSymptoms || draftMode && page === "home") &&
+        <SymptomSelector key={(draftMode ? selectedSymptoms ?? defaultSymptoms : preferences.selected).join(",")} selected={draftMode ? selectedSymptoms ?? defaultSymptoms : preferences.selected} onSave={async names => {
+          if (!draftMode) await preferences.save(names);
+          onSelectSymptoms?.(names);
+          setDaySelection(names); setCheckIn(current => ({ ...current, selectedSymptoms: names })); setSymptomIndex(0); setChoosingSymptoms(false);
+        }} />}
+      <Button variant="outline" disabled={saving} onClick={() => setAddingSymptom(value => !value)}><Plus />Add a symptom</Button>
+      {addingSymptom && <Card className="space-y-3 p-5"><p className="text-sm">Add a symptom for this day only. Your usual choices stay the same.</p>
+        {checkInSymptoms.filter(item => !selectedNames.includes(item.name)).map(item => <Button key={item.name} variant="outline" onClick={() => {
+          const names = [...selectedNames, item.name];
+          setDaySelection(names); setAddingSymptom(false);
+          void persist({ ...checkIn, selectedSymptoms: names });
+        }}>{item.label}</Button>)}
+      </Card>}
+    </div>}
 
     {page === "home" && <>
       <Card className="space-y-4 p-5">
@@ -172,15 +203,15 @@ export function DailyCheckInFlow({
           {overallChoices.map((choice) => <Button key={choice.value} variant={checkIn.overallFeeling === choice.value ? "default" : "outline"} size="sm" aria-pressed={checkIn.overallFeeling === choice.value} onClick={() => void chooseOverall(choice.value)} disabled={saving} data-testid={`overall-${choice.value}`}>{choice.label}</Button>)}
         </div>
       </Card>
-      <Button variant="outline" onClick={() => { setSymptomIndex(0); setPage("symptoms"); }}><Plus />Add symptoms</Button>
+      <Button variant="outline" onClick={() => { setSymptomIndex(0); setPage(flowSymptoms.length ? "symptoms" : "review"); }}><Plus />Add symptoms</Button>
       <Button variant="secondary" onClick={() => { setVoiceDraft(checkIn.summary); setPage("voice"); }}>Use voice-to-text</Button>
       {onEditActivities && <Button variant="outline" onClick={onEditActivities}>Log food, movement and pacing</Button>}
     </>}
 
     {page === "symptoms" && symptom && currentAnswer && <>
       <div className="space-y-2">
-        <div className="text-sm font-medium">Progress {symptomIndex + 1} of {checkInSymptoms.length}</div>
-        <div role="progressbar" aria-label="Symptom progress" aria-valuemin={1} aria-valuemax={checkInSymptoms.length} aria-valuenow={symptomIndex + 1} className="h-2 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${((symptomIndex + 1) / checkInSymptoms.length) * 100}%` }} /></div>
+        <div className="text-sm font-medium">Progress {symptomIndex + 1} of {flowSymptoms.length}</div>
+        <div role="progressbar" aria-label="Symptom progress" aria-valuemin={1} aria-valuemax={flowSymptoms.length} aria-valuenow={symptomIndex + 1} className="h-2 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${((symptomIndex + 1) / flowSymptoms.length) * 100}%` }} /></div>
       </div>
       <Card className="space-y-4 p-5">
         <div><h3 className="font-serif text-2xl font-medium">{symptom.label}</h3><p className="mt-2 text-sm text-muted-foreground">Choose the description that fits today, or skip.</p></div>
@@ -201,7 +232,7 @@ export function DailyCheckInFlow({
       <Textarea id="voice-check-in" value={voiceDraft} onChange={(event) => setVoiceDraft(event.target.value.slice(0, 500))} placeholder="Tap here to type, or use your keyboard’s microphone to dictate." maxLength={500} data-testid="textarea-voice-check-in" />
       <p className="text-xs leading-5 text-muted-foreground">Dictation depends on your device and browser settings. Review each symptom before saving; only the ratings you confirm will be recorded.</p>
       <Button onClick={() => { setCheckIn((value) => ({ ...value, summary: voiceDraft })); setPage("review"); }}>Review my check-in <ArrowRight /></Button>
-      <Button variant="outline" onClick={() => { setCheckIn((value) => ({ ...value, summary: voiceDraft })); setSymptomIndex(0); setPage("symptoms"); }}>Rate symptoms instead</Button>
+      <Button variant="outline" onClick={() => { setCheckIn((value) => ({ ...value, summary: voiceDraft })); setSymptomIndex(0); setPage(flowSymptoms.length ? "symptoms" : "review"); }}>Rate symptoms instead</Button>
     </Card>}
 
     {(page === "review" || page === "edit") && <>
@@ -214,7 +245,7 @@ export function DailyCheckInFlow({
         {page === "edit" && <p className="text-xs text-muted-foreground">Was: {overallChoices.find((item) => item.value === original.overallFeeling)?.label ?? "Not recorded"}</p>}
         <div className="flex flex-wrap gap-2">{overallChoices.map((choice) => <Button key={choice.value} size="sm" variant={checkIn.overallFeeling === choice.value ? "default" : "outline"} aria-pressed={checkIn.overallFeeling === choice.value} onClick={() => setCheckIn((value) => ({ ...value, overallFeeling: choice.value }))}>{choice.label}</Button>)}</div>
       </Card>
-      {checkInSymptoms.map((config) => {
+      {flowSymptoms.map((config) => {
         const answer = answerFor(checkIn, config.name);
         const previous = answerFor(original, config.name);
         const answerLabel = ratingLabel(answer);
@@ -235,7 +266,7 @@ export function DailyCheckInFlow({
         {page === "edit" && <p className="text-xs text-muted-foreground">Was: {original.summary.trim() || "No summary added."}</p>}
       </div>
       <div className="flex flex-col gap-2 sm:flex-row">
-        {page === "review" && <Button variant="outline" onClick={() => { setSymptomIndex(0); setPage("symptoms"); }}>Rate symptoms</Button>}
+        {page === "review" && flowSymptoms.length > 0 && <Button variant="outline" onClick={() => { setSymptomIndex(0); setPage("symptoms"); }}>Rate symptoms</Button>}
         <Button onClick={() => void saveReview()} disabled={saving}>{saving ? "Saving…" : draftMode ? "Use this summary" : "Save check-in"} <Check /></Button>
       </div>
     </>}
@@ -250,7 +281,7 @@ export function DailyCheckInFlow({
           : <p className="text-sm text-muted-foreground">Saved for {formatDate(initial.date)}</p>}
         <div className="flex flex-wrap gap-2">
           {overallLabel && <span className="rounded-full border border-border bg-card px-3 py-2 text-xs">Overall · {overallLabel}</span>}
-          {checkIn.symptoms.map((answer) => {
+          {checkIn.symptoms.filter(answer => flowSymptoms.some(item => item.name === answer.name)).map((answer) => {
             const config = checkInSymptoms.find((item) => item.name === answer.name);
             const label = ratingLabel(answer);
             return <span key={answer.name} className="rounded-full border border-border bg-card px-3 py-2 text-xs">{config?.label} · {label}</span>;
@@ -265,6 +296,15 @@ export function DailyCheckInFlow({
       {!draftMode && !onExit && <Button variant="outline" onClick={() => setPage("home")}>Back to today</Button>}
     </>}
 
+    {(page === "home" || page === "review" || page === "edit" || page === "saved") && <Card className="space-y-3 p-5">
+      <h3 className="font-serif text-xl">{activityQuestion}</h3>
+      <p className="text-sm text-muted-foreground">Optional. Skip if you’re not sure what to record.</p>
+      <div className="flex flex-wrap gap-2">
+        {activityAnswerChoices.map(choice => <Button key={choice.value} variant={checkIn.worseWithActivity === choice.value ? "default" : "outline"} aria-pressed={checkIn.worseWithActivity === choice.value} disabled={saving} onClick={() => void persist({ ...checkIn, worseWithActivity: choice.value })}>{choice.label}</Button>)}
+        <Button variant="outline" disabled={saving} onClick={() => void persist({ ...checkIn, worseWithActivity: null })}>Skip</Button>
+      </div>
+      {page === "edit" && <p className="text-xs text-muted-foreground">Was: {activityAnswerChoices.find(choice => choice.value === original.worseWithActivity)?.label ?? "Not recorded"}</p>}
+    </Card>}
     {error && <Card role="alert" className="border-destructive p-4 text-sm text-destructive">{error}</Card>}
   </div>;
 }

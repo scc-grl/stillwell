@@ -101,7 +101,7 @@ router.put("/recovery/profile", async (req, res): Promise<void> => {
   }
   const [profile] = await db.transaction(async tx => {
     await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtextextended(${`patient:${owner(req)}`},0))`);
-    return tx.update(recoveryProfiles).set({ preferences: parsed.data })
+    return tx.update(recoveryProfiles).set({ preferences: sql`${recoveryProfiles.preferences} || ${JSON.stringify(parsed.data)}::jsonb` })
       .where(eq(recoveryProfiles.ownerId, owner(req))).returning();
   });
   if (!profile) {

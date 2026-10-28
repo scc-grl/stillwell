@@ -4,7 +4,7 @@ import { ArrowUpRight, Menu, X } from 'lucide-react';
 import { Link } from 'wouter';
 import { Button } from '@workspace/stillwell-design-system/components/ui/button';
 import { BASE_PATH } from '@/lib/config';
-import { ProofOfConceptBadge } from '@workspace/clinician-care-portal';
+import { ProofOfConceptBanner } from '@workspace/clinician-care-portal';
 
 export function Brand({ light = false }: { light?: boolean }) {
   return (
@@ -75,10 +75,7 @@ export function PortalHeader({
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 shadow-sm backdrop-blur-sm">
       <div className="mx-auto flex max-w-[1240px] items-center justify-between px-5 py-3 sm:px-8 lg:px-12 lg:py-4">
-        <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
-          <Brand />
-          <ProofOfConceptBadge />
-        </div>
+        <Brand />
         {headerNavigation.length > 0 && (
           <nav className="hidden items-center gap-6 text-[12px] font-medium text-muted-foreground lg:flex" aria-label="Main navigation">
             {headerNavigation.map(({ label, href, external }) => (
@@ -194,6 +191,7 @@ export function PortalHeader({
           )}
         </nav>
       )}
+      <ProofOfConceptBanner />
     </header>
   );
 }

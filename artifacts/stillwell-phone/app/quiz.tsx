@@ -19,7 +19,7 @@ import { usePatientData } from "@/contexts/PatientDataContext";
 import { spacing } from "@/lib/layout";
 import { RecoveryLogEditor } from "@/components/RecoveryLogEditor";
 import { DailyCheckInFlow } from "@/components/DailyCheckInFlow";
-import { setupCopy, supportModes, localDate } from "@workspace/recovery-journal";
+import { setupCopy, supportModes, localDate, defaultSymptoms, type CheckInSymptomName } from "@workspace/recovery-journal";
 import { SafetyNotice } from "@/components/SafetyNotice";
 import { Screen } from "@/components/Screen";
 import {
@@ -76,6 +76,7 @@ export default function StartingQuizScreen() {
     useState<RecoveryPreferences["supportMode"]>("self_guided");
   const [priorities, setPriorities] =
     useState<RecoveryPreferences["priorities"]>([]);
+  const [selectedSymptoms, setSelectedSymptoms] = useState<CheckInSymptomName[]>(defaultSymptoms);
   const [firstLog, setFirstLog] =
     useState<RecoveryLogInput>(() => emptyLog());
   const [consentAccepted, setConsentAccepted] = useState(false);
@@ -254,7 +255,7 @@ export default function StartingQuizScreen() {
   async function saveStartingSummary() {
     setError("");
     const payload: RecoveryStartInput = {
-      preferences: { supportMode, priorities },
+      preferences: { supportMode, priorities, selectedSymptoms },
       consentAccepted: true,
       firstLog,
     };
@@ -332,6 +333,8 @@ export default function StartingQuizScreen() {
             today={localDate()}
             startAt={firstLog.dailyCheckIn ? "saved" : "home"}
             draftMode
+            selectedSymptoms={selectedSymptoms}
+            onSelectSymptoms={setSelectedSymptoms}
             onPersist={async (next) => {
               setFirstLog(next);
               return { ...next, updatedAt: new Date().toISOString() };

@@ -689,6 +689,13 @@ components:
       additionalProperties: false
       required: [supportMode, priorities]
       properties:
+        selectedSymptoms:
+          type: array
+          maxItems: 11
+          uniqueItems: true
+          items:
+            type: string
+            enum: [headache, fatigue, fog, sleep, mood, light, dizziness, nausea, vision, noise, neck]
         supportMode:
           type: string
           enum: [self_guided, clinician_supported]
@@ -707,7 +714,7 @@ components:
       properties:
         name:
           type: string
-          enum: [headache, dizziness, focus, fatigue, sleep, light_sound, mood]
+          enum: [headache, dizziness, focus, fatigue, sleep, light_sound, mood, nausea, vision, noise, neck]
         severity:
           type: integer
           minimum: 0
@@ -719,7 +726,7 @@ components:
       properties:
         name:
           type: string
-          enum: [headache, fatigue, fog, sleep, mood, light]
+          enum: [headache, fatigue, fog, sleep, mood, light, dizziness, nausea, vision, noise, neck]
         status:
           type: string
           enum: [recorded, not_recorded]
@@ -732,6 +739,17 @@ components:
       additionalProperties: false
       required: [overallFeeling, symptoms, summary]
       properties:
+        selectedSymptoms:
+          type: array
+          maxItems: 11
+          uniqueItems: true
+          items:
+            type: string
+            enum: [headache, fatigue, fog, sleep, mood, light, dizziness, nausea, vision, noise, neck]
+        worseWithActivity:
+          type: string
+          enum: [yes, no, not_sure]
+          nullable: true
         overallFeeling:
           type: string
           enum: [rough, low, okay, good, great]
@@ -739,7 +757,7 @@ components:
         symptoms:
           type: array
           minItems: 6
-          maxItems: 6
+          maxItems: 11
           items:
             $ref: "#/components/schemas/DailyCheckInSymptomAnswer"
         summary:

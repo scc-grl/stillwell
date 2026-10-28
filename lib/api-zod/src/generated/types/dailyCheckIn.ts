@@ -6,13 +6,18 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { DailyCheckInOverallFeeling } from './dailyCheckInOverallFeeling';
+import type { DailyCheckInSelectedSymptomsItem } from './dailyCheckInSelectedSymptomsItem';
 import type { DailyCheckInSymptomAnswer } from './dailyCheckInSymptomAnswer';
+import type { DailyCheckInWorseWithActivity } from './dailyCheckInWorseWithActivity';
 
 export interface DailyCheckIn {
+  /** @maxItems 11 */
+  selectedSymptoms?: DailyCheckInSelectedSymptomsItem[];
+  worseWithActivity?: DailyCheckInWorseWithActivity;
   overallFeeling: DailyCheckInOverallFeeling;
   /**
      * @minItems 6
-     * @maxItems 6
+     * @maxItems 11
      */
   symptoms: DailyCheckInSymptomAnswer[];
   /** @maxLength 500 */

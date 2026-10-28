@@ -4,6 +4,7 @@ import { Card } from "@workspace/stillwell-design-system/components/native/card"
 import { Text } from "@workspace/stillwell-design-system/components/native/text";
 import { spacing } from "@/lib/layout";
 import { checkInSymptoms, overallChoices, dailyCheckInFromLog, ratingLabel } from "@workspace/recovery-journal";
+import { activityQuestion, activityAnswerChoices } from "@workspace/recovery-journal";
 import { formatDate } from "@/lib/journal";
 import { SleepDetails } from "@/components/SleepDetails";
 
@@ -46,6 +47,7 @@ export function RecoveryLogSummary({ log }: { log: RecoveryLog }) {
             <Text variant="caption">
               {dailyCheckIn.summary || "No summary added."}
             </Text>
+            <Text variant="caption">{activityQuestion} {activityAnswerChoices.find(choice => choice.value === dailyCheckIn.worseWithActivity)?.label ?? "Not recorded"}</Text>
           </>
         ) : (
           <>

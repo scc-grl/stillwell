@@ -9,13 +9,14 @@ import { ShieldCheck } from "lucide-react";
 import { ActivitiesEditor } from "@/components/ActivitiesEditor";
 import { DailyCheckInFlow } from "@/components/DailyCheckInFlow";
 import { clearDraft, emptyLog, writeDraft } from "@/lib/recovery";
-import { localDate, setupCopy, supportModes } from "@workspace/recovery-journal";
+import { localDate, setupCopy, supportModes, defaultSymptoms, type CheckInSymptomName } from "@workspace/recovery-journal";
 
 export default function QuizPage() {
   const { isLoaded, isSignedIn, user } = useUser();
   const [, setLocation] = useLocation();
   const [firstLog, setFirstLog] = useState<RecoveryLogInput>(() => emptyLog(localDate()));
   const [supportMode, setSupportMode] = useState<RecoveryPreferences["supportMode"]>("self_guided");
+  const [selectedSymptoms, setSelectedSymptoms] = useState<CheckInSymptomName[]>(defaultSymptoms);
   const [consentAccepted, setConsentAccepted] = useState(false);
   const [editingActivities, setEditingActivities] = useState(false);
   const [error, setError] = useState("");
@@ -31,7 +32,7 @@ export default function QuizPage() {
     setSaving(true);
     try {
       writeDraft({
-        preferences: { supportMode, priorities: [] },
+        preferences: { supportMode, priorities: [], selectedSymptoms },
         consentAccepted: true,
         firstLog: { ...firstLog, date: localDate() },
       }, ownerId);
@@ -78,6 +79,8 @@ export default function QuizPage() {
               today={localDate()}
               startAt={firstLog.dailyCheckIn ? "saved" : "home"}
               draftMode
+              selectedSymptoms={selectedSymptoms}
+              onSelectSymptoms={setSelectedSymptoms}
               onDraftChange={setFirstLog}
               onDraftComplete={setFirstLog}
               onEditActivities={() => setEditingActivities(true)}

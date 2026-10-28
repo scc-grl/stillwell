@@ -1,15 +1,8 @@
 import { normalizeSleep, type SleepLog } from "@workspace/recovery-journal/sleep";
+import { checkInSymptoms, activityAnswerChoices, defaultSymptoms, ratingChoices } from "@workspace/recovery-journal";
 
 /** Read-only interpretation of stored care-team entries. Never fills missing scores. */
-export const careSymptoms = [
-  { key: "headache", label: "Headache" },
-  { key: "dizziness", label: "Dizziness" },
-  { key: "focus", label: "Focus" },
-  { key: "fatigue", label: "Fatigue" },
-  { key: "sleep", label: "Sleep" },
-  { key: "light_sound", label: "Light & sound" },
-  { key: "mood", label: "Mood" },
-] as const;
+export const careSymptoms = checkInSymptoms.map(item => ({ key: item.legacyName, label: item.label }));
 export type CareSymptomKey = typeof careSymptoms[number]["key"];
 export type CareRange = 7 | 30 | 90 | "all";
 export type CareRoutine = {
@@ -27,6 +20,8 @@ export type ClinicalEntry = {
   note: string;
   summary: string;
   sleep: SleepLog | null;
+  activityAnswer: string;
+  checkInRatings: Partial<Record<CareSymptomKey, string>>;
 };
 const record = (value: unknown): Record<string, unknown> =>
   value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
@@ -56,6 +51,24 @@ export function normalizeCareEntry(value: unknown): ClinicalEntry | null {
   }
   // dailyCheckIn ratings are ordinal 0–3. Do not reinterpret those as 0–10.
   const checkIn = record(data.dailyCheckIn);
+  const checkInRatings: ClinicalEntry["checkInRatings"] = {};
+  for (const item of checkInSymptoms) {
+    const answer = Array.isArray(checkIn.symptoms)
+      ? checkIn.symptoms.map(record).find(answer => answer.name === item.name) : undefined;
+    // New symptom items are represented by confirmed check-in answers only.
+    // Never infer them from old legacy entries.
+    if (!defaultSymptoms.includes(item.name) && !answer) scores[item.legacyName] = null;
+    if (answer) {
+      const rating = finite(answer.rating, 3);
+      if (answer.status !== "recorded" || rating === null || !Number.isInteger(rating)) {
+        scores[item.legacyName] = null;
+        checkInRatings[item.legacyName] = "Not recorded";
+      } else {
+        checkInRatings[item.legacyName] = ratingChoices.find(choice => choice.value === rating)!.label;
+      }
+    }
+  }
+  const activityAnswer = activityAnswerChoices.find(choice => choice.value === checkIn.worseWithActivity)?.label ?? "Not recorded";
   const timestamp = data.updatedAt ?? data.updated_at;
   const updatedAt = typeof timestamp === "string" && Number.isFinite(Date.parse(timestamp))
     ? new Date(timestamp).toISOString() : null;
@@ -70,7 +83,7 @@ export function normalizeCareEntry(value: unknown): ClinicalEntry | null {
       note: text(data[`${key}Note`]),
     };
   });
-  return { date: data.date, updatedAt, scores, routines, note: text(data.note), summary: text(checkIn.summary), sleep: normalizeSleep(data.sleep) };
+  return { date: data.date, updatedAt, scores, routines, note: text(data.note), summary: text(checkIn.summary), sleep: normalizeSleep(data.sleep), activityAnswer, checkInRatings };
 }
 
 /** Stable newest-first order, de-duplicating pages without losing the latest edit. */
