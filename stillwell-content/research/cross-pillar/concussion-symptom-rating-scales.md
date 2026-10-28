@@ -1,6 +1,6 @@
 ---
 title: "How concussion symptoms are measured: a plain-language guide to rating scales"
-pillar: cognitive
+pillar: cross-pillar
 type: resource
 status: draft — founder review (not yet approved for the app)
 last_reviewed: 2026-10-27
