@@ -1,0 +1,92 @@
+.stillwell-patient-preview {
+  --button-outline: rgba(49, 91, 73, 0.16);
+  --badge-outline: rgba(49, 91, 73, 0.08);
+  --opaque-button-border-intensity: -8;
+  --elevate-1: rgba(49, 91, 73, 0.03);
+  --elevate-2: rgba(49, 91, 73, 0.08);
+
+  --background: 53 28.6% 94.5%;
+  --foreground: 161 22.9% 18.8%;
+  --border: 96 16.1% 87.8%;
+  --card: 50 42.9% 97.3%;
+  --card-foreground: 157 26.1% 21.8%;
+  --sidebar: 53 28.6% 94.5%;
+  --sidebar-foreground: 157 26.1% 21.8%;
+  --sidebar-border: 96 16.1% 87.8%;
+  --sidebar-primary: 154 30% 27.5%;
+  --sidebar-primary-foreground: 51 46.7% 97.1%;
+  --sidebar-accent: 97 23.5% 93.3%;
+  --sidebar-accent-foreground: 143 13.7% 37.3%;
+  --sidebar-ring: 142 20% 42.2%;
+  --popover: 50 42.9% 97.3%;
+  --popover-foreground: 157 26.1% 21.8%;
+  --primary: 154 30% 27.5%;
+  --primary-foreground: 51 46.7% 97.1%;
+  --secondary: 97 23.5% 93.3%;
+  --secondary-foreground: 143 13.7% 37.3%;
+  --muted: 97 23.5% 93.3%;
+  --muted-foreground: 120 5.3% 40.6%;
+  --accent: 27 40.2% 79%;
+  --accent-foreground: 157 26.1% 21.8%;
+  --destructive: 9 51.8% 48%;
+  --destructive-foreground: 0 0% 100%;
+  --input: 109 15.5% 86.1%;
+  --ring: 142 20% 42.2%;
+  --chart-1: 154 30% 27.5%;
+  --chart-2: 23 38.3% 63.1%;
+  --chart-3: 103 14.8% 66.9%;
+  --chart-4: 36 24.5% 72%;
+  --chart-5: 114 4.6% 42.7%;
+  --font-sans: "DM Sans", sans-serif;
+  --font-serif: "Fraunces", Georgia, serif;
+  --radius: 1rem;
+
+  --primary-border: hsl(var(--primary));
+  --secondary-border: hsl(var(--secondary));
+  --muted-border: hsl(var(--muted));
+  --accent-border: hsl(var(--accent));
+  --destructive-border: hsl(var(--destructive));
+  --card-border: hsl(var(--card));
+  --popover-border: hsl(var(--popover));
+}
+
+.dark .stillwell-patient-preview {
+  --button-outline: rgba(255, 255, 255, 0.1);
+  --badge-outline: rgba(255, 255, 255, 0.05);
+  --opaque-button-border-intensity: 9;
+  --elevate-1: rgba(255, 255, 255, 0.04);
+  --elevate-2: rgba(255, 255, 255, 0.09);
+
+  --background: 152 19.4% 13.1%;
+  --foreground: 47 25.7% 93.1%;
+  --border: 150 12.2% 29%;
+  --card: 152 17.2% 17.1%;
+  --card-foreground: 47 25.7% 93.1%;
+  --sidebar: 152 19.4% 13.1%;
+  --sidebar-foreground: 47 25.7% 93.1%;
+  --sidebar-border: 150 12.2% 29%;
+  --sidebar-primary: 145 22.7% 62%;
+  --sidebar-primary-foreground: 152 19.4% 13.1%;
+  --sidebar-accent: 148 13.8% 24.1%;
+  --sidebar-accent-foreground: 47 25.7% 93.1%;
+  --sidebar-ring: 145 19.6% 60%;
+  --popover: 152 17.2% 17.1%;
+  --popover-foreground: 47 25.7% 93.1%;
+  --primary: 145 22.7% 62%;
+  --primary-foreground: 152 19.4% 13.1%;
+  --secondary: 148 13.8% 24.1%;
+  --secondary-foreground: 47 25.7% 93.1%;
+  --muted: 148 13.8% 24.1%;
+  --muted-foreground: 139 10.1% 69%;
+  --accent: 26 30.4% 40%;
+  --accent-foreground: 47 25.7% 93.1%;
+  --destructive: 9 51.8% 48%;
+  --destructive-foreground: 0 0% 100%;
+  --input: 150 12.2% 29%;
+  --ring: 145 19.6% 60%;
+  --chart-1: 145 22.7% 62%;
+  --chart-2: 26 38.3% 63.1%;
+  --chart-3: 106 17.9% 66.1%;
+  --chart-4: 41 24.5% 72%;
+  --chart-5: 137 8.9% 69%;
+}

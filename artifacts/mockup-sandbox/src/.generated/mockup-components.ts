@@ -7,6 +7,7 @@ export const modules: ModuleMap = {
   "./components/mockups/patient-care-protocol/PatientCareProtocolBuilder.tsx": () => import("../components/mockups/patient-care-protocol/PatientCareProtocolBuilder.tsx"),
   "./components/mockups/patient-care-protocol/PatientCareProtocolRoadmap.tsx": () => import("../components/mockups/patient-care-protocol/PatientCareProtocolRoadmap.tsx"),
   "./components/mockups/patient-care-protocol/PatientCareTeam.tsx": () => import("../components/mockups/patient-care-protocol/PatientCareTeam.tsx"),
+  "./components/mockups/patient-care-protocol/PatientDashboard.tsx": () => import("../components/mockups/patient-care-protocol/PatientDashboard.tsx"),
   "./components/mockups/patient-care-protocol/PatientDashboardJournal.tsx": () => import("../components/mockups/patient-care-protocol/PatientDashboardJournal.tsx"),
   "./components/mockups/recovery-flow/Current.tsx": () => import("../components/mockups/recovery-flow/Current.tsx"),
   "./components/mockups/stillwell-orientation/RecoveryCompass.tsx": () => import("../components/mockups/stillwell-orientation/RecoveryCompass.tsx"),

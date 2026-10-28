@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useUser } from "@clerk/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { ArrowRight, Mail, UserMinus, X } from "lucide-react";
+import { ArrowRight, Mail, UsersRound, UserMinus, X } from "lucide-react";
 import {
   getGetMyCareTeamQueryKey,
   useCancelPatientCareInvite,
@@ -127,8 +127,8 @@ export function CareTeamPanel({ hasJournal }: { hasJournal: boolean }) {
     <Card className="space-y-5 p-5 sm:p-6">
       <div className="space-y-2">
         <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Your care team</p>
-        <h2 id="care-team-title" className="font-serif text-2xl font-medium">Who can read your journal</h2>
-        <p className="max-w-3xl text-sm leading-6 text-muted-foreground">Clinicians you share with can read your journal, read-only. You can stop sharing at any time; they keep what you shared up to then but see nothing new.</p>
+         <h2 id="care-team-title" className="flex items-center gap-2 font-serif text-2xl font-medium"><UsersRound aria-hidden="true" className="size-5 text-primary" />Your connections</h2>
+         <p className="max-w-3xl text-sm leading-6 text-muted-foreground">Only clinicians you invite and who accept can read what you share. They cannot edit it. You can stop sharing at any time; they keep what you shared up to then but see nothing new.</p>
       </div>
       {returnTo ? <Card className="flex flex-col gap-3 border-secondary bg-secondary p-4 text-sm text-secondary-foreground sm:flex-row sm:items-center sm:justify-between">
         <p>Free a place on your care team, then return to the share request.</p>
@@ -142,7 +142,10 @@ export function CareTeamPanel({ hasJournal }: { hasJournal: boolean }) {
       {error ? <p role="alert" className="text-sm text-destructive">{error}</p> : null}
       {team.isLoading ? <div className="space-y-3" aria-label="Loading your care team"><div className="h-14 animate-pulse rounded-xl bg-muted" /><div className="h-14 animate-pulse rounded-xl bg-muted" /></div> : null}
       {team.isError ? <div className="space-y-3"><p className="text-sm text-muted-foreground">We couldn’t load your care team. Nothing changed.</p><Button variant="outline" size="sm" onClick={() => void team.refetch()} data-testid="button-care-team-retry">Try again</Button></div> : null}
-      {empty ? <p className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground" data-testid="text-care-team-empty">No one can read your journal through Stillwell right now.</p> : null}
+       {empty ? <div className="rounded-xl bg-secondary p-4" data-testid="text-care-team-empty">
+         <p className="font-medium">No clinicians are connected yet.</p>
+         <p className="mt-1 text-sm leading-6 text-muted-foreground">Invite a clinician you already see. Nothing is shared until they accept.</p>
+       </div> : null}
       {data && data.activeClinicians.length > 0 ? <ul className="divide-y divide-border" aria-label="Clinicians who can read your journal">
         {data.activeClinicians.map((item) => <li key={item.id} className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between" data-testid={`row-care-clinician-${item.id}`}>
           <div><p className="text-sm font-semibold">{item.name}</p><p className="text-xs text-muted-foreground">Connected {formatLinkDate(item.connectedAt)}</p></div>

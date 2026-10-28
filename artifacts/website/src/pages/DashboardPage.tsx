@@ -407,15 +407,19 @@ export default function DashboardPage() {
   return <main className="min-h-[100dvh] bg-background pb-12">
     <PatientDashboardNav section={section} />
     <div className="mx-auto max-w-7xl space-y-6 px-4 pt-7 sm:px-8 sm:pt-10">
-      {section === "dashboard" && <section className="rounded-3xl bg-primary p-6 text-primary-foreground sm:p-9">
-        <div className="grid gap-6 sm:grid-cols-[1fr_auto] sm:items-end">
+      {section === "dashboard" && <section className={`grid gap-5 ${profile && !recoveryQuery.isLoading && !recoveryQuery.isError ? "lg:grid-cols-[1.15fr_.85fr]" : ""}`} aria-label="Dashboard overview">
+        <div className="flex min-h-56 flex-col justify-between gap-6 rounded-3xl bg-primary p-6 text-primary-foreground sm:p-8">
           <div className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-widest opacity-80">Your dashboard</p>
-            <h1 className="max-w-2xl font-serif text-4xl font-medium leading-tight sm:text-5xl">Your recovery, at your pace.</h1>
-            <p className="max-w-xl text-sm leading-6 opacity-90">Review the check-ins you chose to save, your routine plan, and who can read your journal.</p>
+            <p className="text-xs font-semibold uppercase tracking-widest opacity-80">Your space, your pace</p>
+            <h1 className="max-w-xl font-serif text-4xl font-medium leading-tight sm:text-5xl">Make room for what today is.</h1>
+            <p className="max-w-xl text-sm leading-6 opacity-90">A personal journal for noticing patterns and choosing routines that fit your day.</p>
           </div>
-          {profile && <Button variant="secondary" onClick={() => setLocation("/dashboard/journal")} data-testid="button-open-journal">Open journal</Button>}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm opacity-80">{formatDate(today)}</p>
+            {profile && <Button variant="secondary" onClick={() => setLocation("/dashboard/journal")} data-testid="button-open-journal">Today’s check-in <ArrowRight /></Button>}
+          </div>
         </div>
+        {profile && !recoveryQuery.isLoading && !recoveryQuery.isError && <PatientProgressChart logs={logs} today={today} />}
       </section>}
       {section === "journal" && <section className="flex flex-wrap items-end justify-between gap-4">
         <div className="space-y-2">
@@ -445,9 +449,9 @@ export default function DashboardPage() {
       </section>}
       {section === "care-team" && <section className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Your dashboard</p>
-          <h1 className="mt-2 font-serif text-4xl font-medium sm:text-5xl">Care team</h1>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">Choose who can read your journal. You can stop sharing at any time.</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Your care team</p>
+          <h1 className="mt-2 font-serif text-4xl font-medium sm:text-5xl">Choose who can read your journal.</h1>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">Only clinicians you invite and who accept can read what you share. Your journal remains yours to change.</p>
         </div>
         <Button variant="outline" asChild><Link href="/dashboard">Back to dashboard</Link></Button>
       </section>}
@@ -475,24 +479,39 @@ export default function DashboardPage() {
 
       {section === "care-team" && <>
         {recoveryQuery.isError && <Card role="status" className="p-4 text-sm text-muted-foreground">Your journal profile could not be checked right now. Try again before inviting a clinician.</Card>}
-        <CareTeamPanel hasJournal={Boolean(profile)} />
-        <div className="grid gap-4 md:grid-cols-2">
-          <Card className="space-y-3 p-5">
-            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Planned</p>
-            <h2 className="font-serif text-2xl font-medium">Find a clinician</h2>
-            <p className="text-sm leading-6 text-muted-foreground">A clinician directory and matching are not available yet. You can invite a clinician you already know to read your journal.</p>
-            <Button variant="outline" asChild data-testid="button-find-clinician-planned"><Link href="/find-your-clinician">About future matching <ArrowRight /></Link></Button>
-          </Card>
-          <Card className="space-y-3 p-5">
-            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Planned</p>
-            <h2 className="font-serif text-2xl font-medium">Clinician feedback</h2>
-            <p className="text-sm leading-6 text-muted-foreground">Clinicians can read only what you choose to share. Leaving feedback in Stillwell is not available yet; you can bring your journal to a visit.</p>
-          </Card>
+        <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+          <CareTeamPanel hasJournal={Boolean(profile)} />
+          <div className="space-y-5">
+            <Card className="space-y-4 p-5 sm:p-6">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Explore care options</p>
+                  <h2 className="mt-2 flex items-center gap-2 font-serif text-2xl font-medium"><UsersRound className="size-5 text-primary" aria-hidden="true" />Find a clinician</h2>
+                </div>
+                <StatusPill>Planned</StatusPill>
+              </div>
+              <p className="text-sm leading-6 text-muted-foreground">Clinician listings and matching are not available yet. Stillwell does not verify clinicians; for now, you can invite someone you already know.</p>
+              <Button variant="outline" asChild data-testid="button-find-clinician-planned"><Link href="/find-your-clinician">About future matching <ArrowRight /></Link></Button>
+            </Card>
+            <Card className="space-y-4 p-5 sm:p-6">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Feedback to keep in view</p>
+                  <h2 className="mt-2 font-serif text-2xl font-medium">Clinician feedback</h2>
+                </div>
+                <StatusPill>Planned</StatusPill>
+              </div>
+              <p className="text-sm leading-6 text-muted-foreground">Clinician messages and feedback are not available in Stillwell yet. You can bring your journal to a visit if you choose.</p>
+            </Card>
+          </div>
         </div>
+        <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4 text-xs text-muted-foreground">
+          <span>Your journal is read-only to clinicians you choose to share it with.</span>
+          <Button variant="ghost" size="sm" onClick={() => setLocation("/dashboard")}>Back to dashboard</Button>
+        </footer>
       </>}
 
       {!recoveryQuery.isLoading && !recoveryQuery.isError && profile && (section === "dashboard" || section === "journal" || section === "care-protocol") && <>
-        {section === "dashboard" && <PatientProgressChart logs={logs} today={today} />}
         {section === "dashboard" && <details className="space-y-4"><summary className="min-h-12 cursor-pointer py-3 font-semibold">Journal settings · symptoms to track</summary><SymptomPreferences /></details>}
         <div className="space-y-5">
           {(section === "dashboard" || section === "care-protocol") && <Card id="care-protocol-routine" className="space-y-5 p-5 sm:p-6">
@@ -527,16 +546,6 @@ export default function DashboardPage() {
             </div>}
           </Card>}
 
-          {section === "dashboard" && <Card className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
-            <div className="flex items-start gap-3">
-              <UsersRound className="mt-1 size-5 shrink-0 text-primary" />
-              <div>
-                <h2 className="font-serif text-2xl font-medium">Your care team</h2>
-                <p className="mt-1 max-w-xl text-sm leading-6 text-muted-foreground">Manage invitations and decide who can read your journal. You can stop sharing at any time.</p>
-              </div>
-            </div>
-            <Button variant="outline" onClick={() => setLocation("/dashboard/care-team")} data-testid="button-dashboard-care-team">View care team <ArrowRight /></Button>
-          </Card>}
           {section === "care-protocol" && <>
             <section className="space-y-4" aria-labelledby="care-protocol-roadmap-heading">
               <div>
