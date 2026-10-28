@@ -30,7 +30,7 @@ const clerkPubKey = publishableKeyFromHost(window.location.hostname, import.meta
 const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
 /** Exact match: /clinician/portal, /clinician/patients/:id, /clinician/patients/:id/days/:date. */
 const CARE_PORTAL_ROUTE = /^\/clinician\/(?:portal|patients\/(?<id>[^/]+)(?:\/days\/(?<date>[^/]+))?)\/?$/;
-const PATIENT_DASHBOARD_ROUTE = /^\/dashboard(?:\/(?:journal|care-team|account))?\/?$/;
+const PATIENT_DASHBOARD_ROUTE = /^\/dashboard(?:\/(?:journal|care-protocol|care-team|account))?\/?$/;
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 function stripBase(path: string) {
   return basePath && path.startsWith(basePath) ? path.slice(basePath.length) || "/" : path;
@@ -337,6 +337,7 @@ function Routes() {
       "/sign-up": { title: "Choose your account", description: "Choose whether you are creating a Stillwell account as a patient or a clinician." },
       "/sign-in": { title: "Patient sign in", description: "Sign in to revisit your private Stillwell journal, routines, and reflections." },
       "/dashboard/journal": { title: "Your journal", description: "Record a private daily check-in and review the entries you chose to keep." },
+      "/dashboard/care-protocol": { title: "Your care protocol", description: "Review your chosen routine, reflection roadmap, and optional resources." },
       "/dashboard/care-team": { title: "Your care team", description: "Manage who can read your Stillwell journal and review planned support options." },
       "/dashboard/account": { title: "Your account", description: "Manage your Stillwell account, privacy, and recovery-data controls." },
       "/dashboard": { title: "Your dashboard", description: "Review your Stillwell journal progress, chosen routine, and care team." },

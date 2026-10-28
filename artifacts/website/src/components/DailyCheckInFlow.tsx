@@ -146,6 +146,22 @@ export function DailyCheckInFlow({
     }
   }
 
+  function chooseActivityAnswer(value: DailyCheckIn["worseWithActivity"]) {
+    if (page === "edit") {
+      setCheckIn((current) => ({ ...current, worseWithActivity: value }));
+      return;
+    }
+    void persist({ ...checkIn, worseWithActivity: value });
+  }
+
+  function skipActivityAnswer() {
+    if (page === "edit") {
+      setCheckIn((current) => ({ ...current, worseWithActivity: null }));
+      return;
+    }
+    void persist({ ...checkIn, worseWithActivity: null });
+  }
+
   const title = page === "home" ? "How is today, overall?"
     : page === "symptoms" ? "Add symptoms"
       : page === "voice" ? "Use voice-to-text"
@@ -258,7 +274,7 @@ export function DailyCheckInFlow({
       </div>
       <div className="flex flex-col gap-2 sm:flex-row">
         {page === "review" && flowSymptoms.length > 0 && <Button variant="outline" onClick={() => { setSymptomIndex(0); setPage("symptoms"); }}>Rate symptoms</Button>}
-        <Button onClick={() => void saveReview()} disabled={saving}>{saving ? "Saving…" : draftMode ? "Use this summary" : "Save check-in"} <Check /></Button>
+        <Button onClick={() => void saveReview()} disabled={saving} data-testid={page === "edit" ? "button-save-check-in-changes" : "button-save-check-in"}>{saving ? "Saving…" : draftMode ? "Use this summary" : page === "edit" ? "Save changes" : "Save check-in"} <Check /></Button>
       </div>
     </>}
 
@@ -291,8 +307,8 @@ export function DailyCheckInFlow({
       <h3 className="font-serif text-xl">{activityQuestion}</h3>
       <p className="text-sm text-muted-foreground">Optional. Skip if you’re not sure what to record.</p>
       <div className="flex flex-wrap gap-2">
-        {activityAnswerChoices.map(choice => <Button key={choice.value} variant={checkIn.worseWithActivity === choice.value ? "default" : "outline"} aria-pressed={checkIn.worseWithActivity === choice.value} disabled={saving} onClick={() => void persist({ ...checkIn, worseWithActivity: choice.value })}>{choice.label}</Button>)}
-        <Button variant="outline" disabled={saving} onClick={() => void persist({ ...checkIn, worseWithActivity: null })}>Skip</Button>
+        {activityAnswerChoices.map(choice => <Button key={choice.value} variant={checkIn.worseWithActivity === choice.value ? "default" : "outline"} aria-pressed={checkIn.worseWithActivity === choice.value} disabled={saving} onClick={() => chooseActivityAnswer(choice.value)}>{choice.label}</Button>)}
+        <Button variant="outline" disabled={saving} onClick={skipActivityAnswer}>Skip</Button>
       </div>
       {page === "edit" && <p className="text-xs text-muted-foreground">Was: {activityAnswerChoices.find(choice => choice.value === original.worseWithActivity)?.label ?? "Not recorded"}</p>}
     </Card>}

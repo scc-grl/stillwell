@@ -25,8 +25,10 @@ import { Checkbox } from "@workspace/stillwell-design-system/components/ui/check
 import {
   ArrowLeft,
   ArrowRight,
+  BookOpen,
   CalendarDays,
   Check,
+  ClipboardList,
   CircleAlert,
   Clock3,
   LayoutDashboard,
@@ -67,14 +69,17 @@ function Brand() {
   </Link>;
 }
 
-type PatientSection = "dashboard" | "journal" | "care-team" | "account";
-const patientNavigation: { id: "dashboard" | "journal"; label: string; path: string; icon: typeof LayoutDashboard }[] = [
+type PatientSection = "dashboard" | "journal" | "care-protocol" | "care-team" | "account";
+const patientNavigation: { id: Exclude<PatientSection, "account">; label: string; path: string; icon: typeof LayoutDashboard }[] = [
   { id: "dashboard", label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { id: "journal", label: "Journal", path: "/dashboard/journal", icon: NotebookPen },
+  { id: "care-protocol", label: "Care protocol", path: "/dashboard/care-protocol", icon: ClipboardList },
+  { id: "care-team", label: "Care team", path: "/dashboard/care-team", icon: UsersRound },
 ];
 
 function sectionForPath(path: string): PatientSection {
   if (path.startsWith("/dashboard/journal")) return "journal";
+  if (path.startsWith("/dashboard/care-protocol")) return "care-protocol";
   if (path.startsWith("/dashboard/care-team")) return "care-team";
   if (path.startsWith("/dashboard/account")) return "account";
   return "dashboard";
@@ -84,13 +89,13 @@ function PatientDashboardNav({ section }: { section: PatientSection }) {
   return <header className="sticky top-0 z-20 border-b border-border bg-background/95 shadow-sm backdrop-blur">
     <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:px-8 md:flex-row md:items-center md:justify-between">
       <Brand />
-      <div className="grid w-full grid-cols-[1fr_auto] gap-2 md:w-auto md:flex md:items-center">
-        <nav aria-label="Main navigation" className="grid grid-cols-2 gap-1 md:flex md:items-center">
+      <div className="grid w-full grid-cols-2 gap-2 md:w-auto md:flex md:items-center">
+        <nav aria-label="Main navigation" className="col-span-2 grid grid-cols-2 gap-1 md:flex md:items-center">
           {patientNavigation.map(({ id, label, path, icon: Icon }) => <Button
             key={id}
             variant={section === id ? "secondary" : "ghost"}
             size="sm"
-            className="min-h-11 justify-start"
+            className="min-h-11 w-full justify-start md:w-auto"
             asChild
           >
             <Link href={path} aria-current={section === id ? "page" : undefined} data-testid={`link-patient-${id}`}>
@@ -98,7 +103,7 @@ function PatientDashboardNav({ section }: { section: PatientSection }) {
             </Link>
           </Button>)}
         </nav>
-        <Button variant={section === "account" ? "secondary" : "ghost"} size="sm" className="min-h-11" asChild>
+        <Button variant={section === "account" ? "secondary" : "ghost"} size="sm" className="col-span-2 min-h-11 w-full md:col-span-1 md:w-auto" asChild>
           <Link href="/dashboard/account" aria-current={section === "account" ? "page" : undefined} data-testid="link-patient-account">
             <Settings2 className="size-4" />Account
           </Link>
@@ -183,6 +188,19 @@ function SleepDeleteConfirm({ date, pending, onKeep, onDelete }: { date: string;
   </Card>;
 }
 
+const protocolRoadmap = [
+  { number: "01", title: "Notice what matters", text: "Use your check-ins to note symptoms and daily experiences that you want to understand over time." },
+  { number: "02", title: "Choose a few supports", text: "Pick optional routines—such as food reflections, movement, quiet pauses, or pacing—that fit your day." },
+  { number: "03", title: "Review and adjust", text: "Keep what feels workable, change what does not, and bring questions to a clinician if you choose." },
+] as const;
+
+const protocolResources = [
+  { id: "questions", title: "Questions to bring to a clinician", detail: "A reflection guide for noting what you want to ask about symptoms, daily routines, and returning to activities." },
+  { id: "food-guide", title: "Food & hydration reflections", detail: "A simple way to notice what feels manageable for you, without targets or a prescribed diet." },
+  { id: "movement-guide", title: "Movement & pacing notes", detail: "Use your journal to record activity and pauses that felt appropriate for you. Follow any guidance from your clinician." },
+  { id: "quiet-guide", title: "Rest & quiet pauses", detail: "Optional prompts for noticing rest and moments of quiet in your day." },
+] as const;
+
 export default function DashboardPage() {
   const { user } = useUser();
   const { signOut } = useClerk();
@@ -219,6 +237,7 @@ export default function DashboardPage() {
   const [deleteDate, setDeleteDate] = useState<string | null>(null);
   const [sleepOpen, setSleepOpen] = useState(false);
   const [deleteSleepDate, setDeleteSleepDate] = useState<string | null>(null);
+  const [openProtocolResource, setOpenProtocolResource] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const startedOnce = useRef(false);
   const historyCutoff = new Date(`${today}T12:00:00`);
@@ -416,6 +435,14 @@ export default function DashboardPage() {
         <h1 className="mt-2 font-serif text-4xl font-medium sm:text-5xl">Account</h1>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">Your Stillwell sign-in and private data controls.</p>
       </section>}
+      {section === "care-protocol" && <section className="flex flex-wrap items-end justify-between gap-4">
+        <div className="space-y-2">
+          <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-secondary-foreground"><span className="h-px w-6 bg-primary/50" aria-hidden="true" />Care protocol</p>
+          <h1 className="font-serif text-4xl font-medium leading-tight sm:text-5xl">A few steps to help you put a plan together.</h1>
+          <p className="max-w-2xl text-sm leading-6 text-muted-foreground">Move through these in any order. This roadmap is a reflection aid, not a clinical protocol or medical recommendations.</p>
+        </div>
+        <Button variant="outline" onClick={() => setLocation("/dashboard/journal")} data-testid="button-care-protocol-journal">Open journal <ArrowRight /></Button>
+      </section>}
       {section === "care-team" && <section className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Your dashboard</p>
@@ -430,16 +457,16 @@ export default function DashboardPage() {
         <p><strong className="font-semibold">A safety note.</strong> Stillwell is not for a new injury or emergency. If symptoms are worsening, contact a clinician. Severe or urgent symptoms need emergency care now.</p>
       </Card>}
       {message && <Card role="status" className="border-secondary bg-secondary p-4 text-sm leading-6 text-secondary-foreground" data-testid="status-dashboard-feedback">{message}</Card>}
-      {(section === "dashboard" || section === "journal") && recoveryQuery.isLoading && <Card aria-label="Loading your journal" className="animate-pulse space-y-4 p-6"><div className="h-4 w-40 rounded bg-muted" /><div className="h-24 rounded-xl bg-muted" /><div className="h-16 rounded-xl bg-muted" /></Card>}
-      {(section === "dashboard" || section === "journal") && recoveryQuery.isError && <Card className="space-y-4 p-6"><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">We couldn’t open your journal</p><h2 className="font-serif text-3xl">Your notes haven’t gone anywhere.</h2><p className="text-sm leading-6 text-muted-foreground">Check your connection, then try loading the private journal again.</p><Button variant="outline" onClick={() => void recoveryQuery.refetch()} data-testid="button-retry-journal">Try again <ArrowRight /></Button></Card>}
-      {(section === "dashboard" || section === "journal") && !recoveryQuery.isLoading && !recoveryQuery.isError && !profile && !readDraft() && <Card className="space-y-4 p-6 sm:p-9">
+      {(section === "dashboard" || section === "journal" || section === "care-protocol") && recoveryQuery.isLoading && <Card aria-label="Loading your journal" className="animate-pulse space-y-4 p-6"><div className="h-4 w-40 rounded bg-muted" /><div className="h-24 rounded-xl bg-muted" /><div className="h-16 rounded-xl bg-muted" /></Card>}
+      {(section === "dashboard" || section === "journal" || section === "care-protocol") && recoveryQuery.isError && <Card className="space-y-4 p-6"><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">We couldn’t open your journal</p><h2 className="font-serif text-3xl">Your notes haven’t gone anywhere.</h2><p className="text-sm leading-6 text-muted-foreground">Check your connection, then try loading the private journal again.</p><Button variant="outline" onClick={() => void recoveryQuery.refetch()} data-testid="button-retry-journal">Try again <ArrowRight /></Button></Card>}
+      {(section === "dashboard" || section === "journal" || section === "care-protocol") && !recoveryQuery.isLoading && !recoveryQuery.isError && !profile && !readDraft() && <Card className="space-y-4 p-6 sm:p-9">
         <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">A beginning, not a blank template</p>
         <h2 className="max-w-xl font-serif text-4xl font-medium">Choose what you want this space to hold.</h2>
         <p className="max-w-xl text-sm leading-7 text-muted-foreground">Start with a few optional preferences and a first daily reflection. You decide what belongs here. Your setup is not sent until you consent and sign in.</p>
         <Button className="w-fit" onClick={() => setLocation("/quiz")}>Set up my journal <ArrowRight /></Button>
         <p className="text-xs text-muted-foreground">No profile or recovery history is displayed until you create it.</p>
       </Card>}
-      {(section === "dashboard" || section === "journal") && !recoveryQuery.isLoading && !recoveryQuery.isError && !profile && !!readDraft() && <Card className="space-y-4 p-6">
+      {(section === "dashboard" || section === "journal" || section === "care-protocol") && !recoveryQuery.isLoading && !recoveryQuery.isError && !profile && !!readDraft() && <Card className="space-y-4 p-6">
         <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Saved setup, ready to retry</p>
         <h2 className="font-serif text-3xl">Your first summary is waiting.</h2>
         <p className="text-sm leading-6 text-muted-foreground">We couldn’t finish saving the setup yet. It remains in this tab temporarily, and your existing preferences have not been replaced.</p>
@@ -464,11 +491,11 @@ export default function DashboardPage() {
         </div>
       </>}
 
-      {!recoveryQuery.isLoading && !recoveryQuery.isError && profile && (section === "dashboard" || section === "journal") && <>
+      {!recoveryQuery.isLoading && !recoveryQuery.isError && profile && (section === "dashboard" || section === "journal" || section === "care-protocol") && <>
         {section === "dashboard" && <PatientProgressChart logs={logs} today={today} />}
         {section === "dashboard" && <details className="space-y-4"><summary className="min-h-12 cursor-pointer py-3 font-semibold">Journal settings · symptoms to track</summary><SymptomPreferences /></details>}
         <div className="space-y-5">
-          {section === "dashboard" && <Card className="space-y-5 p-5 sm:p-6">
+          {(section === "dashboard" || section === "care-protocol") && <Card id="care-protocol-routine" className="space-y-5 p-5 sm:p-6">
             <div className="flex items-start justify-between gap-3">
               <div><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Your care protocol</p><h2 className="mt-2 font-serif text-2xl font-medium">{supportModes.find((mode) => mode.value === profile.supportMode)?.title}</h2></div>
               <Button variant="outline" size="sm" onClick={() => { setRoutineOpen((value) => !value); setActivitiesOpen(false); }}>{routineOpen ? "Close" : "Edit routine"}</Button>
@@ -510,6 +537,40 @@ export default function DashboardPage() {
             </div>
             <Button variant="outline" onClick={() => setLocation("/dashboard/care-team")} data-testid="button-dashboard-care-team">View care team <ArrowRight /></Button>
           </Card>}
+          {section === "care-protocol" && <>
+            <section className="space-y-4" aria-labelledby="care-protocol-roadmap-heading">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Stillwell roadmap</p>
+                <h2 id="care-protocol-roadmap-heading" className="mt-2 font-serif text-3xl font-medium">A reflection aid, at your pace.</h2>
+                <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">Use these steps in any order. Your journal records what you choose; it does not set treatment or activity targets.</p>
+              </div>
+              <div className="grid gap-4 md:grid-cols-3">
+                {protocolRoadmap.map((step) => <Card key={step.number} className="space-y-3 p-5">
+                  <p className="text-xs font-semibold tracking-widest text-primary">{step.number} · ROADMAP</p>
+                  <h3 className="font-serif text-xl font-medium">{step.title}</h3>
+                  <p className="text-sm leading-6 text-muted-foreground">{step.text}</p>
+                </Card>)}
+              </div>
+            </section>
+            <Card className="space-y-4 p-5 sm:p-6">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Reflection resources</p>
+                <h2 className="mt-2 font-serif text-2xl font-medium">Ideas to help you build your own plan</h2>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">Optional educational prompts. These are not treatment directions or a substitute for clinical guidance.</p>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {protocolResources.map((resource) => {
+                  const isOpen = openProtocolResource === resource.id;
+                  const detailId = `protocol-resource-${resource.id}`;
+                  return <article key={resource.id} className="space-y-3 rounded-xl border border-border p-4">
+                    <h3 className="font-medium">{resource.title}</h3>
+                    <p id={detailId} className="text-sm leading-6 text-muted-foreground">{isOpen ? resource.detail : "A short, optional prompt to help you reflect and prepare your own plan."}</p>
+                    <Button type="button" size="sm" variant="outline" aria-expanded={isOpen} aria-controls={detailId} onClick={() => setOpenProtocolResource(isOpen ? null : resource.id)} data-testid={`button-preview-resource-${resource.id}`}><BookOpen aria-hidden="true" />{isOpen ? "Close resource" : "Preview resource"}</Button>
+                  </article>;
+                })}
+              </div>
+            </Card>
+          </>}
 
           {section === "journal" && todayCheckInOpen && <section id="today-check-in" className="space-y-4" aria-labelledby="today-check-in-heading">
             <div className="flex flex-wrap items-end justify-between gap-3">
@@ -606,7 +667,7 @@ export default function DashboardPage() {
                     <h2 className="mt-2 font-serif text-3xl font-medium">{formatHistoryDate(selectedHistory.log.date, { month: "long", day: "numeric", year: "numeric" })}</h2>
                     <p className="mt-2 text-sm text-muted-foreground">Your recorded responses · no interpretation added</p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <Button variant="outline" size="icon" aria-label="Previous saved check-in" disabled={visiblePastLogs.findIndex((log) => log.date === selectedHistory.log.date) <= 0} onClick={() => {
                       const index = visiblePastLogs.findIndex((log) => log.date === selectedHistory.log.date);
                       if (index > 0) openHistoryDay(visiblePastLogs[index - 1]);
@@ -615,6 +676,7 @@ export default function DashboardPage() {
                       const index = visiblePastLogs.findIndex((log) => log.date === selectedHistory.log.date);
                       if (index >= 0 && index < visiblePastLogs.length - 1) openHistoryDay(visiblePastLogs[index + 1]);
                     }}><ArrowRight /></Button>
+                    <Button variant="outline" className="min-h-11" onClick={() => setSelectedHistory((current) => current ? { ...current, view: "check_in" } : null)} data-testid="button-edit-history-check-in">Edit this day</Button>
                   </div>
                 </div>
                 <HistorySummary log={selectedHistory.log} />
@@ -622,11 +684,21 @@ export default function DashboardPage() {
                   <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
                   <p>Not for a new injury or an emergency. If symptoms are worsening, contact a clinician. Severe or urgent symptoms need emergency care now.</p>
                 </div>
-                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-                  <Button onClick={() => setSelectedHistory((current) => current ? { ...current, view: "check_in" } : null)}>Edit this day</Button>
-                  <Button variant="outline" onClick={() => setSelectedHistory((current) => current ? { ...current, view: "activities" } : null)}>Edit food, movement and pacing</Button>
-                  <Button variant="outline" onClick={() => setSelectedHistory((current) => current ? { ...current, view: "sleep" } : null)} data-testid="button-edit-history-sleep">{selectedHistory.log.sleep ? "Edit sleep" : "Log sleep"}</Button>
-                  <Button variant="destructive" onClick={() => setDeleteDate(selectedHistory.log.date)} disabled={deleteRecoveryLog.isPending}><Trash2 />Delete this day</Button>
+              </>}
+              {selectedHistory.view === "check_in" && <>
+                <DailyCheckInFlow key={`${selectedHistory.log.date}-checkin`} initial={{ ...selectedHistory.log }} logs={logs} today={today} startAt="edit" onPersist={async (input) => {
+                  const saved = await saveCheckIn(input);
+                  setSelectedHistory({ log: saved, view: "summary" });
+                  setMessage(`${formatDate(saved.date)} check-in saved.`);
+                  return saved;
+                }} onEditActivities={() => setSelectedHistory((current) => current ? { ...current, view: "activities" } : null)} onExit={() => setSelectedHistory((current) => current ? { ...current, view: "summary" } : null)} exitLabel="Back to this day" />
+                <div className="space-y-3 border-t border-border pt-5">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Other journal entries</p>
+                  <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                    <Button variant="outline" onClick={() => setSelectedHistory((current) => current ? { ...current, view: "activities" } : null)}>Edit food, movement and pacing</Button>
+                    <Button variant="outline" onClick={() => setSelectedHistory((current) => current ? { ...current, view: "sleep" } : null)} data-testid="button-edit-history-sleep">{selectedHistory.log.sleep ? "Edit sleep" : "Log sleep"}</Button>
+                    <Button variant="destructive" onClick={() => setDeleteDate(selectedHistory.log.date)} disabled={deleteRecoveryLog.isPending} data-testid="button-delete-history-day"><Trash2 />Delete this day</Button>
+                  </div>
                 </div>
                 {deleteDate === selectedHistory.log.date && <Card className="space-y-3 border-destructive p-4">
                   <h3 className="text-sm font-semibold">Delete this day?</h3>
@@ -634,12 +706,6 @@ export default function DashboardPage() {
                   <div className="flex flex-col-reverse gap-2 sm:flex-row"><Button variant="outline" onClick={() => setDeleteDate(null)}>Keep entry</Button><Button variant="destructive" disabled={deleteRecoveryLog.isPending} onClick={() => void deletePastDay(selectedHistory.log.date)}>{deleteRecoveryLog.isPending ? "Deleting…" : "Delete day"}</Button></div>
                 </Card>}
               </>}
-              {selectedHistory.view === "check_in" && <DailyCheckInFlow key={`${selectedHistory.log.date}-checkin`} initial={{ ...selectedHistory.log }} logs={logs} today={today} startAt="edit" onPersist={async (input) => {
-                const saved = await saveCheckIn(input);
-                setSelectedHistory({ log: saved, view: "check_in" });
-                setMessage(`${formatDate(saved.date)} check-in saved.`);
-                return saved;
-              }} onEditActivities={() => setSelectedHistory((current) => current ? { ...current, view: "activities" } : null)} onExit={() => setSelectedHistory((current) => current ? { ...current, view: "summary" } : null)} exitLabel="Back to this day" />}
               {selectedHistory.view === "sleep" && <SleepEditor key={`${selectedHistory.log.date}-sleep`} date={selectedHistory.log.date} initial={selectedHistory.log.sleep} onSave={async (sleep) => { await saveSleep(selectedHistory.log.date, sleep); }} onDelete={selectedHistory.log.sleep ? () => setDeleteSleepDate(selectedHistory.log.date) : undefined} deleting={saveRecoveryLog.isPending && deleteSleepDate === selectedHistory.log.date} onCancel={() => { setDeleteSleepDate(null); setSelectedHistory((current) => current ? { ...current, view: "summary" } : null); }} />}
               {selectedHistory.view === "sleep" && deleteSleepDate === selectedHistory.log.date && <SleepDeleteConfirm date={selectedHistory.log.date} pending={saveRecoveryLog.isPending} onKeep={() => setDeleteSleepDate(null)} onDelete={() => void deleteSleep(selectedHistory.log.date)} />}
               {selectedHistory.view === "activities" && <ActivitiesEditor initial={{ ...selectedHistory.log }} onSave={saveActivities} onCancel={() => setSelectedHistory((current) => current ? { ...current, view: "summary" } : null)} />}
