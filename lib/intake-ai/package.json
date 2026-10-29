@@ -1,0 +1,11 @@
+{
+  "name": "@workspace/intake-ai",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": { "test": "node --test test/*.test.ts" },
+  "dependencies": { "@workspace/recovery-journal": "workspace:*" }
+}

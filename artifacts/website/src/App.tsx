@@ -13,6 +13,7 @@ import AuthPageShell from "@/components/AuthPageShell";
 import DashboardPage from "@/pages/DashboardPage";
 import PrivacyPage from "@/pages/PrivacyPage";
 import QuizPage from "@/pages/QuizPage";
+import DemoIntakePage from "@/pages/DemoIntakePage";
 import PublicInfoPage from "@/pages/PublicInfoPage";
 import UnsubscribePage from "@/pages/UnsubscribePage";
 import { clearClinicianSetupDraft } from "@/pages/PartnersPages";
@@ -379,6 +380,7 @@ function Routes() {
       {/* One route for all canonical care URLs keeps CarePortal (and its toast provider) mounted across portal/patient/day navigation. */}
       <Route path={CARE_PORTAL_ROUTE}>{(params: { id?: string; date?: string }) => <CarePortal patientId={params.id || undefined} date={params.date || undefined}/>}</Route>
       <Route path="/quiz" component={QuizRoute}/>
+      <Route path="/demo/intake" component={DemoIntakePage}/>
       <Route path={PATIENT_DASHBOARD_ROUTE} component={PrivateDashboard}/>
       <Route path="/invite/:token">{(params) => <InviteRoute token={params.token}/>}</Route>
       <Route path="/request/:token">{(params) => <RequestRoute token={params.token}/>}</Route>

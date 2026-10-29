@@ -5,6 +5,7 @@ import newsletterRouter from "./newsletter";
 import accountRouter from "./account";
 import partnersRouter from "./partners";
 import careTeamRouter from "./care-team";
+import demoIntakeRouter from "./demo-intake";
 
 const router: IRouter = Router();
 
@@ -13,6 +14,7 @@ router.use(accountRouter);
 router.use(recoveryRouter);
 router.use(careTeamRouter);
 router.use(newsletterRouter);
+router.use(demoIntakeRouter);
 router.use((req, res, next) => {
   const plannedFeaturePath =
     req.path === "/partnership-requests" ||
