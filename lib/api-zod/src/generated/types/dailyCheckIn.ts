@@ -13,7 +13,9 @@ import type { DailyCheckInWorseWithActivity } from './dailyCheckInWorseWithActiv
 export interface DailyCheckIn {
   /** @maxItems 11 */
   selectedSymptoms?: DailyCheckInSelectedSymptomsItem[];
+  /** @nullable */
   worseWithActivity?: DailyCheckInWorseWithActivity;
+  /** @nullable */
   overallFeeling: DailyCheckInOverallFeeling;
   /**
      * @minItems 6

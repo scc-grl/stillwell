@@ -19,12 +19,12 @@ export const getMyCareTeamResponseInviteEmailQuotaUsedMin = 0;
 export const GetMyCareTeamResponse = zod.object({
   "serverTime": zod.coerce.date(),
   "inviteEmailQuota": zod.object({
-  "used": zod.number().int().min(getMyCareTeamResponseInviteEmailQuotaUsedMin),
-  "limit": zod.number().int().min(1),
+  "used": zod.int().min(getMyCareTeamResponseInviteEmailQuotaUsedMin),
+  "limit": zod.int().min(1),
   "resetsAt": zod.coerce.date()
 }),
   "pendingInvites": zod.array(zod.object({
-  "id": zod.string().uuid(),
+  "id": zod.uuid(),
   "direction": zod.enum(['patient_invites_clinician', 'clinician_requests_patient']),
   "firstName": zod.string(),
   "lastName": zod.string(),
@@ -36,7 +36,7 @@ export const GetMyCareTeamResponse = zod.object({
   "acceptedAt": zod.coerce.date().nullable()
 })),
   "expiredInvites": zod.array(zod.object({
-  "id": zod.string().uuid(),
+  "id": zod.uuid(),
   "direction": zod.enum(['patient_invites_clinician', 'clinician_requests_patient']),
   "firstName": zod.string(),
   "lastName": zod.string(),
@@ -48,7 +48,7 @@ export const GetMyCareTeamResponse = zod.object({
   "acceptedAt": zod.coerce.date().nullable()
 })),
   "activeClinicians": zod.array(zod.object({
-  "id": zod.string().uuid(),
+  "id": zod.uuid(),
   "name": zod.string(),
   "connectedAt": zod.coerce.date()
 }))
@@ -69,14 +69,14 @@ export const createPatientCareInviteBodyOneEmailMax = 254;
 export const CreatePatientCareInviteBody = zod.object({
   "firstName": zod.string().min(1).max(createPatientCareInviteBodyOneFirstNameMax),
   "lastName": zod.string().min(1).max(createPatientCareInviteBodyOneLastNameMax),
-  "email": zod.string().email().max(createPatientCareInviteBodyOneEmailMax)
+  "email": zod.email().max(createPatientCareInviteBodyOneEmailMax)
 }).and(zod.object({
   "consentAccepted": zod.literal(true)
 }))
 
 export const CreatePatientCareInviteResponse = zod.object({
   "invite": zod.object({
-  "id": zod.string().uuid(),
+  "id": zod.uuid(),
   "direction": zod.enum(['patient_invites_clinician', 'clinician_requests_patient']),
   "firstName": zod.string(),
   "lastName": zod.string(),
@@ -96,12 +96,12 @@ export const CreatePatientCareInviteResponse = zod.object({
  * @summary Patient owner only. Rotate token, reset expiry; pending or expired invites.
  */
 export const ResendPatientCareInviteParams = zod.object({
-  "id": zod.coerce.string().uuid()
+  "id": zod.uuid()
 })
 
 export const ResendPatientCareInviteResponse = zod.object({
   "invite": zod.object({
-  "id": zod.string().uuid(),
+  "id": zod.uuid(),
   "direction": zod.enum(['patient_invites_clinician', 'clinician_requests_patient']),
   "firstName": zod.string(),
   "lastName": zod.string(),
@@ -122,11 +122,11 @@ export const ResendPatientCareInviteResponse = zod.object({
  * @summary Restore a recently cancelled invitation without sending email
  */
 export const UndoCancelPatientCareInviteParams = zod.object({
-  "id": zod.coerce.string().uuid()
+  "id": zod.uuid()
 })
 
 export const UndoCancelPatientCareInviteResponse = zod.object({
-  "id": zod.string().uuid(),
+  "id": zod.uuid(),
   "direction": zod.enum(['patient_invites_clinician', 'clinician_requests_patient']),
   "firstName": zod.string(),
   "lastName": zod.string(),
@@ -143,7 +143,7 @@ export const UndoCancelPatientCareInviteResponse = zod.object({
  * @summary Patient owner only. Cancel a pending invite.
  */
 export const CancelPatientCareInviteParams = zod.object({
-  "id": zod.coerce.string().uuid()
+  "id": zod.uuid()
 })
 
 export const CancelPatientCareInviteResponse = zod.void()
@@ -153,7 +153,7 @@ export const CancelPatientCareInviteResponse = zod.void()
  * @summary Patient owner only. Immediately disconnect and freeze full history for the clinician.
  */
 export const RemoveCareClinicianParams = zod.object({
-  "id": zod.coerce.string().uuid()
+  "id": zod.uuid()
 })
 
 export const RemoveCareClinicianResponse = zod.void()
@@ -173,7 +173,7 @@ export const ReviewCareRequestResponse = zod.object({
   "clinicianName": zod.string(),
   "clinicianFirstName": zod.string(),
   "clinicianLastName": zod.string(),
-  "clinicianEmail": zod.string().email(),
+  "clinicianEmail": zod.email(),
   "requestedAt": zod.coerce.date(),
   "expiresAt": zod.coerce.date()
 }).describe('Returned only after patient role and matching verified email checks, including request edge states.').and(zod.object({
@@ -211,7 +211,7 @@ export const ReviewCareInviteParams = zod.object({
 
 export const ReviewCareInviteResponse = zod.object({
   "state": zod.enum(['pending', 'accepted']),
-  "linkId": zod.string().uuid().nullable()
+  "linkId": zod.uuid().nullable()
 })
 
 
@@ -251,7 +251,7 @@ export const RespondToCareRequestBody = zod.object({
 
 export const RespondToCareRequestResponse = zod.object({
   "state": zod.enum(['accepted', 'not_now']),
-  "linkId": zod.string().uuid().optional()
+  "linkId": zod.uuid().optional()
 })
 
 
@@ -267,7 +267,7 @@ export const AcceptPatientCareInviteParams = zod.object({
 
 export const AcceptPatientCareInviteResponse = zod.object({
   "state": zod.enum(['accepted', 'not_now']),
-  "linkId": zod.string().uuid().optional()
+  "linkId": zod.uuid().optional()
 })
 
 
@@ -276,7 +276,7 @@ export const AcceptPatientCareInviteResponse = zod.object({
  */
 export const GetMyCarePatientsResponse = zod.object({
   "active": zod.array(zod.object({
-  "id": zod.string().uuid(),
+  "id": zod.uuid(),
   "status": zod.enum(['active', 'former']),
   "firstName": zod.string(),
   "lastName": zod.string(),
@@ -285,7 +285,7 @@ export const GetMyCarePatientsResponse = zod.object({
   "lastEntryDate": zod.string().nullable()
 })),
   "former": zod.array(zod.object({
-  "id": zod.string().uuid(),
+  "id": zod.uuid(),
   "status": zod.enum(['active', 'former']),
   "firstName": zod.string(),
   "lastName": zod.string(),
@@ -300,7 +300,7 @@ export const GetMyCarePatientsResponse = zod.object({
  * @summary Clinician owner only. Read live history from an active link or the immutable former snapshot.
  */
 export const GetCarePatientJournalParams = zod.object({
-  "id": zod.coerce.string().uuid()
+  "id": zod.uuid()
 })
 
 export const getCarePatientJournalQueryPageDefault = 1;
@@ -313,7 +313,7 @@ export const GetCarePatientJournalQueryParams = zod.object({
 })
 
 export const GetCarePatientJournalResponse = zod.object({
-  "linkId": zod.string().uuid(),
+  "linkId": zod.uuid(),
   "status": zod.enum(['active', 'former']),
   "firstName": zod.string(),
   "lastName": zod.string(),
@@ -324,13 +324,13 @@ export const GetCarePatientJournalResponse = zod.object({
   "supportApproach": zod.unknown(),
   "focusAreas": zod.unknown(),
   "profileSummary": zod.record(zod.string(), zod.unknown()),
-  "entries": zod.array(zod.object({
+  "entries": zod.array(zod.looseObject({
   "date": zod.string().optional(),
   "updatedAt": zod.string().optional()
 }).describe('Original stored daily entry, including all symptoms/ratings, routine statuses, minutes, notes, dailyCheckIn and daily note. Missing data is never inferred.')),
-  "page": zod.number().int(),
+  "page": zod.int(),
   "pageSize": zod.literal(20),
-  "total": zod.number().int(),
+  "total": zod.int(),
   "hasMore": zod.boolean()
 })
 
@@ -339,7 +339,7 @@ export const GetCarePatientJournalResponse = zod.object({
  * @summary Clinician owner only. Permanently delete a former link and its frozen snapshot; active links cannot be deleted here.
  */
 export const RemoveFormerCarePatientParams = zod.object({
-  "id": zod.coerce.string().uuid()
+  "id": zod.uuid()
 })
 
 export const RemoveFormerCarePatientResponse = zod.void()
@@ -350,7 +350,7 @@ export const RemoveFormerCarePatientResponse = zod.void()
  */
 export const GetMyCareRequestsResponse = zod.object({
   "items": zod.array(zod.object({
-  "id": zod.string().uuid(),
+  "id": zod.uuid(),
   "direction": zod.enum(['patient_invites_clinician', 'clinician_requests_patient']),
   "firstName": zod.string(),
   "lastName": zod.string(),
@@ -378,12 +378,12 @@ export const createClinicianCareRequestBodyEmailMax = 254;
 export const CreateClinicianCareRequestBody = zod.object({
   "firstName": zod.string().min(1).max(createClinicianCareRequestBodyFirstNameMax),
   "lastName": zod.string().min(1).max(createClinicianCareRequestBodyLastNameMax),
-  "email": zod.string().email().max(createClinicianCareRequestBodyEmailMax)
+  "email": zod.email().max(createClinicianCareRequestBodyEmailMax)
 })
 
 export const CreateClinicianCareRequestResponse = zod.object({
   "invite": zod.object({
-  "id": zod.string().uuid(),
+  "id": zod.uuid(),
   "direction": zod.enum(['patient_invites_clinician', 'clinician_requests_patient']),
   "firstName": zod.string(),
   "lastName": zod.string(),
@@ -403,12 +403,12 @@ export const CreateClinicianCareRequestResponse = zod.object({
  * @summary Clinician owner only. Rotate token and reset 14-day expiry.
  */
 export const ResendClinicianCareRequestParams = zod.object({
-  "id": zod.coerce.string().uuid()
+  "id": zod.uuid()
 })
 
 export const ResendClinicianCareRequestResponse = zod.object({
   "invite": zod.object({
-  "id": zod.string().uuid(),
+  "id": zod.uuid(),
   "direction": zod.enum(['patient_invites_clinician', 'clinician_requests_patient']),
   "firstName": zod.string(),
   "lastName": zod.string(),
@@ -428,7 +428,7 @@ export const ResendClinicianCareRequestResponse = zod.object({
  * @summary Clinician owner only. Withdraw a pending request.
  */
 export const CancelClinicianCareRequestParams = zod.object({
-  "id": zod.coerce.string().uuid()
+  "id": zod.uuid()
 })
 
 export const CancelClinicianCareRequestResponse = zod.void()
@@ -496,7 +496,7 @@ export const CreatePartnershipRequestBody = zod.object({
   "organizationType": zod.enum(['sports_program_or_club', 'university_athletics', 'university_research_team', 'clinic_network', 'community_or_advocacy_group', 'other']),
   "contactName": zod.string().min(1).max(createPartnershipRequestBodyContactNameMax),
   "contactRole": zod.string().min(1).max(createPartnershipRequestBodyContactRoleMax),
-  "workEmail": zod.string().email().max(createPartnershipRequestBodyWorkEmailMax),
+  "workEmail": zod.email().max(createPartnershipRequestBodyWorkEmailMax),
   "phone": zod.string().max(createPartnershipRequestBodyPhoneMax).nullish(),
   "peopleSupported": zod.enum(['1-25', '26-100', '101-500', '501-2000', '2000+']),
   "message": zod.string().max(createPartnershipRequestBodyMessageMax).nullish()
@@ -513,12 +513,12 @@ export const CreatePartnershipRequestResponse = zod.object({
  */
 export const ListPartnershipRequestsResponse = zod.object({
   "items": zod.array(zod.object({
-  "id": zod.string().uuid(),
+  "id": zod.uuid(),
   "organizationName": zod.string(),
   "organizationType": zod.enum(['sports_program_or_club', 'university_athletics', 'university_research_team', 'clinic_network', 'community_or_advocacy_group', 'other']),
   "contactName": zod.string(),
   "contactRole": zod.string(),
-  "workEmail": zod.string().email(),
+  "workEmail": zod.email(),
   "phone": zod.string().nullable(),
   "peopleSupported": zod.enum(['1-25', '26-100', '101-500', '501-2000', '2000+']),
   "message": zod.string().nullable(),
@@ -538,7 +538,7 @@ export const GetClinicianProfileResponse = zod.object({
   "firstName": zod.string(),
   "lastName": zod.string(),
   "practiceType": zod.enum(['individual', 'clinic']),
-  "website": zod.string().url().nullable(),
+  "website": zod.url().nullable(),
   "phone": zod.string().nullable(),
   "inviteCode": zod.string().nullable(),
   "profession": zod.union([zod.enum(['Physician', 'Physiotherapist', 'Psychologist', 'Occupational therapist', 'Nurse', 'Neuropsychologist', 'Vestibular therapist', 'Athletic trainer', 'Speech-language pathologist', 'Other']),zod.null()]),
@@ -587,7 +587,7 @@ export const SaveClinicianProfileBody = zod.object({
   "firstName": zod.string().max(saveClinicianProfileBodyFirstNameMax).optional(),
   "lastName": zod.string().max(saveClinicianProfileBodyLastNameMax).optional(),
   "practiceType": zod.enum(['individual', 'clinic']).optional(),
-  "website": zod.string().url().max(saveClinicianProfileBodyWebsiteMax).nullish(),
+  "website": zod.url().max(saveClinicianProfileBodyWebsiteMax).nullish(),
   "phone": zod.string().max(saveClinicianProfileBodyPhoneMax).nullable(),
   "inviteCode": zod.string().max(saveClinicianProfileBodyInviteCodeMax).nullable(),
   "profession": zod.union([zod.enum(['Physician', 'Physiotherapist', 'Psychologist', 'Occupational therapist', 'Nurse', 'Neuropsychologist', 'Vestibular therapist', 'Athletic trainer', 'Speech-language pathologist', 'Other']),zod.null()]),
@@ -607,7 +607,7 @@ export const SaveClinicianProfileResponse = zod.object({
   "firstName": zod.string(),
   "lastName": zod.string(),
   "practiceType": zod.enum(['individual', 'clinic']),
-  "website": zod.string().url().nullable(),
+  "website": zod.url().nullable(),
   "phone": zod.string().nullable(),
   "inviteCode": zod.string().nullable(),
   "profession": zod.union([zod.enum(['Physician', 'Physiotherapist', 'Psychologist', 'Occupational therapist', 'Nurse', 'Neuropsychologist', 'Vestibular therapist', 'Athletic trainer', 'Speech-language pathologist', 'Other']),zod.null()]),
@@ -675,7 +675,7 @@ export const listPatientClinicianConnectionsResponseItemsItemShareAreasMax = 5;
 
 export const ListPatientClinicianConnectionsResponse = zod.object({
   "items": zod.array(zod.object({
-  "id": zod.string().uuid(),
+  "id": zod.uuid(),
   "status": zod.enum(['pending', 'accepted']),
   "shareAreas": zod.array(zod.enum(['symptoms', 'food_hydration', 'movement', 'quiet_pause', 'pacing'])).min(listPatientClinicianConnectionsResponseItemsItemShareAreasMin).max(listPatientClinicianConnectionsResponseItemsItemShareAreasMax),
   "clinicianDisplayName": zod.string(),
@@ -711,7 +711,7 @@ export const inviteClinicianToJournalResponseShareAreasMax = 5;
 
 
 export const InviteClinicianToJournalResponse = zod.object({
-  "id": zod.string().uuid(),
+  "id": zod.uuid(),
   "status": zod.enum(['pending', 'accepted']),
   "shareAreas": zod.array(zod.enum(['symptoms', 'food_hydration', 'movement', 'quiet_pause', 'pacing'])).min(inviteClinicianToJournalResponseShareAreasMin).max(inviteClinicianToJournalResponseShareAreasMax),
   "clinicianDisplayName": zod.string(),
@@ -728,7 +728,7 @@ export const InviteClinicianToJournalResponse = zod.object({
  * @summary Change the journal areas shared with a clinician
  */
 export const UpdateClinicianJournalSharingParams = zod.object({
-  "connectionId": zod.coerce.string().uuid()
+  "connectionId": zod.uuid()
 })
 
 export const updateClinicianJournalSharingBodyShareAreasMin = 0;
@@ -746,7 +746,7 @@ export const updateClinicianJournalSharingResponseShareAreasMax = 5;
 
 
 export const UpdateClinicianJournalSharingResponse = zod.object({
-  "id": zod.string().uuid(),
+  "id": zod.uuid(),
   "status": zod.enum(['pending', 'accepted']),
   "shareAreas": zod.array(zod.enum(['symptoms', 'food_hydration', 'movement', 'quiet_pause', 'pacing'])).min(updateClinicianJournalSharingResponseShareAreasMin).max(updateClinicianJournalSharingResponseShareAreasMax),
   "clinicianDisplayName": zod.string(),
@@ -763,7 +763,7 @@ export const UpdateClinicianJournalSharingResponse = zod.object({
  * @summary Revoke a clinician's access to the patient's journal
  */
 export const RevokeClinicianJournalAccessParams = zod.object({
-  "connectionId": zod.coerce.string().uuid()
+  "connectionId": zod.uuid()
 })
 
 export const RevokeClinicianJournalAccessResponse = zod.void()
@@ -781,7 +781,7 @@ export const listClinicianJournalInvitationsResponseItemsItemShareAreasMax = 5;
 
 export const ListClinicianJournalInvitationsResponse = zod.object({
   "items": zod.array(zod.object({
-  "id": zod.string().uuid(),
+  "id": zod.uuid(),
   "shareAreas": zod.array(zod.enum(['symptoms', 'food_hydration', 'movement', 'quiet_pause', 'pacing'])).min(listClinicianJournalInvitationsResponseItemsItemShareAreasMin).max(listClinicianJournalInvitationsResponseItemsItemShareAreasMax),
   "createdAt": zod.coerce.date()
 }))
@@ -794,7 +794,7 @@ export const ListClinicianJournalInvitationsResponse = zod.object({
  * @summary Accept a patient invitation using the clinician's authenticated account
  */
 export const AcceptClinicianJournalInvitationParams = zod.object({
-  "connectionId": zod.coerce.string().uuid()
+  "connectionId": zod.uuid()
 })
 
 export const acceptClinicianJournalInvitationResponseShareAreasMin = 0;
@@ -803,7 +803,7 @@ export const acceptClinicianJournalInvitationResponseShareAreasMax = 5;
 
 
 export const AcceptClinicianJournalInvitationResponse = zod.object({
-  "id": zod.string().uuid(),
+  "id": zod.uuid(),
   "status": zod.enum(['pending', 'accepted']),
   "shareAreas": zod.array(zod.enum(['symptoms', 'food_hydration', 'movement', 'quiet_pause', 'pacing'])).min(acceptClinicianJournalInvitationResponseShareAreasMin).max(acceptClinicianJournalInvitationResponseShareAreasMax),
   "clinicianDisplayName": zod.string(),
@@ -826,7 +826,7 @@ export const listConnectedPatientsResponseItemsItemShareAreasMax = 5;
 
 export const ListConnectedPatientsResponse = zod.object({
   "items": zod.array(zod.object({
-  "id": zod.string().uuid(),
+  "id": zod.uuid(),
   "patientLabel": zod.string(),
   "shareAreas": zod.array(zod.enum(['symptoms', 'food_hydration', 'movement', 'quiet_pause', 'pacing'])).min(listConnectedPatientsResponseItemsItemShareAreasMin).max(listConnectedPatientsResponseItemsItemShareAreasMax),
   "acceptedAt": zod.coerce.date()
@@ -840,7 +840,7 @@ export const ListConnectedPatientsResponse = zod.object({
  * @summary Read only the journal fields currently permitted by the patient
  */
 export const GetSharedPatientJournalParams = zod.object({
-  "connectionId": zod.coerce.string().uuid()
+  "connectionId": zod.uuid()
 })
 
 export const getSharedPatientJournalResponseShareAreasMin = 0;
@@ -877,24 +877,24 @@ export const GetSharedPatientJournalResponse = zod.object({
   "date": zod.string().regex(getSharedPatientJournalResponseLogsItemDateRegExp),
   "symptoms": zod.array(zod.object({
   "name": zod.enum(['headache', 'dizziness', 'focus', 'fatigue', 'sleep', 'light_sound', 'mood', 'nausea', 'vision', 'noise', 'neck']),
-  "severity": zod.number().int().min(getSharedPatientJournalResponseLogsItemSymptomsItemSeverityMin).max(getSharedPatientJournalResponseLogsItemSymptomsItemSeverityMax)
+  "severity": zod.int().min(getSharedPatientJournalResponseLogsItemSymptomsItemSeverityMin).max(getSharedPatientJournalResponseLogsItemSymptomsItemSeverityMax)
 })).max(getSharedPatientJournalResponseLogsItemSymptomsMax).optional(),
   "dietStatus": zod.enum(['done', 'not_done', 'not_planned']).optional(),
   "dietNote": zod.string().optional(),
   "exerciseStatus": zod.enum(['done', 'not_done', 'not_planned']).optional(),
   "exerciseNote": zod.string().optional(),
   "meditationStatus": zod.enum(['done', 'not_done', 'not_planned']).optional(),
-  "meditationMinutes": zod.number().int().optional(),
+  "meditationMinutes": zod.int().optional(),
   "meditationNote": zod.string().optional(),
   "note": zod.string().optional(),
   "dailyCheckIn": zod.object({
   "selectedSymptoms": zod.array(zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light', 'dizziness', 'nausea', 'vision', 'noise', 'neck'])).max(getSharedPatientJournalResponseLogsItemDailyCheckInSelectedSymptomsMax).optional(),
-  "worseWithActivity": zod.enum(['yes', 'no', 'not_sure']).nullish(),
-  "overallFeeling": zod.enum(['rough', 'low', 'okay', 'good', 'great']).nullable(),
+  "worseWithActivity": zod.union([zod.literal('yes'),zod.literal('no'),zod.literal('not_sure'),zod.literal(null)]).nullish(),
+  "overallFeeling": zod.union([zod.literal('rough'),zod.literal('low'),zod.literal('okay'),zod.literal('good'),zod.literal('great'),zod.literal(null)]).nullable(),
   "symptoms": zod.array(zod.object({
   "name": zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light', 'dizziness', 'nausea', 'vision', 'noise', 'neck']),
   "status": zod.enum(['recorded', 'not_recorded']),
-  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3)]).nullable(),
+  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3),zod.literal(null)]).nullable(),
   "addedOn": zod.string().regex(getSharedPatientJournalResponseLogsItemDailyCheckInSymptomsItemAddedOnRegExp).optional().describe('Date this symptom first appeared in the patient\'s tracked list.')
 })).min(getSharedPatientJournalResponseLogsItemDailyCheckInSymptomsMin).max(getSharedPatientJournalResponseLogsItemDailyCheckInSymptomsMax),
   "summary": zod.string().max(getSharedPatientJournalResponseLogsItemDailyCheckInSummaryMax)
@@ -919,7 +919,7 @@ export const ListClinicianProfilesForAdminResponse = zod.object({
   "items": zod.array(zod.object({
   "userId": zod.string(),
   "displayName": zod.string(),
-  "email": zod.string().email().nullable(),
+  "email": zod.email().nullable(),
   "phone": zod.string().nullable(),
   "profession": zod.enum(['Physician', 'Physiotherapist', 'Psychologist', 'Occupational therapist', 'Nurse', 'Neuropsychologist', 'Vestibular therapist', 'Athletic trainer', 'Speech-language pathologist', 'Other']),
   "licenseNumber": zod.string(),
@@ -1011,24 +1011,24 @@ export const GetRecoveryResponse = zod.object({
   "date": zod.string().regex(getRecoveryResponseLogsItemOneDateRegExp),
   "symptoms": zod.array(zod.object({
   "name": zod.enum(['headache', 'dizziness', 'focus', 'fatigue', 'sleep', 'light_sound', 'mood', 'nausea', 'vision', 'noise', 'neck']),
-  "severity": zod.number().int().min(getRecoveryResponseLogsItemOneSymptomsItemSeverityMin).max(getRecoveryResponseLogsItemOneSymptomsItemSeverityMax)
+  "severity": zod.int().min(getRecoveryResponseLogsItemOneSymptomsItemSeverityMin).max(getRecoveryResponseLogsItemOneSymptomsItemSeverityMax)
 })).max(getRecoveryResponseLogsItemOneSymptomsMax),
   "dietStatus": zod.enum(['done', 'not_done', 'not_planned']),
   "dietNote": zod.string().max(getRecoveryResponseLogsItemOneDietNoteMax),
   "exerciseStatus": zod.enum(['done', 'not_done', 'not_planned']),
   "exerciseNote": zod.string().max(getRecoveryResponseLogsItemOneExerciseNoteMax),
   "meditationStatus": zod.enum(['done', 'not_done', 'not_planned']),
-  "meditationMinutes": zod.number().int().min(getRecoveryResponseLogsItemOneMeditationMinutesMin).max(getRecoveryResponseLogsItemOneMeditationMinutesMax),
+  "meditationMinutes": zod.int().min(getRecoveryResponseLogsItemOneMeditationMinutesMin).max(getRecoveryResponseLogsItemOneMeditationMinutesMax),
   "meditationNote": zod.string().max(getRecoveryResponseLogsItemOneMeditationNoteMax),
   "note": zod.string().max(getRecoveryResponseLogsItemOneNoteMax),
   "dailyCheckIn": zod.object({
   "selectedSymptoms": zod.array(zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light', 'dizziness', 'nausea', 'vision', 'noise', 'neck'])).max(getRecoveryResponseLogsItemOneDailyCheckInSelectedSymptomsMax).optional(),
-  "worseWithActivity": zod.enum(['yes', 'no', 'not_sure']).nullish(),
-  "overallFeeling": zod.enum(['rough', 'low', 'okay', 'good', 'great']).nullable(),
+  "worseWithActivity": zod.union([zod.literal('yes'),zod.literal('no'),zod.literal('not_sure'),zod.literal(null)]).nullish(),
+  "overallFeeling": zod.union([zod.literal('rough'),zod.literal('low'),zod.literal('okay'),zod.literal('good'),zod.literal('great'),zod.literal(null)]).nullable(),
   "symptoms": zod.array(zod.object({
   "name": zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light', 'dizziness', 'nausea', 'vision', 'noise', 'neck']),
   "status": zod.enum(['recorded', 'not_recorded']),
-  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3)]).nullable(),
+  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3),zod.literal(null)]).nullable(),
   "addedOn": zod.string().regex(getRecoveryResponseLogsItemOneDailyCheckInSymptomsItemAddedOnRegExp).optional().describe('Date this symptom first appeared in the patient\'s tracked list.')
 })).min(getRecoveryResponseLogsItemOneDailyCheckInSymptomsMin).max(getRecoveryResponseLogsItemOneDailyCheckInSymptomsMax),
   "summary": zod.string().max(getRecoveryResponseLogsItemOneDailyCheckInSummaryMax)
@@ -1108,24 +1108,24 @@ export const StartRecoveryBody = zod.object({
   "date": zod.string().regex(startRecoveryBodyFirstLogDateRegExp),
   "symptoms": zod.array(zod.object({
   "name": zod.enum(['headache', 'dizziness', 'focus', 'fatigue', 'sleep', 'light_sound', 'mood', 'nausea', 'vision', 'noise', 'neck']),
-  "severity": zod.number().int().min(startRecoveryBodyFirstLogSymptomsItemSeverityMin).max(startRecoveryBodyFirstLogSymptomsItemSeverityMax)
+  "severity": zod.int().min(startRecoveryBodyFirstLogSymptomsItemSeverityMin).max(startRecoveryBodyFirstLogSymptomsItemSeverityMax)
 })).max(startRecoveryBodyFirstLogSymptomsMax),
   "dietStatus": zod.enum(['done', 'not_done', 'not_planned']),
   "dietNote": zod.string().max(startRecoveryBodyFirstLogDietNoteMax),
   "exerciseStatus": zod.enum(['done', 'not_done', 'not_planned']),
   "exerciseNote": zod.string().max(startRecoveryBodyFirstLogExerciseNoteMax),
   "meditationStatus": zod.enum(['done', 'not_done', 'not_planned']),
-  "meditationMinutes": zod.number().int().min(startRecoveryBodyFirstLogMeditationMinutesMin).max(startRecoveryBodyFirstLogMeditationMinutesMax),
+  "meditationMinutes": zod.int().min(startRecoveryBodyFirstLogMeditationMinutesMin).max(startRecoveryBodyFirstLogMeditationMinutesMax),
   "meditationNote": zod.string().max(startRecoveryBodyFirstLogMeditationNoteMax),
   "note": zod.string().max(startRecoveryBodyFirstLogNoteMax),
   "dailyCheckIn": zod.object({
   "selectedSymptoms": zod.array(zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light', 'dizziness', 'nausea', 'vision', 'noise', 'neck'])).max(startRecoveryBodyFirstLogDailyCheckInSelectedSymptomsMax).optional(),
-  "worseWithActivity": zod.enum(['yes', 'no', 'not_sure']).nullish(),
-  "overallFeeling": zod.enum(['rough', 'low', 'okay', 'good', 'great']).nullable(),
+  "worseWithActivity": zod.union([zod.literal('yes'),zod.literal('no'),zod.literal('not_sure'),zod.literal(null)]).nullish(),
+  "overallFeeling": zod.union([zod.literal('rough'),zod.literal('low'),zod.literal('okay'),zod.literal('good'),zod.literal('great'),zod.literal(null)]).nullable(),
   "symptoms": zod.array(zod.object({
   "name": zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light', 'dizziness', 'nausea', 'vision', 'noise', 'neck']),
   "status": zod.enum(['recorded', 'not_recorded']),
-  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3)]).nullable(),
+  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3),zod.literal(null)]).nullable(),
   "addedOn": zod.string().regex(startRecoveryBodyFirstLogDailyCheckInSymptomsItemAddedOnRegExp).optional().describe('Date this symptom first appeared in the patient\'s tracked list.')
 })).min(startRecoveryBodyFirstLogDailyCheckInSymptomsMin).max(startRecoveryBodyFirstLogDailyCheckInSymptomsMax),
   "summary": zod.string().max(startRecoveryBodyFirstLogDailyCheckInSummaryMax)
@@ -1195,24 +1195,24 @@ export const StartRecoveryResponse = zod.object({
   "date": zod.string().regex(startRecoveryResponseLogsItemOneDateRegExp),
   "symptoms": zod.array(zod.object({
   "name": zod.enum(['headache', 'dizziness', 'focus', 'fatigue', 'sleep', 'light_sound', 'mood', 'nausea', 'vision', 'noise', 'neck']),
-  "severity": zod.number().int().min(startRecoveryResponseLogsItemOneSymptomsItemSeverityMin).max(startRecoveryResponseLogsItemOneSymptomsItemSeverityMax)
+  "severity": zod.int().min(startRecoveryResponseLogsItemOneSymptomsItemSeverityMin).max(startRecoveryResponseLogsItemOneSymptomsItemSeverityMax)
 })).max(startRecoveryResponseLogsItemOneSymptomsMax),
   "dietStatus": zod.enum(['done', 'not_done', 'not_planned']),
   "dietNote": zod.string().max(startRecoveryResponseLogsItemOneDietNoteMax),
   "exerciseStatus": zod.enum(['done', 'not_done', 'not_planned']),
   "exerciseNote": zod.string().max(startRecoveryResponseLogsItemOneExerciseNoteMax),
   "meditationStatus": zod.enum(['done', 'not_done', 'not_planned']),
-  "meditationMinutes": zod.number().int().min(startRecoveryResponseLogsItemOneMeditationMinutesMin).max(startRecoveryResponseLogsItemOneMeditationMinutesMax),
+  "meditationMinutes": zod.int().min(startRecoveryResponseLogsItemOneMeditationMinutesMin).max(startRecoveryResponseLogsItemOneMeditationMinutesMax),
   "meditationNote": zod.string().max(startRecoveryResponseLogsItemOneMeditationNoteMax),
   "note": zod.string().max(startRecoveryResponseLogsItemOneNoteMax),
   "dailyCheckIn": zod.object({
   "selectedSymptoms": zod.array(zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light', 'dizziness', 'nausea', 'vision', 'noise', 'neck'])).max(startRecoveryResponseLogsItemOneDailyCheckInSelectedSymptomsMax).optional(),
-  "worseWithActivity": zod.enum(['yes', 'no', 'not_sure']).nullish(),
-  "overallFeeling": zod.enum(['rough', 'low', 'okay', 'good', 'great']).nullable(),
+  "worseWithActivity": zod.union([zod.literal('yes'),zod.literal('no'),zod.literal('not_sure'),zod.literal(null)]).nullish(),
+  "overallFeeling": zod.union([zod.literal('rough'),zod.literal('low'),zod.literal('okay'),zod.literal('good'),zod.literal('great'),zod.literal(null)]).nullable(),
   "symptoms": zod.array(zod.object({
   "name": zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light', 'dizziness', 'nausea', 'vision', 'noise', 'neck']),
   "status": zod.enum(['recorded', 'not_recorded']),
-  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3)]).nullable(),
+  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3),zod.literal(null)]).nullable(),
   "addedOn": zod.string().regex(startRecoveryResponseLogsItemOneDailyCheckInSymptomsItemAddedOnRegExp).optional().describe('Date this symptom first appeared in the patient\'s tracked list.')
 })).min(startRecoveryResponseLogsItemOneDailyCheckInSymptomsMin).max(startRecoveryResponseLogsItemOneDailyCheckInSymptomsMax),
   "summary": zod.string().max(startRecoveryResponseLogsItemOneDailyCheckInSummaryMax)
@@ -1307,24 +1307,24 @@ export const SaveRecoveryLogBody = zod.object({
   "date": zod.string().regex(saveRecoveryLogBodyOneDateRegExp),
   "symptoms": zod.array(zod.object({
   "name": zod.enum(['headache', 'dizziness', 'focus', 'fatigue', 'sleep', 'light_sound', 'mood', 'nausea', 'vision', 'noise', 'neck']),
-  "severity": zod.number().int().min(saveRecoveryLogBodyOneSymptomsItemSeverityMin).max(saveRecoveryLogBodyOneSymptomsItemSeverityMax)
+  "severity": zod.int().min(saveRecoveryLogBodyOneSymptomsItemSeverityMin).max(saveRecoveryLogBodyOneSymptomsItemSeverityMax)
 })).max(saveRecoveryLogBodyOneSymptomsMax),
   "dietStatus": zod.enum(['done', 'not_done', 'not_planned']),
   "dietNote": zod.string().max(saveRecoveryLogBodyOneDietNoteMax),
   "exerciseStatus": zod.enum(['done', 'not_done', 'not_planned']),
   "exerciseNote": zod.string().max(saveRecoveryLogBodyOneExerciseNoteMax),
   "meditationStatus": zod.enum(['done', 'not_done', 'not_planned']),
-  "meditationMinutes": zod.number().int().min(saveRecoveryLogBodyOneMeditationMinutesMin).max(saveRecoveryLogBodyOneMeditationMinutesMax),
+  "meditationMinutes": zod.int().min(saveRecoveryLogBodyOneMeditationMinutesMin).max(saveRecoveryLogBodyOneMeditationMinutesMax),
   "meditationNote": zod.string().max(saveRecoveryLogBodyOneMeditationNoteMax),
   "note": zod.string().max(saveRecoveryLogBodyOneNoteMax),
   "dailyCheckIn": zod.object({
   "selectedSymptoms": zod.array(zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light', 'dizziness', 'nausea', 'vision', 'noise', 'neck'])).max(saveRecoveryLogBodyOneDailyCheckInSelectedSymptomsMax).optional(),
-  "worseWithActivity": zod.enum(['yes', 'no', 'not_sure']).nullish(),
-  "overallFeeling": zod.enum(['rough', 'low', 'okay', 'good', 'great']).nullable(),
+  "worseWithActivity": zod.union([zod.literal('yes'),zod.literal('no'),zod.literal('not_sure'),zod.literal(null)]).nullish(),
+  "overallFeeling": zod.union([zod.literal('rough'),zod.literal('low'),zod.literal('okay'),zod.literal('good'),zod.literal('great'),zod.literal(null)]).nullable(),
   "symptoms": zod.array(zod.object({
   "name": zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light', 'dizziness', 'nausea', 'vision', 'noise', 'neck']),
   "status": zod.enum(['recorded', 'not_recorded']),
-  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3)]).nullable(),
+  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3),zod.literal(null)]).nullable(),
   "addedOn": zod.string().regex(saveRecoveryLogBodyOneDailyCheckInSymptomsItemAddedOnRegExp).optional().describe('Date this symptom first appeared in the patient\'s tracked list.')
 })).min(saveRecoveryLogBodyOneDailyCheckInSymptomsMin).max(saveRecoveryLogBodyOneDailyCheckInSymptomsMax),
   "summary": zod.string().max(saveRecoveryLogBodyOneDailyCheckInSummaryMax)
@@ -1381,24 +1381,24 @@ export const SaveRecoveryLogResponse = zod.object({
   "date": zod.string().regex(saveRecoveryLogResponseOneDateRegExp),
   "symptoms": zod.array(zod.object({
   "name": zod.enum(['headache', 'dizziness', 'focus', 'fatigue', 'sleep', 'light_sound', 'mood', 'nausea', 'vision', 'noise', 'neck']),
-  "severity": zod.number().int().min(saveRecoveryLogResponseOneSymptomsItemSeverityMin).max(saveRecoveryLogResponseOneSymptomsItemSeverityMax)
+  "severity": zod.int().min(saveRecoveryLogResponseOneSymptomsItemSeverityMin).max(saveRecoveryLogResponseOneSymptomsItemSeverityMax)
 })).max(saveRecoveryLogResponseOneSymptomsMax),
   "dietStatus": zod.enum(['done', 'not_done', 'not_planned']),
   "dietNote": zod.string().max(saveRecoveryLogResponseOneDietNoteMax),
   "exerciseStatus": zod.enum(['done', 'not_done', 'not_planned']),
   "exerciseNote": zod.string().max(saveRecoveryLogResponseOneExerciseNoteMax),
   "meditationStatus": zod.enum(['done', 'not_done', 'not_planned']),
-  "meditationMinutes": zod.number().int().min(saveRecoveryLogResponseOneMeditationMinutesMin).max(saveRecoveryLogResponseOneMeditationMinutesMax),
+  "meditationMinutes": zod.int().min(saveRecoveryLogResponseOneMeditationMinutesMin).max(saveRecoveryLogResponseOneMeditationMinutesMax),
   "meditationNote": zod.string().max(saveRecoveryLogResponseOneMeditationNoteMax),
   "note": zod.string().max(saveRecoveryLogResponseOneNoteMax),
   "dailyCheckIn": zod.object({
   "selectedSymptoms": zod.array(zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light', 'dizziness', 'nausea', 'vision', 'noise', 'neck'])).max(saveRecoveryLogResponseOneDailyCheckInSelectedSymptomsMax).optional(),
-  "worseWithActivity": zod.enum(['yes', 'no', 'not_sure']).nullish(),
-  "overallFeeling": zod.enum(['rough', 'low', 'okay', 'good', 'great']).nullable(),
+  "worseWithActivity": zod.union([zod.literal('yes'),zod.literal('no'),zod.literal('not_sure'),zod.literal(null)]).nullish(),
+  "overallFeeling": zod.union([zod.literal('rough'),zod.literal('low'),zod.literal('okay'),zod.literal('good'),zod.literal('great'),zod.literal(null)]).nullable(),
   "symptoms": zod.array(zod.object({
   "name": zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light', 'dizziness', 'nausea', 'vision', 'noise', 'neck']),
   "status": zod.enum(['recorded', 'not_recorded']),
-  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3)]).nullable(),
+  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3),zod.literal(null)]).nullable(),
   "addedOn": zod.string().regex(saveRecoveryLogResponseOneDailyCheckInSymptomsItemAddedOnRegExp).optional().describe('Date this symptom first appeared in the patient\'s tracked list.')
 })).min(saveRecoveryLogResponseOneDailyCheckInSymptomsMin).max(saveRecoveryLogResponseOneDailyCheckInSymptomsMax),
   "summary": zod.string().max(saveRecoveryLogResponseOneDailyCheckInSummaryMax)
@@ -1448,7 +1448,7 @@ export const subscribeNewsletterBodyEmailMax = 254;
 
 
 export const SubscribeNewsletterBody = zod.object({
-  "email": zod.string().email().min(subscribeNewsletterBodyEmailMin).max(subscribeNewsletterBodyEmailMax)
+  "email": zod.email().min(subscribeNewsletterBodyEmailMin).max(subscribeNewsletterBodyEmailMax)
 })
 
 export const SubscribeNewsletterResponse = zod.object({
@@ -1465,7 +1465,7 @@ export const unsubscribeNewsletterBodyEmailMax = 254;
 
 
 export const UnsubscribeNewsletterBody = zod.object({
-  "email": zod.string().email().min(unsubscribeNewsletterBodyEmailMin).max(unsubscribeNewsletterBodyEmailMax)
+  "email": zod.email().min(unsubscribeNewsletterBodyEmailMin).max(unsubscribeNewsletterBodyEmailMax)
 })
 
 export const UnsubscribeNewsletterResponse = zod.object({

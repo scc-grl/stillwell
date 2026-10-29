@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "hello": "tsx ./src/hello.ts",
+    "test": "node --test ./src/*.test.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "intake-eval": "tsx ./src/intake-eval.ts"
   },

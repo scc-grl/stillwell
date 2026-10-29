@@ -12,6 +12,7 @@ import type { DailyCheckInSymptomAnswerStatus } from './dailyCheckInSymptomAnswe
 export interface DailyCheckInSymptomAnswer {
   name: DailyCheckInSymptomAnswerName;
   status: DailyCheckInSymptomAnswerStatus;
+  /** @nullable */
   rating: DailyCheckInSymptomAnswerRating;
   /**
      * Date this symptom first appeared in the patient's tracked list.

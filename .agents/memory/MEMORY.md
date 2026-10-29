@@ -16,3 +16,4 @@
 - [Care-team email delivery](care-team-email-delivery.md) — use the connected Resend integration; real invites still originate in authenticated patient flows.
 - [Workspace package resolution](workspace-package-resolution.md) — shared runtime exports must work in Node tests and Expo; filtered pnpm updates can leave sibling links stale.
 - [Clinician prototype scope](clinician-prototype-scope.md) — clinician surfaces retain a proof-of-concept label; patient-facing roles and pages must not show it.
+- [Expo security compatibility](expo-security-compatibility.md) — keep security-only updates within the current SDK; verify transitive module interop with native bundles, not just audits.

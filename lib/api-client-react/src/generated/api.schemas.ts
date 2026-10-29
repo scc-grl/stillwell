@@ -134,6 +134,9 @@ export const DailyCheckInSymptomAnswerStatus = {
   not_recorded: 'not_recorded',
 } as const;
 
+/**
+ * @nullable
+ */
 export type DailyCheckInSymptomAnswerRating = typeof DailyCheckInSymptomAnswerRating[keyof typeof DailyCheckInSymptomAnswerRating] | null;
 
 
@@ -147,6 +150,7 @@ export const DailyCheckInSymptomAnswerRating = {
 export interface DailyCheckInSymptomAnswer {
   name: DailyCheckInSymptomAnswerName;
   status: DailyCheckInSymptomAnswerStatus;
+  /** @nullable */
   rating: DailyCheckInSymptomAnswerRating;
   /**
      * Date this symptom first appeared in the patient's tracked list.
@@ -172,6 +176,9 @@ export const DailyCheckInSelectedSymptomsItem = {
   neck: 'neck',
 } as const;
 
+/**
+ * @nullable
+ */
 export type DailyCheckInWorseWithActivity = typeof DailyCheckInWorseWithActivity[keyof typeof DailyCheckInWorseWithActivity] | null;
 
 
@@ -181,6 +188,9 @@ export const DailyCheckInWorseWithActivity = {
   not_sure: 'not_sure',
 } as const;
 
+/**
+ * @nullable
+ */
 export type DailyCheckInOverallFeeling = typeof DailyCheckInOverallFeeling[keyof typeof DailyCheckInOverallFeeling] | null;
 
 
@@ -195,7 +205,9 @@ export const DailyCheckInOverallFeeling = {
 export interface DailyCheckIn {
   /** @maxItems 11 */
   selectedSymptoms?: DailyCheckInSelectedSymptomsItem[];
+  /** @nullable */
   worseWithActivity?: DailyCheckInWorseWithActivity;
+  /** @nullable */
   overallFeeling: DailyCheckInOverallFeeling;
   /**
      * @minItems 6
@@ -1054,6 +1066,7 @@ export const ReviewCareInvite200State = {
 
 export type ReviewCareInvite200 = {
   state: ReviewCareInvite200State;
+  /** @nullable */
   linkId: string | null;
 };
 
