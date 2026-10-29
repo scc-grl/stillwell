@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { DemoDashboard, DemoJournal, RayForthcomingScreen } from "@/components/demo-intake/DemoEverydayViews";
+import { DemoPatientDashboard } from "@/components/demo-intake/DemoPatientDashboard";
+import { DemoPatientJournal } from "@/components/demo-intake/DemoPatientJournal";
+import { createMayaDemoState, upsertDemoEntry, type DemoEntry } from "@/components/demo-intake/demo-patient-data";
+import { RayForthcomingScreen } from "@/components/demo-intake/DemoEverydayViews";
 import { DemoShell, type DemoView, type Persona } from "@/components/demo-intake/DemoShell";
 import { RoadmapScreen, SummaryScreen } from "@/components/demo-intake/ReviewScreens";
-import { CareBoundary, CrisisScreen, EmergencyScreen, ReadingScreen, StoryScreen, TapQuestionsScreen } from "@/components/demo-intake/StoryScreens";
+import { CrisisScreen, EmergencyScreen, ReadingScreen, StoryScreen, TapQuestionsScreen } from "@/components/demo-intake/StoryScreens";
 import { useDemoIntake, localSafetyOutcome, type DemoIntakeResult } from "@/hooks/useDemoIntake";
 import { DEMO_SYMPTOMS, MAYA_STORY, STORY_SAMPLES, type AnswerField, type Symptom } from "@/components/demo-intake/demo-data";
 
@@ -72,8 +75,15 @@ const initialSummary = makeSummary(MAYA_STORY, null);
 export default function DemoIntakePage() {
   const [, setLocation] = useLocation();
   const { pending, submit, error } = useDemoIntake();
-  const [view, setView] = useState<DemoView>(() => new URLSearchParams(window.location.search).get("persona") === "ray" ? "ray-patients" : "story");
+  const [view, setView] = useState<DemoView>(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("persona") === "ray") return "ray-patients";
+    const directView = params.get("view");
+    if (directView === "dashboard" || directView === "journal") return directView;
+    return "story";
+  });
   const [persona, setPersona] = useState<Persona>(() => new URLSearchParams(window.location.search).get("persona") === "ray" ? "Ray F. (clinician)" : "Maya J. (patient)");
+  const [patientState, setPatientState] = useState(createMayaDemoState);
   const [story, setStory] = useState(MAYA_STORY);
   const [selectedSample, setSelectedSample] = useState<string>(STORY_SAMPLES[0].label);
   const [inputMode, setInputMode] = useState<"typed" | "voice">("typed");
@@ -97,6 +107,14 @@ export default function DemoIntakePage() {
       return;
     }
     setView(nextView);
+  };
+
+  const savePatientEntry = (entry: DemoEntry) => {
+    setPatientState((current) => upsertDemoEntry(current, entry));
+  };
+
+  const updateTrackedSymptoms = (names: typeof patientState.trackedSymptoms) => {
+    setPatientState((current) => ({ ...current, trackedSymptoms: [...names] }));
   };
 
   const processStory = async (text: string, mode: "typed" | "voice") => {
@@ -162,10 +180,20 @@ export default function DemoIntakePage() {
       />}
       {view === "emergency" && <EmergencyScreen quotes={getEmergencyQuotes(submittedStory)} />}
       {view === "crisis" && <CrisisScreen onExit={() => setLocation("/demo")} />}
-      {view === "dashboard" && <DemoDashboard persona={persona} onJournal={() => setView("journal")} />}
-      {view === "journal" && <DemoJournal onDashboard={() => setView("dashboard")} />}
+      {view === "dashboard" && <DemoPatientDashboard
+        state={patientState}
+        onNavigate={(next) => setView(next)}
+        onRoutineChange={(routine) => setPatientState((current) => ({ ...current, routine }))}
+        onTrackedSymptomsChange={updateTrackedSymptoms}
+      />}
+      {view === "journal" && <DemoPatientJournal
+        state={patientState}
+        onNavigate={(next) => setView(next)}
+        onEntryChange={savePatientEntry}
+        onEntrySave={savePatientEntry}
+        onTrackedSymptomsChange={updateTrackedSymptoms}
+      />}
       {view.startsWith("ray-") && <RayForthcomingScreen view={view} />}
-      {(view === "dashboard" || view === "journal") && <CareBoundary />}
     </DemoShell>
   );
 }
