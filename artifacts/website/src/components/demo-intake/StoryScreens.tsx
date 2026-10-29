@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
-import { AlertTriangle, Check, Mic, MicOff, ShieldAlert } from "lucide-react";
+import { Check, Mic, MicOff, ShieldAlert } from "lucide-react";
 import { Button } from "@workspace/stillwell-design-system/components/ui/button";
 import { Card } from "@workspace/stillwell-design-system/components/ui/card";
 import { Textarea } from "@workspace/stillwell-design-system/components/ui/textarea";
@@ -199,7 +199,7 @@ export function ReadingScreen({ progress, checks }: { progress: number; checks: 
   );
 }
 
-export function EmergencyScreen({ story, onBack }: { story: string; onBack: () => void }) {
+export function EmergencyScreen({ story }: { story: string }) {
   return (
     <>
       <Card className="mx-auto max-w-3xl space-y-6 border-destructive/40 p-5 sm:p-8" role="alert" data-testid="emergency-screen">
@@ -211,17 +211,12 @@ export function EmergencyScreen({ story, onBack }: { story: string; onBack: () =
           </div>
         </div>
         <blockquote className="rounded-lg bg-secondary p-4 text-base leading-7" data-testid="emergency-story-quote">“{story}”</blockquote>
-        <div className="space-y-3">
-          <a href="tel:911" data-testid="link-call-911" className="flex min-h-12 items-center justify-center gap-2 rounded-lg bg-destructive px-5 py-3 text-center font-semibold text-destructive-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-            <AlertTriangle className="size-5" aria-hidden="true" /> Call 911
-          </a>
-          <a href="https://www.google.com/maps/search/emergency+room+near+me" target="_blank" rel="noreferrer noopener" data-testid="link-nearest-emergency-room" className="flex min-h-12 items-center justify-center rounded-lg border border-border px-5 py-3 text-center font-semibold text-foreground underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-            Find the nearest emergency room
-          </a>
-        </div>
-        <p className="text-lg font-semibold">Don't drive yourself</p>
-        <p className="text-sm leading-6 text-muted-foreground">This intake is paused. Please use emergency care now; you can return to your story later.</p>
-        <Button type="button" variant="outline" className="min-h-11" onClick={onBack} data-testid="button-back-to-story">Back to the story</Button>
+        <p className="text-lg font-semibold">Please go to your nearest emergency center now, or call 911.</p>
+        <ul className="list-disc space-y-2 pl-5 text-base leading-7">
+          <li>Don't drive yourself. Ask someone to take you.</li>
+          <li>If someone is with you, show them this screen.</li>
+        </ul>
+        <p className="text-sm leading-6 text-muted-foreground">Stillwell has paused your intake. You can come back to it after you've been seen.</p>
       </Card>
       <CareBoundary />
     </>

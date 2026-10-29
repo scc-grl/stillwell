@@ -116,7 +116,7 @@ export default function DemoIntakePage() {
         />
       )}
       {view === "roadmap" && <RoadmapScreen symptoms={summary.symptoms} onStartJournal={() => setView("dashboard")} />}
-      {view === "emergency" && <EmergencyScreen story={submittedStory} onBack={() => setView("story")} />}
+      {view === "emergency" && <EmergencyScreen story={submittedStory} />}
       {view === "dashboard" && <DemoDashboard persona={persona} onJournal={() => setView("journal")} />}
       {view === "journal" && <DemoJournal onDashboard={() => setView("dashboard")} />}
       {(view === "dashboard" || view === "journal") && <CareBoundary />}
