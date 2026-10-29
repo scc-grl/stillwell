@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Demo: Ray's messages with Maya</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&amp;family=Fraunces:wght@400;600&amp;display=swap">
+<style>
+body{margin:0;background:#f5f4ed}
+a{color:#315b49}a:hover{color:#274b3b}
+a:focus-visible,textarea:focus-visible{outline:3px solid #568166;outline-offset:3px}
+</style>
+</helmet>
+<div style="min-height: 1000px; background: #f5f4ed; color: #253b34; font-family: 'DM Sans', sans-serif; display: flex; flex-wrap: wrap">
+<aside aria-label="How it works demo" style="flex: 1 1 260px; max-width: 300px; box-sizing: border-box; padding: 24px; background: #253b34; color: #f2f0e9; display: flex; flex-direction: column; gap: 20px">
+<a href="Main.dc.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none"><svg width="28" height="28" viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="17" fill="#e6eee7" stroke="#b7c9bd" stroke-width="2"></circle><circle cx="18" cy="18" r="9" fill="none" stroke="#537566" stroke-width="2"></circle><circle cx="25" cy="11" r="3" fill="#bd705c"></circle></svg><span style="font-family: Fraunces, Georgia, serif; font-size: 18px; font-weight: 600; color: #f2f0e9">stillwell</span></a>
+<span style="font-size: 10px; letter-spacing: 0.18em; font-weight: 700; color: #a8b8ad">HOW IT WORKS · SAMPLE</span>
+<div role="group" aria-label="Viewing as" style="display: flex; flex-direction: column; gap: 6px; padding: 4px; border-radius: 24px; background: #1b2822">
+<a href="Dashboard.dc.html" style="min-height: 52px; box-sizing: border-box; padding: 8px 16px; border-radius: 20px; color: #f2f0e9; text-decoration: none; display: flex; flex-direction: column; justify-content: center; gap: 2px"><strong style="font-size: 14px">Maya J. · Patient</strong><span style="font-size: 12px; color: #a8b8ad">20 · college soccer</span></a>
+<span style="min-height: 52px; box-sizing: border-box; padding: 8px 16px; border-radius: 20px; background: #fbfaf5; color: #253b34; display: flex; flex-direction: column; justify-content: center; gap: 2px"><strong style="font-size: 14px">Ray F. · Clinician</strong><span style="font-size: 12px; color: #626d62">Sports medicine physician</span></span>
+</div>
+<p style="margin: 0; font-size: 13px; line-height: 20px; color: #dfe5db">Maya's note arrives here. Ray replies, and she sees it in her care team.</p>
+<nav aria-label="Ray's views" style="display: flex; flex-direction: column; gap: 4px">
+<a href="Ray-Patients.dc.html" style="min-height: 44px; padding: 0 12px; border-radius: 12px; color: #f2f0e9; display: flex; align-items: center; text-decoration: none; font-size: 14px">Your patients</a>
+<span style="padding: 8px 12px 2px; font-size: 12px; color: #a8b8ad">Maya J.</span>
+<a href="Ray-Intake.dc.html" style="min-height: 44px; padding: 0 12px 0 24px; border-radius: 12px; color: #f2f0e9; display: flex; align-items: center; text-decoration: none; font-size: 14px">Intake summary</a>
+<a href="Ray-Insights.dc.html" style="min-height: 44px; padding: 0 12px 0 24px; border-radius: 12px; color: #f2f0e9; display: flex; align-items: center; text-decoration: none; font-size: 14px">Insights</a>
+<a href="Ray-Journal.dc.html" style="min-height: 44px; padding: 0 12px 0 24px; border-radius: 12px; color: #f2f0e9; display: flex; align-items: center; text-decoration: none; font-size: 14px">Journal</a>
+<a href="Ray-Messages.dc.html" aria-current="page" style="min-height: 44px; padding: 0 12px 0 24px; border-radius: 12px; background: #35463d; color: #f2f0e9; display: flex; align-items: center; text-decoration: none; font-size: 14px; font-weight: 600">Messages</a>
+</nav>
+<div style="margin-top: auto; display: flex; flex-direction: column; gap: 12px"><p style="margin: 0; font-size: 12px; line-height: 18px; color: #a8b8ad">Made-up people and made-up data. Nothing you enter is saved.</p><a href="Main.dc.html" style="min-height: 48px; border-radius: 999px; border: 1px solid #a8b8ad; color: #f2f0e9; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 14px; font-weight: 600">Exit demo</a></div>
+</aside>
+<div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column">
+<div style="padding: 10px 32px; background: #edf2ea; color: #29463b; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; font-size: 12px"><span style="padding: 4px 10px; border-radius: 999px; border: 1px solid #6c8b74; font-weight: 600">Proof-of-concept</span><span>Clinician tools are an early proof-of-concept. Clinician identities aren't verified, and features may change.</span></div>
+<main style="flex-grow: 1; box-sizing: border-box; padding: 32px">
+<div style="max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; flex-direction: column; gap: 4px"><h1 style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 38px; font-weight: 400">Maya J. · messages</h1><span style="font-size: 14px; color: #626d62">Maya is told messages aren't for urgent concerns.</span></div>
+<ol aria-label="Messages" style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 12px">
+<li style="align-self: flex-end; max-width: 78%; padding: 14px 18px; border-radius: 20px 20px 6px 20px; background: #edf2ea; font-size: 15px; line-height: 24px; color: #29463b"><strong style="display: block; font-size: 12px; margin-bottom: 4px; color: #526c5c">You · day 20</strong>I saw the flare in your journal after the long study day. How have the last few days been?</li>
+<li style="align-self: flex-start; max-width: 78%; padding: 14px 18px; border-radius: 20px 20px 20px 6px; background: #fbfaf5; border: 1px solid #dfe5db; font-size: 15px; line-height: 24px; color: #29463b"><strong style="display: block; font-size: 12px; margin-bottom: 4px; color: #526c5c">Maya · day 21</strong>Better. Taking more breaks from screens seems to help.</li>
+<li style="align-self: flex-start; max-width: 78%; padding: 14px 18px; border-radius: 20px 20px 20px 6px; background: #fbfaf5; border: 2px solid #6c8b74; font-size: 15px; line-height: 24px; color: #29463b"><strong style="display: block; font-size: 12px; margin-bottom: 4px; color: #526c5c">Maya · today · new</strong>Today felt okay and screens are easier. Can we talk about getting back to practice at my next visit?</li>
+</ol>
+<form style="display: flex; flex-direction: column; gap: 10px">
+<label for="reply" style="font-size: 14px; font-weight: 600; color: #29463b">Reply to Maya</label>
+<textarea id="reply" rows="3" style="box-sizing: border-box; width: 100%; padding: 14px 16px; border-radius: 12px; border: 1px solid #d8e1d6; background: #fffefa; color: #253b34; font: inherit; font-size: 15px; line-height: 24px">Thanks, Maya. Let's go over getting back to practice at your visit on Thursday. Keep checking in until then.</textarea>
+<a href="#" style="align-self: flex-start; display: inline-flex; align-items: center; min-height: 48px; padding: 0 24px; border-radius: 999px; background: #315b49; color: #fbfaf4; font-size: 14px; font-weight: 600; text-decoration: none">Send to Maya</a>
+</form>
+</div>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>How it works: Maya and Ray</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&amp;family=Fraunces:wght@400;600&amp;display=swap">
+<style>
+body{margin:0;background:#f5f4ed}
+a{color:#315b49}a:hover{color:#274b3b}
+a:focus-visible{outline:3px solid #568166;outline-offset:3px}
+</style>
+</helmet>
+<div style="min-height: 1300px; background: #f5f4ed; color: #253b34; font-family: 'DM Sans', sans-serif; display: flex; flex-direction: column">
+<header style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 32px; border-bottom: 1px solid #dfe5db; background: #fbfaf5">
+<a href="#" style="display: flex; align-items: center; gap: 10px; text-decoration: none"><svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="17" fill="#e6eee7" stroke="#b7c9bd" stroke-width="2"></circle><circle cx="18" cy="18" r="9" fill="none" stroke="#537566" stroke-width="2"></circle><circle cx="25" cy="11" r="3" fill="#bd705c"></circle></svg><span style="font-family: Fraunces, Georgia, serif; font-size: 20px; font-weight: 600; letter-spacing: -0.025em; color: #253b34">stillwell</span></a>
+<nav aria-label="Main navigation" style="display: flex; flex-wrap: wrap; gap: 24px; font-size: 14px"><a href="#" style="color: #29463b; text-decoration: none">For people in recovery</a><a href="#stories" aria-current="page" style="color: #315b49; font-weight: 700; text-decoration: none">How it works</a><a href="#" style="color: #29463b; text-decoration: none">Resources</a><a href="#" style="color: #29463b; text-decoration: none">For clinicians</a></nav>
+<div style="display: flex; align-items: center; gap: 12px"><a href="#" style="padding: 8px 12px; font-size: 14px; font-weight: 600">Sign in</a><a href="#" style="min-height: 44px; padding: 0 20px; border-radius: 999px; background: #315b49; color: #fbfaf4; display: inline-flex; align-items: center; text-decoration: none; font-weight: 600; font-size: 14px">Sign up</a></div>
+</header>
+<main style="width: 100%; max-width: 1180px; margin: 0 auto; box-sizing: border-box; padding: 56px 24px 72px; display: flex; flex-direction: column; gap: 64px">
+<section style="display: flex; flex-wrap: wrap; gap: 48px; align-items: center">
+<div style="flex: 1 1 460px; display: flex; flex-direction: column; gap: 20px">
+<p style="margin: 0; display: flex; align-items: center; gap: 10px; font-size: 10px; line-height: 16px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #547364"><span style="display: inline-block; width: 22px; height: 1px; background: #a6b9aa"></span>Care for the in-between</p>
+<h1 style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: clamp(36px, 4.6vw, 56px); line-height: 1.1; font-weight: 400">Recovery can feel less like guesswork.</h1>
+<p style="margin: 0; font-size: 16px; line-height: 28px; color: #626d62">Most concussion recovery happens at home, between clinic visits. Stillwell helps you notice what changes, see where you might be on the recovery roadmap, and keep your clinician in the loop.</p>
+<div style="display: flex; flex-wrap: wrap; gap: 12px">
+<a href="#" style="min-height: 52px; padding: 0 28px; border-radius: 999px; background: #315b49; color: #fbfaf4; display: inline-flex; align-items: center; text-decoration: none; font-weight: 600; font-size: 14px">Sign up</a>
+<a href="Story.dc.html" style="min-height: 52px; padding: 0 24px; border-radius: 999px; border: 1px solid #6c8b74; color: #29463b; display: inline-flex; align-items: center; text-decoration: none; font-size: 14px; font-weight: 600">Follow Maya's journey</a>
+</div>
+</div>
+<div role="img" aria-label="Botanical illustration" style="flex: 1 1 360px; aspect-ratio: 1.1 / 1; border-radius: 47% 47% 43% 43% / 42% 42% 51% 51%; background: #e6eee7; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #626d62">[Existing botanical hero art]</div>
+</section>
+<section id="stories" aria-labelledby="stories-title" style="display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 8px; max-width: 640px">
+<p style="margin: 0; display: flex; align-items: center; gap: 10px; font-size: 10px; line-height: 16px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #547364"><span style="display: inline-block; width: 22px; height: 1px; background: #a6b9aa"></span>How it works</p>
+<h2 id="stories-title" style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 38px; line-height: 1.15; font-weight: 400">Two people, one recovery.</h2>
+<p style="margin: 0; font-size: 15px; line-height: 24px; color: #626d62">Follow a sample patient and her sports medicine physician through Stillwell. They're made up, and so is their data. The screens are the real ones.</p>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 20px">
+<article aria-labelledby="maya-title" style="flex: 1 1 420px; box-sizing: border-box; border: 1px solid #dfe5db; border-radius: 28px; background: #fbfaf5; padding: 28px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 20px 60px rgba(45, 67, 51, 0.05)">
+<div style="display: flex; gap: 14px; align-items: center"><span aria-hidden="true" style="width: 56px; height: 56px; border-radius: 999px; background: #edf2ea; color: #315b49; display: flex; align-items: center; justify-content: center; font-weight: 700">MJ</span><div style="display: flex; flex-direction: column; gap: 2px"><h3 id="maya-title" style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 24px; font-weight: 400">Maya J.</h3><span style="font-size: 13px; color: #626d62">Patient · college soccer player, 20</span></div></div>
+<p style="margin: 0; font-size: 15px; line-height: 24px; color: #29463b">Maya took a head-to-head hit in a match on Saturday. By day 3 she has headaches most of the day, screens wear her out, and she doesn't know what's safe. She wants to get back on the field, safely.</p>
+<ol aria-label="Maya's journey" style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 14px; color: #29463b">
+<li style="display: flex; gap: 12px"><strong style="width: 20px; color: #315b49">1</strong>Tells Stillwell her story, in her own words</li>
+<li style="display: flex; gap: 12px"><strong style="width: 20px; color: #315b49">2</strong>Sees where she might be on the recovery roadmap</li>
+<li style="display: flex; gap: 12px"><strong style="width: 20px; color: #315b49">3</strong>Checks in each day and shares her journal with Ray</li>
+</ol>
+<a href="Story.dc.html" style="margin-top: auto; align-self: flex-start; min-height: 48px; padding: 0 24px; border-radius: 999px; background: #315b49; color: #fbfaf4; display: inline-flex; align-items: center; text-decoration: none; font-weight: 600; font-size: 14px">Follow her journey</a>
+</article>
+<article aria-labelledby="ray-title" style="flex: 1 1 420px; box-sizing: border-box; border: 1px solid #dfe5db; border-radius: 28px; background: #fbfaf5; padding: 28px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; gap: 14px; align-items: center"><span aria-hidden="true" style="width: 56px; height: 56px; border-radius: 999px; background: #f5eee5; color: #775943; display: flex; align-items: center; justify-content: center; font-weight: 700">RF</span><div style="display: flex; flex-direction: column; gap: 2px"><h3 id="ray-title" style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 24px; font-weight: 400">Ray F.</h3><span style="font-size: 13px; color: #626d62">Clinician · sports medicine physician</span></div></div>
+<p style="margin: 0; font-size: 15px; line-height: 24px; color: #29463b">Ray sees many patients, each at a different point in recovery. Symptoms come and go between visits, so he needs to know who to check in with, and when.</p>
+<ol aria-label="Ray's journey" style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 14px; color: #29463b">
+<li style="display: flex; gap: 12px"><strong style="width: 20px; color: #315b49">1</strong>Sees each patient's intake summary and roadmap stage</li>
+<li style="display: flex; gap: 12px"><strong style="width: 20px; color: #315b49">2</strong>Spots patterns, like sleep slipping, before the next visit</li>
+<li style="display: flex; gap: 12px"><strong style="width: 20px; color: #315b49">3</strong>Reads the journal and replies to Maya</li>
+</ol>
+<a href="Ray-Patients.dc.html" style="margin-top: auto; align-self: flex-start; min-height: 48px; padding: 0 24px; border-radius: 999px; border: 1px solid #6c8b74; color: #29463b; display: inline-flex; align-items: center; text-decoration: none; font-weight: 600; font-size: 14px">Follow his journey</a>
+</article>
+</div>
+</section>
+<section aria-labelledby="cta-title" style="border-radius: 28px; background: #253b34; color: #f2f0e9; padding: 36px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px">
+<div style="flex: 1 1 360px; display: flex; flex-direction: column; gap: 6px"><h2 id="cta-title" style="margin: 0; font-family: Fraunces, Georgia, serif; font-size: 30px; font-weight: 400">Ready to start your own?</h2><p style="margin: 0; font-size: 14px; line-height: 22px; color: #dfe5db">Your journal is private unless you invite a clinician.</p></div>
+<div style="display: flex; flex-wrap: wrap; gap: 12px"><a href="#" style="min-height: 48px; padding: 0 24px; border-radius: 999px; background: #fbfaf5; color: #253b34; display: inline-flex; align-items: center; text-decoration: none; font-weight: 600; font-size: 14px">Sign up</a><a href="#" style="min-height: 48px; padding: 0 20px; border-radius: 999px; border: 1px solid #a8b8ad; color: #f2f0e9; display: inline-flex; align-items: center; text-decoration: none; font-size: 14px">I'm a clinician</a></div>
+</section>
+<p style="margin: 0; font-size: 12px; line-height: 20px; color: #626d62">Stillwell is not a diagnosis tool. It can't diagnose or treat a concussion; please see a medical provider for that. Not for a new injury or an emergency.</p>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1300}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

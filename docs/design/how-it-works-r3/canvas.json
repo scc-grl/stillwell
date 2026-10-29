@@ -1,0 +1,195 @@
+{
+  "v": 3,
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-10-29T21:00:00Z"
+  },
+  "title": "How it works demo \u00b7 Round 3 (hi-fi)",
+  "launch": {
+    "view": "canvas"
+  },
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {
+      "x": 0,
+      "y": 300,
+      "w": 1280,
+      "h": 1300,
+      "title": "1 \u00b7 Landing: Maya and Ray",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Story.dc.html": {
+      "x": 0,
+      "y": 1960,
+      "w": 1280,
+      "h": 1000,
+      "title": "2 \u00b7 Maya tells her story",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Reading.dc.html": {
+      "x": 1360,
+      "y": 1960,
+      "w": 1280,
+      "h": 900,
+      "title": "3 \u00b7 Reading her story",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Summary.dc.html": {
+      "x": 2720,
+      "y": 1960,
+      "w": 1280,
+      "h": 1400,
+      "title": "4 \u00b7 Maya's summary",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Stage.dc.html": {
+      "x": 4080,
+      "y": 1960,
+      "w": 1280,
+      "h": 1450,
+      "title": "5 \u00b7 Where Maya might be today",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Emergency.dc.html": {
+      "x": 5440,
+      "y": 1960,
+      "w": 1280,
+      "h": 900,
+      "title": "What if: a danger sign in the story",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Dashboard.dc.html": {
+      "x": 0,
+      "y": 3820,
+      "w": 1280,
+      "h": 1300,
+      "title": "6 \u00b7 Maya: dashboard, day 28",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Journal.dc.html": {
+      "x": 1360,
+      "y": 3820,
+      "w": 1280,
+      "h": 1500,
+      "title": "7 \u00b7 Maya: today's journal entry",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Ray-Patients.dc.html": {
+      "x": 0,
+      "y": 5640,
+      "w": 1280,
+      "h": 1000,
+      "title": "R1 \u00b7 Ray: your patients",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Ray-Intake.dc.html": {
+      "x": 1360,
+      "y": 5640,
+      "w": 1280,
+      "h": 1400,
+      "title": "R2 \u00b7 Ray: Maya's intake summary",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Ray-Insights.dc.html": {
+      "x": 2720,
+      "y": 5640,
+      "w": 1280,
+      "h": 1500,
+      "title": "R3 \u00b7 Ray: Maya's insights",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Ray-Journal.dc.html": {
+      "x": 4080,
+      "y": 5640,
+      "w": 1280,
+      "h": 1100,
+      "title": "R4 \u00b7 Ray: Maya's journal",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Ray-Day.dc.html": {
+      "x": 5440,
+      "y": 5640,
+      "w": 1280,
+      "h": 1000,
+      "title": "R5 \u00b7 Ray: one day in detail",
+      "expand": "fill",
+      "is_interactive": true
+    },
+    "Ray-Messages.dc.html": {
+      "x": 6800,
+      "y": 5640,
+      "w": 1280,
+      "h": 1000,
+      "title": "R6 \u00b7 Ray: messages",
+      "expand": "fill",
+      "is_interactive": true
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Story.dc.html",
+    "Reading.dc.html",
+    "Summary.dc.html",
+    "Stage.dc.html",
+    "Emergency.dc.html",
+    "Dashboard.dc.html",
+    "Journal.dc.html",
+    "Ray-Patients.dc.html",
+    "Ray-Intake.dc.html",
+    "Ray-Insights.dc.html",
+    "Ray-Journal.dc.html",
+    "Ray-Day.dc.html",
+    "Ray-Messages.dc.html"
+  ],
+  "notes": {
+    "rowStart": {
+      "x": 0,
+      "y": 40,
+      "text": "Start here",
+      "kind": "title1",
+      "maxW": 1280
+    },
+    "rowIntake": {
+      "x": 0,
+      "y": 1700,
+      "text": "Maya: the intake, with her made-up story",
+      "kind": "title1",
+      "maxW": 6720
+    },
+    "rowDaily": {
+      "x": 0,
+      "y": 3560,
+      "text": "Maya: every day",
+      "kind": "title1",
+      "maxW": 2640
+    },
+    "rowRay": {
+      "x": 0,
+      "y": 5380,
+      "text": "Ray F.: the clinician's view",
+      "kind": "title1",
+      "maxW": 8080
+    }
+  },
+  "designSystems": [
+    {
+      "title": "Stillwell",
+      "namespace": "stillwell",
+      "artifact": "https://claude.ai/artifact/LyatJMawxXSeQT4swQeUEA",
+      "version": "1791579251-9e3a",
+      "copiedAt": "2026-10-29T21:00:00Z"
+    }
+  ]
+}

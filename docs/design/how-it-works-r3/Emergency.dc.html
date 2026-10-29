@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Demo: what if there's a danger sign</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&amp;family=Fraunces:wght@400;600&amp;display=swap">
+<style>
+body{margin:0;background:#f5f4ed}
+a{color:#315b49}a:hover{color:#274b3b}
+a:focus-visible{outline:3px solid #568166;outline-offset:3px}
+</style>
+</helmet>
+<div style="min-height: 900px; background: #f5f4ed; color: #253b34; font-family: 'DM Sans', sans-serif; display: flex; flex-wrap: wrap">
+<aside aria-label="How it works demo" style="flex: 1 1 260px; max-width: 300px; box-sizing: border-box; padding: 24px; background: #253b34; color: #f2f0e9; display: flex; flex-direction: column; gap: 20px">
+<a href="Main.dc.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none"><svg width="28" height="28" viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="17" fill="#e6eee7" stroke="#b7c9bd" stroke-width="2"></circle><circle cx="18" cy="18" r="9" fill="none" stroke="#537566" stroke-width="2"></circle><circle cx="25" cy="11" r="3" fill="#bd705c"></circle></svg><span style="font-family: Fraunces, Georgia, serif; font-size: 18px; font-weight: 600; color: #f2f0e9">stillwell</span></a>
+<span style="font-size: 10px; letter-spacing: 0.18em; font-weight: 700; color: #a8b8ad">HOW IT WORKS · SAMPLE</span>
+<p style="margin: 0; font-size: 13px; line-height: 20px; color: #dfe5db">What if Maya's story had said "the headache keeps getting worse and I threw up twice"? Both are danger signs, so the intake stops here. Her real story didn't say this.</p>
+<div style="margin-top: auto; display: flex; flex-direction: column; gap: 12px"><a href="Story.dc.html" style="min-height: 48px; border-radius: 999px; background: #fbfaf5; color: #253b34; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 14px; font-weight: 600">Back to Maya's story</a><a href="Main.dc.html" style="min-height: 48px; border-radius: 999px; border: 1px solid #a8b8ad; color: #f2f0e9; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 14px; font-weight: 600">Exit demo</a></div>
+</aside>
+<main style="flex: 999 1 560px; min-width: 0; box-sizing: border-box; padding: 64px 32px">
+<section role="alert" style="max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; padding: 40px 32px; border-radius: 28px; background: #fbfaf5; border: 2px solid #9b4f43; box-shadow: 0 20px 60px rgba(45, 67, 51, 0.05)">
+<h1 style="margin: 0; font-family: Fraunces, Georgia, serif; font-weight: 400; font-size: clamp(32px, 4.2vw, 44px); line-height: 1.2">Please get emergency care now</h1>
+<p style="margin: 0; padding: 12px 16px; border-radius: 12px; background: #f9e9e5; color: #9b4f43; font-size: 15px; line-height: 24px">You mentioned “the headache keeps getting worse” and “I threw up twice”. After a head injury, these can be signs of something serious.</p>
+<div style="display: flex; flex-wrap: wrap; gap: 12px"><a href="tel:911" style="display: inline-flex; align-items: center; min-height: 56px; padding: 0 28px; border-radius: 999px; background: #315b49; color: #fbfaf4; font-size: 16px; font-weight: 600; text-decoration: none">Call 911</a><a href="#" style="display: inline-flex; align-items: center; min-height: 56px; padding: 0 24px; border-radius: 999px; border: 1px solid #aebeaa; color: #29463b; font-size: 15px; font-weight: 600; text-decoration: none">Find the nearest emergency room</a></div>
+<ul style="margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 15px; line-height: 24px; color: #29463b"><li>Don't drive yourself. Ask someone to take you.</li><li>If someone is with you, show them this screen.</li></ul>
+<p style="margin: 0; font-size: 12px; line-height: 20px; color: #626d62">Stillwell has paused your intake. You can come back to it after you've been seen.</p>
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":900}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
