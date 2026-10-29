@@ -34,6 +34,13 @@ Self-guided concussion and post-concussive recovery journaling, with optional cl
 - The website keeps its original stable artifact ID for canvas links; folder and package names do not determine public URLs.
 - GitHub source control uses one repository, `scc-grl/stillwell`, with the website, phone app, API, and design system in separate folders at the repository root; keep those folders in sync with this workspace.
 
+## Demo intake (AI)
+
+- No-login demo at `/demo/intake`: the visitor types or talks freely; `POST /api/demo/intake` reads the note with TypeSafe (`@typesafe-ai/sdk`), then `lib/intake-ai` decides triage (E1, C1, T1, D1-D4, S1) and the starting stage (P1-P3, Stages 1-3 only). AI only reads; code decides.
+- Secrets: `TYPESAFE_API_KEY` and `BRAINTRUST_API_KEY` (optional `BRAINTRUST_PROJECT`, default `stillwell-intake`; `TYPESAFE_TIMEOUT_MS`, default 3000). Without TypeSafe, only the backup keyword scan runs and the page says so. Without Braintrust, nothing is recorded.
+- Each demo run sends only numeric AI scores, the outcome/stage and bounded run metadata to Braintrust. Never trace the story, quotes, free-form answers, reasons, or error messages; TypeSafe SDK auto-tracing must stay off. Demo and synthetic notes only: real patient notes must not go to TypeSafe or Braintrust until data agreements are signed.
+- Evals: `pnpm --filter @workspace/scripts run intake-eval` runs `scripts/src/intake-golden.json` (synthetic, labeled) through TypeSafe and the rules and records a Braintrust experiment. `lib/intake-ai` unit tests use a scripted stand-in for TypeSafe: `pnpm --filter @workspace/intake-ai test`.
+
 ## Architecture decisions
 
 - The care portal uses singular canonical `/clinician` URLs without moving the existing plural `/clinicians` front door or changing patient routes. Its UI is a shared library because workspace artifacts are leaf packages and must not import one another.

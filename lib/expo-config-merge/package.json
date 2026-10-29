@@ -1,0 +1,12 @@
+{
+  "name": "@workspace/expo-config-merge",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./index.cjs",
+  "scripts": {
+    "test": "node --test test/*.test.cjs"
+  },
+  "dependencies": {
+    "@fastify/deepmerge": "^3.2.4"
+  }
+}

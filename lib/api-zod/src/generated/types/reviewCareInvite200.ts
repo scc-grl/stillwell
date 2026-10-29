@@ -9,5 +9,6 @@ import type { ReviewCareInvite200State } from './reviewCareInvite200State';
 
 export type ReviewCareInvite200 = {
   state: ReviewCareInvite200State;
+  /** @nullable */
   linkId: string | null;
 };

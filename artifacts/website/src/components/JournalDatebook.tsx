@@ -31,14 +31,7 @@ import { Button } from "@workspace/stillwell-design-system/components/ui/button"
 import { Card } from "@workspace/stillwell-design-system/components/ui/card";
 import { Textarea } from "@workspace/stillwell-design-system/components/ui/textarea";
 import { ArrowLeft, ArrowRight, CalendarDays, Check, Plus, X } from "lucide-react";
-
-type JournalDraft = {
-  date: string;
-  updatedAt: string;
-  startedAt?: string;
-  dailyCheckIn: DailyCheckIn;
-  sleep: NonNullable<RecoveryLogInput["sleep"]>;
-};
+import { journalHistoryDates, readJournalDraft, readJournalDraftDates, storageKey, writeJournalDraft, type JournalDraft } from "@/lib/journal-drafts";
 
 type Props = {
   logs: readonly RecoveryLog[];
@@ -57,39 +50,6 @@ const addableSymptoms: { label: string; name: CheckInSymptomName }[] = [
   { label: "Mood", name: "mood" },
   { label: "Neck pain", name: "neck" },
 ];
-
-function storageKey(ownerId: string, date: string) {
-  return `stillwell.journal-draft:${encodeURIComponent(ownerId)}:${date}`;
-}
-
-function readJournalDraft(ownerId: string, date: string): JournalDraft | null {
-  try {
-    const raw = localStorage.getItem(storageKey(ownerId, date));
-    if (!raw) return null;
-    const draft = JSON.parse(raw) as JournalDraft;
-    return draft.date === date ? draft : null;
-  } catch {
-    return null;
-  }
-}
-
-function readJournalDraftDates(ownerId: string): string[] {
-  if (!ownerId || typeof window === "undefined") return [];
-  const prefix = `stillwell.journal-draft:${encodeURIComponent(ownerId)}:`;
-  const dates: string[] = [];
-  try {
-    for (let index = 0; index < localStorage.length; index += 1) {
-      const key = localStorage.key(index);
-      if (!key?.startsWith(prefix)) continue;
-      const date = key.slice(prefix.length);
-      const value = JSON.parse(localStorage.getItem(key) ?? "null") as Partial<JournalDraft> | null;
-      if (/^\d{4}-\d{2}-\d{2}$/.test(date) && value?.date === date) dates.push(date);
-    }
-  } catch {
-    return dates;
-  }
-  return dates;
-}
 
 function dayLabel(date: string) {
   return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" })
@@ -132,7 +92,7 @@ export function JournalDatebook({
 }: Props) {
   const savedPastDates = logs.map((log) => log.date).filter((date) => date < today);
   const localDraftDates = readJournalDraftDates(ownerId).filter((date) => date < today);
-  const pastDates = [...new Set([...savedPastDates, ...localDraftDates])].sort((a, b) => b.localeCompare(a));
+  const pastDates = journalHistoryDates(savedPastDates, localDraftDates, today);
   const savedToday = logs.find((log) => log.date === today);
   const [activeDate, setActiveDate] = useState(today);
   const [mode, setMode] = useState<"form" | "saved" | "readonly">("form");
@@ -165,6 +125,7 @@ export function JournalDatebook({
   const undoSnapshot = useRef<{ names: CheckInSymptomName[]; checkIn: DailyCheckIn } | null>(null);
   const undoTimer = useRef<number | undefined>(undefined);
   const pendingDraft = useRef<{ ownerId: string; draft: JournalDraft } | null>(null);
+  const previousToday = useRef(today);
   selectedSymptomsRef.current = selectedSymptoms;
   pendingDraft.current = mode === "form" && draftEnabled ? {
     ownerId,
@@ -187,6 +148,14 @@ export function JournalDatebook({
   );
 
   useEffect(() => {
+    if (previousToday.current !== today) {
+      // Flush even edits within the debounce window before loading the now-past day.
+      keepPendingDraft();
+      previousToday.current = today;
+    }
+  }, [today]);
+
+  useEffect(() => {
     const serverLog = logs.find((log) => log.date === activeDate);
     const persisted = readJournalDraft(ownerId, activeDate);
     if (persisted) {
@@ -195,8 +164,8 @@ export function JournalDatebook({
       setDraftSavedAt(persisted.updatedAt);
       setDraftStartedAt(persisted.startedAt ?? persisted.updatedAt);
       setResumedDraft(true);
-      setMode("form");
-      setDraftEnabled(true);
+      setMode(activeDate === today ? "form" : "readonly");
+      setDraftEnabled(activeDate === today);
     } else {
       setCheckIn(serverLog
         ? dailyCheckInFromLog(serverLog)
@@ -208,7 +177,7 @@ export function JournalDatebook({
       setDraftEnabled(false);
       setMode(activeDate === today ? serverLog?.dailyCheckIn?.overallFeeling ? "saved" : "form" : "readonly");
     }
-    setTrackedNames([...new Set([...(serverLog?.dailyCheckIn?.selectedSymptoms ?? selectedSymptomsRef.current), ...selectedSymptomsRef.current])]);
+    setTrackedNames([...new Set([...(persisted?.dailyCheckIn.selectedSymptoms ?? serverLog?.dailyCheckIn?.selectedSymptoms ?? selectedSymptomsRef.current), ...selectedSymptomsRef.current])]);
     setOpenSection(null);
     setSaveError("");
   }, [activeDate, ownerId, today, logs]);
@@ -224,11 +193,10 @@ export function JournalDatebook({
         dailyCheckIn: { ...checkIn, selectedSymptoms: trackedNames },
         sleep,
       };
-      try {
-        localStorage.setItem(storageKey(ownerId, activeDate), JSON.stringify(draft));
+      if (writeJournalDraft(ownerId, draft)) {
         setDraftSavedAt(now);
         setDraftStartedAt((started) => started ?? now);
-      } catch {
+      } else {
         setDraftSavedAt(null);
       }
     }, 600);
@@ -238,9 +206,7 @@ export function JournalDatebook({
   function keepPendingDraft() {
     const pending = pendingDraft.current;
     if (!pending) return;
-    try {
-      localStorage.setItem(storageKey(pending.ownerId, pending.draft.date), JSON.stringify(pending.draft));
-    } catch { /* Do not log private journal drafts. */ }
+    writeJournalDraft(pending.ownerId, pending.draft);
   }
 
   useEffect(() => {
