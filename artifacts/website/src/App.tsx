@@ -14,6 +14,7 @@ import DashboardPage from "@/pages/DashboardPage";
 import PrivacyPage from "@/pages/PrivacyPage";
 import QuizPage from "@/pages/QuizPage";
 import DemoIntakePage from "@/pages/DemoIntakePage";
+import DemoLandingPage from "@/pages/DemoLandingPage";
 import PublicInfoPage from "@/pages/PublicInfoPage";
 import UnsubscribePage from "@/pages/UnsubscribePage";
 import { clearClinicianSetupDraft } from "@/pages/PartnersPages";
@@ -333,6 +334,7 @@ function Routes() {
       "/partners/request": { title: "Programs and research", description: "Program and research partnership intake is planned and not available yet." },
       "/find-your-clinician": { title: "Find your clinician", description: "A public Stillwell clinician directory is planned and not available yet." },
       "/clinicians": { title: "Stillwell clinician portal", description: "Sign in to your private clinician portal. Patient journal data is not available to clinician accounts." },
+      "/demo": { title: "How it works", description: "Follow Maya and Ray through a sample Stillwell recovery journey. All people and data are made up." },
       "/admin/partners": { title: "Clinician and partner tools", description: "Partnership intake and licence verification are planned and not available yet." },
       "/sign-up/patient": { title: "Create a patient account", description: "Create a private Stillwell journal account for your own recovery notes and reflections." },
       "/sign-up": { title: "Choose your account", description: "Choose whether you are creating a Stillwell account as a patient or a clinician." },
@@ -380,6 +382,7 @@ function Routes() {
       {/* One route for all canonical care URLs keeps CarePortal (and its toast provider) mounted across portal/patient/day navigation. */}
       <Route path={CARE_PORTAL_ROUTE}>{(params: { id?: string; date?: string }) => <CarePortal patientId={params.id || undefined} date={params.date || undefined}/>}</Route>
       <Route path="/quiz" component={QuizRoute}/>
+      <Route path="/demo" component={DemoLandingPage}/>
       <Route path="/demo/intake" component={DemoIntakePage}/>
       <Route path={PATIENT_DASHBOARD_ROUTE} component={PrivateDashboard}/>
       <Route path="/invite/:token">{(params) => <InviteRoute token={params.token}/>}</Route>

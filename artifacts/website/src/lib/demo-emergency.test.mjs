@@ -3,12 +3,13 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 const source = readFileSync(new URL("../components/demo-intake/StoryScreens.tsx", import.meta.url), "utf8");
-const emergency = source.slice(source.indexOf("export function EmergencyScreen"));
+const emergency = source.slice(source.indexOf("export function EmergencyScreen"), source.indexOf("export function CrisisScreen"));
 
 test("demo emergency warning contains the approved copy in order", () => {
   const copy = [
     "Please get emergency care now",
     "emergency-story-quote",
+    "<q>{quote}</q>",
     "Please go to your nearest emergency center now, or call 911.",
     "Don't drive yourself. Ask someone to take you.",
     "If someone is with you, show them this screen.",
@@ -21,7 +22,7 @@ test("demo emergency warning contains the approved copy in order", () => {
     previous = position;
   }
   assert.match(emergency, /role="alert"/);
-  assert.match(emergency, /“\{story\}”/);
+  assert.match(emergency, /quotes\.map/);
 });
 
 test("demo emergency warning has no buttons or action links", () => {

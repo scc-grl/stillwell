@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { Link } from "wouter";
-import { ArrowLeft, BookOpen, LayoutDashboard, Menu, X } from "lucide-react";
+import { ArrowLeft, BookOpen, CalendarDays, ChartNoAxesCombined, ClipboardList, LayoutDashboard, Mail, Menu, Users, X } from "lucide-react";
 import { Button } from "@workspace/stillwell-design-system/components/ui/button";
 import stillwellMark from "@workspace/stillwell-design-system/brand/stillwell-mark.svg";
 
@@ -10,8 +10,16 @@ export type DemoView =
   | "summary"
   | "roadmap"
   | "emergency"
+  | "crisis"
+  | "ai-unavailable"
   | "dashboard"
-  | "journal";
+  | "journal"
+  | "ray-patients"
+  | "ray-intake"
+  | "ray-insights"
+  | "ray-journal"
+  | "ray-day"
+  | "ray-messages";
 export type Persona = "Maya J. (patient)" | "Ray F. (clinician)";
 
 const NAV_STEPS: { view: DemoView; label: string }[] = [
@@ -38,6 +46,8 @@ export function DemoShell({
     setView(next);
     setMobileOpen(false);
   };
+  const isRay = persona.startsWith("Ray");
+  const safetyStopped = view === "emergency" || view === "crisis";
   const navItem = (target: DemoView, label: string, testId: string, icon?: ReactNode) => (
     <Button
       key={target}
@@ -61,9 +71,9 @@ export function DemoShell({
         <img src={stillwellMark} alt="" className="size-9" />
         <span className="display text-2xl font-semibold tracking-tight text-background">stillwell</span>
       </div>
-      <div className="mx-4 rounded-xl border border-background/20 bg-background/10 p-3">
-        <p className="mb-2 text-xs font-medium text-background/70">Choose a demo person</p>
-        <div className="grid grid-cols-2 gap-1" role="group" aria-label="Demo persona">
+      <p className="px-5 text-[10px] font-bold uppercase tracking-[0.18em] text-background/70">How it works · sample</p>
+      {!safetyStopped && <div className="mx-4 rounded-xl bg-foreground/70 p-1">
+        <div className="grid gap-1" role="group" aria-label="Viewing as">
           {(["Maya J. (patient)", "Ray F. (clinician)"] as const).map((option) => (
             <Button
               key={option}
@@ -72,36 +82,56 @@ export function DemoShell({
               aria-pressed={persona === option}
               onClick={() => setPersona(option)}
               data-testid={`persona-${option.startsWith("Maya") ? "maya" : "ray"}`}
-              className={`min-h-11 rounded-lg px-2 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-background ${
+              className={`min-h-12 justify-start rounded-lg px-3 text-left text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-background ${
                 persona === option ? "bg-background text-foreground" : "text-background/80 hover:bg-background/10"
               }`}
             >
-              {option}
+              <span className="flex flex-col items-start gap-0.5">
+                <span className="text-sm font-semibold">{option.startsWith("Maya") ? "Maya J. · Patient" : "Ray F. · Clinician"}</span>
+                <span className={persona === option ? "text-muted-foreground" : "text-background/65"}>{option.startsWith("Maya") ? "20 · college soccer" : "Sports medicine physician"}</span>
+              </span>
             </Button>
           ))}
         </div>
-      </div>
-      <nav className="mt-7 space-y-6 px-3" aria-label="Demo navigation">
-        <div>
-          <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-background/55">The intake</p>
-          <div className="space-y-1">
-            {NAV_STEPS.map((item) => navItem(item.view, item.label, `nav-${item.view}`))}
+      </div>}
+      {!safetyStopped && <nav className="mt-5 space-y-5 px-3" aria-label="Demo navigation">
+        {!isRay ? <>
+          <div>
+            <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-background/60">The intake</p>
+            <div className="space-y-1">
+              {NAV_STEPS.map((item) => navItem(item.view, item.label, `nav-${item.view}`))}
+            </div>
           </div>
-        </div>
-        <div>
-          <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-background/55">Every day</p>
-          <div className="space-y-1">
-            {navItem("dashboard", "Dashboard", "nav-dashboard", <LayoutDashboard className="size-4" />)}
-            {navItem("journal", "Journal", "nav-journal", <BookOpen className="size-4" />)}
+          <div>
+            <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-background/60">Every day</p>
+            <div className="space-y-1">
+              {navItem("dashboard", "Dashboard", "nav-dashboard", <LayoutDashboard className="size-4" />)}
+              {navItem("journal", "Journal", "nav-journal", <BookOpen className="size-4" />)}
+            </div>
           </div>
-        </div>
-      </nav>
+        </> : <>
+          <div>
+            <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-background/60">Your patients</p>
+            {navItem("ray-patients", "Maya J.", "nav-ray-patients", <Users className="size-4" />)}
+          </div>
+          <div>
+            <p className="px-3 pb-2 text-xs font-semibold uppercase tracking-wider text-background/60">Maya J.</p>
+            <div className="space-y-1">
+              {navItem("ray-intake", "Intake summary", "nav-ray-intake", <ClipboardList className="size-4" />)}
+              {navItem("ray-insights", "Insights", "nav-ray-insights", <ChartNoAxesCombined className="size-4" />)}
+              {navItem("ray-journal", "Journal", "nav-ray-journal", <BookOpen className="size-4" />)}
+              {navItem("ray-day", "One day in detail", "nav-ray-day", <CalendarDays className="size-4" />)}
+              {navItem("ray-messages", "Messages", "nav-ray-messages", <Mail className="size-4" />)}
+            </div>
+          </div>
+        </>}
+      </nav>}
       <div className="mt-auto space-y-4 p-4">
         <p className="rounded-lg border border-background/20 bg-background/10 p-3 text-xs leading-5 text-background/85" data-testid="demo-privacy-notice">
           Made-up people and made-up data. Nothing you enter is saved.
         </p>
         <Link
-          href="/"
+          href="/demo"
           data-testid="link-exit-demo"
           className="flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm text-background/75 hover:bg-background/10 hover:text-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-background"
         >

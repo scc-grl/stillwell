@@ -78,6 +78,7 @@
     "zod": "catalog:"
   },
   "dependencies": {
+    "@workspace/intake-ai": "workspace:*",
     "@workspace/recovery-journal": "workspace:*",
     "@workspace/stillwell-design-system": "workspace:*",
     "@workspace/clinician-care-portal": "workspace:*"

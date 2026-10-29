@@ -1020,6 +1020,9 @@ importers:
       '@workspace/clinician-care-portal':
         specifier: workspace:*
         version: link:../../lib/clinician-care-portal
+      '@workspace/intake-ai':
+        specifier: workspace:*
+        version: link:../../lib/intake-ai
       '@workspace/recovery-journal':
         specifier: workspace:*
         version: link:../../lib/recovery-journal

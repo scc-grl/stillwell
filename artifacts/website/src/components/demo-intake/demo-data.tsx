@@ -1,3 +1,5 @@
+import { checkInSymptoms, defaultSymptoms, type CheckInSymptomName } from "@workspace/recovery-journal";
+
 export const MAYA_STORY =
   "I took a head-to-head hit in a soccer match on Saturday. The team doctor checked me on the sideline and told me to rest. Since then I've had headaches most of the day, I'm wiped out by the afternoon, and screens really bother me. I'm not sleeping well, and I feel foggy in class. Walking to class is okay, but I haven't tried anything harder.";
 
@@ -36,20 +38,20 @@ export const STAGES = [
   "Light to moderate activity",
   "Individual exercise, fuller days",
   "Heavy, non-contact training",
-  "Full-contact practice",
-  "Return to sport",
+  "Full practice",
+  "Full return to play",
 ] as const;
 
-export type SymptomName =
-  | "Headache"
-  | "Fatigue"
-  | "Fog"
-  | "Sleep"
-  | "Mood"
-  | "Light sensitivity";
+export const DEMO_SYMPTOMS = defaultSymptoms.map((name) => {
+  const definition = checkInSymptoms.find((symptom) => symptom.name === name)!;
+  return { name: definition.name, label: definition.name === "light" ? "Light sensitivity" : definition.label };
+});
+
+export type SymptomName = CheckInSymptomName;
 
 export type Symptom = {
   name: SymptomName;
+  label: string;
   quote: string;
   level: number | null;
   uncertain?: boolean;
