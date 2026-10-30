@@ -94,11 +94,9 @@ export function DemoShell({
           ))}
         </div>
       </div>}
-      {!safetyStopped && !isRay && (view === "dashboard" || view === "journal") && (
+      {!safetyStopped && !isRay && view === "journal" && (
         <p className="px-5 text-sm leading-5 text-background/80">
-          {view === "dashboard"
-            ? "Day 28. This is what Maya sees each time she opens Stillwell."
-            : "Four weeks in. Maya checks in most days in a minute or two, on the same six symptoms her intake set up."}
+          Four weeks in. Maya checks in most days in a minute or two, on the same six symptoms her intake set up.
         </p>
       )}
       {!safetyStopped && <nav className="mt-5 space-y-5 px-3" aria-label="Demo navigation">
