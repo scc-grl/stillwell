@@ -3,7 +3,7 @@
 // Until TypeSafe signs a data agreement, nothing from real patient accounts may come through here.
 import { TypeSafeClient } from "@typesafe-ai/sdk";
 import { initLogger, type Logger } from "braintrust";
-import { runIntake, type Decision, type IntakeRead, type SystemOneClient } from "@workspace/intake-ai";
+import { runIntake, type Decision, type IntakeRead, type SystemOneClient, type IntakeOptions } from "@workspace/intake-ai";
 import { demoIntakeTrace } from "./demo-intake-trace";
 
 export const BRAINTRUST_PROJECT = process.env.BRAINTRUST_PROJECT ?? "stillwell-intake";
@@ -37,26 +37,26 @@ export function demoIntakeStatus() {
   return { typesafe: Boolean(process.env.TYPESAFE_API_KEY), braintrust: Boolean(process.env.BRAINTRUST_API_KEY), project: BRAINTRUST_PROJECT };
 }
 
-export async function runDemoIntake(note: string, inputMode: "typed" | "voice"): Promise<{ read: IntakeRead; decision: Decision; braintrustLogged: boolean }> {
+export async function runDemoIntake(note: string, inputMode: "typed" | "voice", form: Pick<IntakeOptions, "answered" | "tickedRedFlags" | "hoursSinceInjury"> = {}): Promise<{ read: IntakeRead; decision: Decision; braintrustLogged: boolean }> {
   const client = getTypeSafe();
   const bt = getBraintrust();
-  const timeoutMs = Number(process.env.TYPESAFE_TIMEOUT_MS ?? 3000);
+  const timeoutMs = Number(process.env.TYPESAFE_TIMEOUT_MS ?? 10000);
   if (!bt) {
-    const { read, decision } = await runIntake(note, { client, timeoutMs });
+    const { read, decision } = await runIntake(note, { ...form, client, timeoutMs });
     return { read, decision, braintrustLogged: false };
   }
   // Braintrust must never block the intake: if tracing fails, return the result unlogged.
   let result: { read: IntakeRead; decision: Decision } | undefined;
   try {
     return await bt.traced(async (span) => {
-      result = await runIntake(note, { client, timeoutMs });
+      result = await runIntake(note, { ...form, client, timeoutMs });
       const { read, decision } = result;
       span.log(demoIntakeTrace(read, decision, inputMode));
       return { read, decision, braintrustLogged: true };
     }, { name: "demo-intake" });
   } catch {
     if (result) return { ...result, braintrustLogged: false };
-    const { read, decision } = await runIntake(note, { client, timeoutMs });
+    const { read, decision } = await runIntake(note, { ...form, client, timeoutMs });
     return { read, decision, braintrustLogged: false };
   }
 }

@@ -5,6 +5,7 @@ import { Card } from "@workspace/stillwell-design-system/components/ui/card";
 import { Input } from "@workspace/stillwell-design-system/components/ui/input";
 import { FOUR_LEVELS, STAGES, type AnswerField, type Symptom } from "./demo-data";
 import { CareBoundary } from "./StoryScreens";
+import { STAGE_GATES } from "@workspace/intake-ai";
 
 export function SummaryScreen({
   fields,
@@ -146,7 +147,7 @@ export function SummaryScreen({
               );
             })}
           </div>
-          <p className="mt-6 border-t border-border pt-4 text-sm leading-6 text-muted-foreground" data-testid="journal-symptom-note">Your journal tracks all six from day one. Turn any off in your journal settings.</p>
+          <p className="mt-6 border-t border-border pt-4 text-sm leading-6 text-muted-foreground" data-testid="journal-symptom-note">Review all 11 symptoms. Anything not mentioned stays not recorded.</p>
         </Card>
       </div>
       <div className="mt-6 flex justify-end">
@@ -172,11 +173,9 @@ export function RoadmapScreen({
 }) {
   const currentStage = stage?.stage ?? null;
   const doctorCopy: Record<string, string> = {
-    T1: "Your injury was less than 48 hours ago. Stillwell suggests checking in with a doctor.",
-    D1: "You haven't clearly said you've seen a doctor since this injury. Stillwell suggests checking in with one.",
-    D2: "You said symptoms are getting worse. A doctor should see you before choosing a starting stage.",
-    D3: "Several symptoms are Noticeable or above. Stillwell suggests checking in with a doctor.",
-    D4: "You described symptoms lasting more than four weeks. Stillwell suggests checking in with a doctor.",
+    D1: "You said symptoms are getting worse. A doctor should see you before choosing a starting stage.",
+    D2: "You haven't clearly said a clinician has assessed this injury. Stillwell suggests checking in with a doctor.",
+    D3: "You described more than 28 days since the injury. Stillwell suggests checking in with a doctor.",
   };
   return (
     <>
@@ -203,7 +202,7 @@ export function RoadmapScreen({
           const number = index + 1;
           const locked = number >= 4;
           const selected = number === currentStage;
-          const gates = ["Everyday tasks that don't make symptoms worse; short walks · Amsterdam step 1", "Easy walking or a stationary bike; study in short blocks · Amsterdam step 2", "Solo exercise without head-impact risk · Amsterdam step 3", "Opens when symptoms are gone, even with exercise", "Opens with a clinician's okay", "Opens with a clinician's okay"];
+          const gates = ["Everyday tasks that don't make symptoms worse; short walks · Amsterdam step 1", "Easy walking or a stationary bike; study in short blocks · Amsterdam step 2", "Solo exercise without head-impact risk · Amsterdam step 3", STAGE_GATES[4], STAGE_GATES[5], STAGE_GATES[6]];
           return (
             <Card key={stage} className={`relative flex items-center gap-4 p-4 sm:px-5 ${selected ? "border-2 border-primary bg-secondary" : ""} ${locked ? "text-muted-foreground" : ""}`} data-testid={`roadmap-stage-${number}`} aria-current={selected ? "step" : undefined}>
               <span className={`flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${selected ? "bg-primary text-primary-foreground" : "border border-border text-muted-foreground"}`}>{selected ? <Check className="size-4" aria-label={`You start here, Stage ${number}`} /> : number}</span>

@@ -1,4 +1,5 @@
-import { checkInSymptoms, defaultSymptoms, type CheckInSymptomName } from "@workspace/recovery-journal";
+import { checkInSymptoms, type CheckInSymptomName } from "@workspace/recovery-journal";
+import { STAGES as INTAKE_STAGES } from "@workspace/intake-ai";
 
 export const MAYA_STORY =
   "I took a head-to-head hit in a soccer match on Saturday. The team doctor checked me on the sideline and told me to rest. Since then I've had headaches most of the day, I'm wiped out by the afternoon, and screens really bother me. I'm not sleeping well, and I feel foggy in class. Walking to class is okay, but I haven't tried anything harder.";
@@ -33,17 +34,9 @@ export const FOUR_LEVELS = [
   "More noticeable",
 ] as const;
 
-export const STAGES = [
-  "Symptom-limited daily life",
-  "Light to moderate activity",
-  "Individual exercise, fuller days",
-  "Heavy, non-contact training",
-  "Full practice",
-  "Full return to play",
-] as const;
+export const STAGES = Object.values(INTAKE_STAGES);
 
-export const DEMO_SYMPTOMS = defaultSymptoms.map((name) => {
-  const definition = checkInSymptoms.find((symptom) => symptom.name === name)!;
+export const DEMO_SYMPTOMS = checkInSymptoms.map((definition) => {
   return { name: definition.name, label: definition.name === "light" ? "Light sensitivity" : definition.label };
 });
 

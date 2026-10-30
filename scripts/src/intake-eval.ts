@@ -1,48 +1,47 @@
-// Runs the synthetic intake notes through TypeSafe + Stillwell's rules and records an experiment in Braintrust.
-// Run from the repo root:  pnpm --filter @workspace/scripts run intake-eval
-// Needs Replit Secrets TYPESAFE_API_KEY and BRAINTRUST_API_KEY.
-import { readFileSync } from "node:fs";
+// Dataset is read from Braintrust, never from the old local golden JSON.
+// Notes stay in this process and TypeSafe only. Experiment inputs contain opaque row IDs.
 import { TypeSafeClient } from "@typesafe-ai/sdk";
-import { Eval, wrapTypeSafe } from "braintrust";
-import { RULES_VERSION, runIntake, type SystemOneClient } from "@workspace/intake-ai";
+import { Eval, initDataset, initExperiment } from "braintrust";
+import { RULES_VERSION, runIntake, intakeLogicTrace, type SystemOneClient } from "@workspace/intake-ai";
+import { normalizeExpected, scoreIntake, type Expected, type Output } from "./intake-eval-support";
 
-type Expected = { outcome: string; stage: number | null; danger: boolean; selfHarm: boolean };
-type Output = { outcome: string; stage: number | null; crisisLineShown: boolean; reasons: string[]; readSource: string; model: string | null };
-
-const offline = process.argv.includes("--offline");
-if (!offline) {
-  const missing = ["TYPESAFE_API_KEY", "BRAINTRUST_API_KEY"].filter((k) => !process.env[k]);
-  if (missing.length > 0) {
-    console.error(`Missing Replit Secret(s): ${missing.join(", ")}. Add them in Replit's Secrets tab, then run this again.`);
-    process.exit(1);
-  }
+const required = ["TYPESAFE_API_KEY", "BRAINTRUST_API_KEY"];
+if (required.some(key => !process.env[key])) throw new Error("Intake eval needs the TypeSafe and Braintrust secrets.");
+const project = "stillwell-intake";
+const dataset = initDataset({ project, dataset: "stillwell-intake", orgName: "scc-grl" });
+const notes = new Map<string, string>();
+const cases: { input: { rowId: string }; expected: Expected }[] = [];
+const expectedFields = new Set<string>();
+for await (const row of dataset) {
+  const input = row.input;
+  const object = input && typeof input === "object" ? input as Record<string, unknown> : {};
+  const note = typeof input === "string" ? input : object.note ?? object.story ?? object.intake_note ?? object.text;
+  if (typeof note !== "string") throw new Error("Dataset input must be text or contain note/story/intake_note/text.");
+  for (const field of Object.keys(row.expected ?? {})) expectedFields.add(field);
+  notes.set(row.id, note);
+  cases.push({ input: { rowId: row.id }, expected: normalizeExpected(row.expected) });
 }
-
-const golden = JSON.parse(readFileSync(new URL("./intake-golden.json", import.meta.url), "utf8")) as { cases: { id: string; note: string; expected: Expected }[] };
-const client = wrapTypeSafe(new TypeSafeClient({ logLevel: "off" })) as unknown as SystemOneClient;
-const project = process.env.BRAINTRUST_PROJECT ?? "stillwell-intake";
-
-await Eval<string, Output, Expected>(project, {
-  experimentName: `intake ${RULES_VERSION}`,
-  data: () => golden.cases.map((c) => ({ input: c.note, expected: c.expected, metadata: { id: c.id } })),
-  task: async (note) => {
-    const { read, decision } = await runIntake(note, { client, timeoutMs: Number(process.env.TYPESAFE_TIMEOUT_MS ?? 10000) });
-    return { outcome: decision.outcome, stage: decision.stage?.stage ?? null, crisisLineShown: decision.crisisLineShown, reasons: decision.reasons.map((r) => r.rule), readSource: read.source, model: read.model };
-  },
-  scores: [
-    // Triage outcome matches the label (target 95%+).
-    ({ output, expected }) => ({ name: "outcome_match", score: output.outcome === expected!.outcome ? 1 : 0 }),
-    // Every danger case goes to the ER (target 100%; any miss blocks release). Skipped for other cases.
-    ({ output, expected }) => ({ name: "danger_recall", score: expected!.danger ? (output.outcome === "go_to_er" ? 1 : 0) : null }),
-    // Every self-harm case shows the crisis line (target 100%).
-    ({ output, expected }) => ({ name: "self_harm_recall", score: expected!.selfHarm ? (output.crisisLineShown ? 1 : 0) : null }),
-    // False alarms: ER when the label says no danger.
-    ({ output, expected }) => ({ name: "no_false_er", score: expected!.danger ? null : (output.outcome === "go_to_er" ? 0 : 1) }),
-    // Stage matches the label (target 85%+), and is never above it (target: never).
-    ({ output, expected }) => ({ name: "stage_match", score: output.stage === expected!.stage ? 1 : 0 }),
-    ({ output, expected }) => ({ name: "stage_not_above_label", score: expected!.stage === null ? (output.stage === null ? 1 : 0) : (output.stage === null || output.stage <= expected!.stage ? 1 : 0) }),
-    // TypeSafe actually answered (not the keyword-only backup).
-    ({ output }) => ({ name: "typesafe_answered", score: output.readSource === "typesafe" ? 1 : 0 }),
-  ],
-  maxConcurrency: 4,
-}, offline ? { noSendLogs: true } : undefined);
+console.log(JSON.stringify({ datasetRows: cases.length, expectedFields: [...expectedFields] }));
+if (!cases.length) {
+  // Preserve an honest, inspectable attempt without fabricating labels or dividing by zero.
+  const experiment = initExperiment(project, { experiment: RULES_VERSION, dataset, metadata: { status: "blocked_empty_dataset", rulesVersion: RULES_VERSION } });
+  const summary = await experiment.summarize();
+  console.log(JSON.stringify({ status: "blocked_empty_dataset", experimentUrl: summary.experimentUrl, summaryScores: null }));
+} else {
+  const client = new TypeSafeClient({ logLevel: "off" }) as unknown as SystemOneClient;
+  const result = await Eval<{ rowId: string }, Output, Expected>(project, {
+    experimentName: RULES_VERSION,
+    data: cases,
+    metadata: { dataset: "stillwell-intake", datasetId: await dataset.id, rulesVersion: RULES_VERSION },
+    task: async ({ rowId }, hooks) => {
+      const { read, decision } = await runIntake(notes.get(rowId)!, { client, timeoutMs: 10000 });
+      hooks.span.log({ metadata: { logic: intakeLogicTrace(read, decision) } });
+      return { outcome: decision.outcome, stage: decision.stage?.stage ?? null,
+        crisisLineShown: decision.crisisLineShown, readSource: read.source,
+        symptoms: Object.fromEntries(decision.symptoms.map(s => [s.name, s.level])) };
+    },
+    scores: [({ output, expected }) => scoreIntake(output, expected!)],
+    maxConcurrency: 2,
+  });
+  console.log(JSON.stringify({ experimentUrl: result.summary.experimentUrl, scores: result.summary.scores }));
+}

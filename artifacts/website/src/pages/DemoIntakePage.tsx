@@ -26,6 +26,11 @@ const symptomPatterns: Record<string, RegExp> = {
   sleep: /\b(?:not sleeping[^,.!?;]*|sleep(?:ing)? (?:poorly|badly|well)[^,.!?;]*|can't sleep[^,.!?;]*)/i,
   mood: /\b(?:irritable[^,.!?;]*|sad[^,.!?;]*|anxious[^,.!?;]*|mood changes?[^,.!?;]*)/i,
   light: /\b(?:screens? (?:really )?bother[^,.!?;]*|light sensitivity[^,.!?;]*|lights? bother[^,.!?;]*|sensitive to light[^,.!?;]*)/i,
+  dizziness: /\b(?:dizz\w*|balance)[^,.!?;]*/i,
+  nausea: /\b(?:nause\w*|sick to my stomach)[^,.!?;]*/i,
+  vision: /\b(?:blurry|double vision|blurred vision)[^,.!?;]*/i,
+  noise: /\b(?:noise|sound)[^,.!?;]*/i,
+  neck: /\bneck[^,.!?;]*/i,
 };
 
 const dangerPatterns = [
@@ -174,8 +179,8 @@ export default function DemoIntakePage() {
       {view === "roadmap" && <RoadmapScreen
         stage={result?.decision.stage ?? null}
         stageNote={result?.decision.stageNote ?? null}
-        needsDoctor={result?.decision.outcome === "find_doctor"}
-        reasons={result?.decision.reasons ?? []}
+        needsDoctor={result?.decision.outcome === "find_doctor" || Boolean(result?.decision.clinicianPrompts?.length)}
+        reasons={[...(result?.decision.reasons ?? []), ...(result?.decision.clinicianPrompts ?? [])]}
         onStartJournal={() => setView("dashboard")}
       />}
       {view === "emergency" && <EmergencyScreen quotes={getEmergencyQuotes(submittedStory)} />}

@@ -17,6 +17,7 @@ export type DemoIntakeResult = {
     startJournal: boolean;
     crisisLineShown: boolean;
     reasons: { rule: string; text: string }[];
+    clinicianPrompts?: { rule: string; text: string }[];
     stage: { stage: 1 | 2 | 3; name: string; amsterdamStep: 1 | 2 | 3; reasons: { rule: string; text: string }[] } | null;
     stageNote: string | null;
     followUps: string[];

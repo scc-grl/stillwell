@@ -1,94 +1,111 @@
-// Reads a free-form intake note with TypeSafe. AI only reads; code decides (see decide.ts).
-// If TypeSafe errors or is slow, the keyword scan still runs and the result says so,
-// so the intake never fails silently.
-import { ACTIVITIES, DANGER_SIGNS, INTAKE_SYMPTOMS, QUESTIONS_VERSION, buildQuestions, type Activity, type DangerSign } from "./questions.ts";
+// AI reads the note; deterministic code makes every decision. No raw note is traced.
+import { ACTIVITIES, DANGER_SIGNS, INTAKE_SYMPTOMS, QUESTIONS_VERSION, buildQuestions, type Activity, type DangerSign, type IntakeQuestion } from "./questions.ts";
 import { scanKeywords, type KeywordHits } from "./keywords.ts";
 
 export const MAX_NOTE_CHARS = 4000;
-export const DEFAULT_TIMEOUT_MS = 3000;
-
+export const DEFAULT_TIMEOUT_MS = 10000;
 export type ChoiceAnswer = { choice: string; confidence: number; probabilities: Record<string, number> };
-
+export type NoulAnswer = { probability: number; confidence: number; confidenceSource: "reported" | "binary_probability" };
+export type SymptomAnswer = { mentioned: NoulAnswer; score: number; confidence: number; probabilities: Record<string, number> };
+export type StructuredAnswer = NoulAnswer | ChoiceAnswer | { score: number; confidence: number; probabilities: Record<string, number> };
 export type IntakeScores = {
   danger: Record<DangerSign, number>;
-  selfHarm: number;
-  gettingWorse: number;
-  priorConcussion: number;
-  seenDoctor: ChoiceAnswer;
-  injuryTiming: ChoiceAnswer;
-  symptoms: Record<string, ChoiceAnswer>;
+  dangerConfidence: Record<DangerSign, number>;
+  selfHarm: number; selfHarmConfidence: number;
+  gettingWorse: number; priorConcussion: number;
+  seenDoctor: NoulAnswer; injuryTiming: ChoiceAnswer; injuryCause: ChoiceAnswer;
+  symptoms: Record<string, SymptomAnswer>;
   activity: Record<Activity, number>;
 };
-
 export type IntakeRead = {
-  source: "typesafe" | "keywords_only";
-  /** TypeSafe model that answered, e.g. "jev-1.13". */
-  model: string | null;
-  questionsVersion: string;
-  keywords: KeywordHits;
-  scores: IntakeScores | null;
-  /** Error class name only, never the message (it could echo the note). */
-  error: string | null;
-  latencyMs: number;
+  source: "typesafe" | "keywords_only"; model: string | null; questionsVersion: string;
+  keywords: KeywordHits; scores: IntakeScores | null; error: string | null; latencyMs: number;
+  questions: Record<string, IntakeQuestion>;
+  answers: Record<string, StructuredAnswer>;
+  formAnswers: Record<string, StructuredAnswer>;
+  tickedRedFlags: DangerSign[];
+  hoursSinceInjury: number | null;
 };
-
-/** TypeSafeClient from @typesafe-ai/sdk fits this shape, and so does Braintrust's wrapTypeSafe(client). */
 export type SystemOneClient = {
-  systemOne(
-    request: { state: unknown; questions: Record<string, unknown>; model?: string },
-    options?: { timeout?: number; retry?: { maxRetries?: number } },
-  ): Promise<{ model: string; answers: Record<string, unknown> }>;
+  systemOne(request: { state: unknown; questions: Record<string, unknown>; model?: string },
+    options?: { timeout?: number; retry?: { maxRetries?: number } }):
+    Promise<{ model: string; answers: Record<string, unknown> }>;
+};
+export type IntakeOptions = {
+  client: SystemOneClient | null; timeoutMs?: number; model?: string;
+  /** TypeSafe-compatible structured answers already given in the form. Never free text. */
+  answered?: Record<string, unknown>; tickedRedFlags?: DangerSign[]; hoursSinceInjury?: number;
 };
 
-export async function readIntake(
-  note: string,
-  opts: { client: SystemOneClient | null; timeoutMs?: number; model?: string },
-): Promise<IntakeRead> {
-  const keywords = scanKeywords(note);
-  const started = Date.now();
-  const base = { questionsVersion: QUESTIONS_VERSION, keywords };
-  if (!opts.client) {
-    return { ...base, source: "keywords_only", model: null, scores: null, error: "NotConfigured", latencyMs: 0 };
+function unit(value: unknown): number {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0 || value > 1) throw new TypeError("Invalid probability");
+  return value;
+}
+export function normalizeAnswer(question: IntakeQuestion, raw: unknown): StructuredAnswer {
+  const a = raw as Record<string, unknown> | undefined;
+  if (!a) throw new TypeError("Missing answer");
+  if (question.type === "noul") {
+    const probability = unit(a.noul);
+    // SDK 0.7 Noul has no independent confidence. Do not invent a model-reported one.
+    return { probability, confidence: a.confidence === undefined ? Math.max(probability, 1 - probability) : unit(a.confidence),
+      confidenceSource: a.confidence === undefined ? "binary_probability" : "reported" };
   }
-  try {
-    const response = await opts.client.systemOne(
-      { state: { intake_note: note }, questions: buildQuestions(), ...(opts.model ? { model: opts.model } : {}) },
-      { timeout: opts.timeoutMs ?? DEFAULT_TIMEOUT_MS, retry: { maxRetries: 0 } },
-    );
-    return { ...base, source: "typesafe", model: response.model, scores: mapAnswers(response.answers), error: null, latencyMs: Date.now() - started };
-  } catch (error) {
-    const name = error instanceof Error ? error.name || "Error" : "Error";
-    return { ...base, source: "keywords_only", model: null, scores: null, error: name, latencyMs: Date.now() - started };
+  const confidence = unit(a.confidence);
+  const probabilities: Record<string, number> = {};
+  const allowed = question.type === "choice" ? Object.keys(question.criteria) : ["0", "1", "2", "3"];
+  const rawProbabilities = a.probabilities as Record<string, unknown> | undefined;
+  for (const key of allowed) if (rawProbabilities?.[key] !== undefined) probabilities[key] = unit(rawProbabilities[key]);
+  if (question.type === "choice") {
+    if (typeof a.choice !== "string" || !Object.hasOwn(question.criteria, a.choice)) throw new TypeError("Invalid choice");
+    return { choice: a.choice, confidence, probabilities };
   }
+  if (typeof a.score !== "number" || !Number.isFinite(a.score) || a.score < 0 || a.score > 3) throw new TypeError("Invalid score");
+  return { score: a.score, confidence, probabilities };
 }
-
-function noulOf(answers: Record<string, unknown>, key: string): number {
-  const a = answers[key] as { noul?: unknown } | undefined;
-  if (!a || typeof a.noul !== "number" || a.noul < 0 || a.noul > 1) throw new TypeError(`Missing or bad noul answer: ${key}`);
-  return a.noul;
-}
-
-function choiceOf(answers: Record<string, unknown>, key: string): ChoiceAnswer {
-  const a = answers[key] as { choice?: unknown; confidence?: unknown; probabilities?: unknown } | undefined;
-  if (!a || typeof a.choice !== "string" || typeof a.confidence !== "number") throw new TypeError(`Missing or bad choice answer: ${key}`);
-  return { choice: a.choice, confidence: a.confidence, probabilities: (a.probabilities ?? {}) as Record<string, number> };
-}
-
-export function mapAnswers(answers: Record<string, unknown>): IntakeScores {
+export function mapAnswers(answers: Record<string, StructuredAnswer>): IntakeScores {
+  const n = (key: string) => answers[key] as NoulAnswer;
   const danger = {} as Record<DangerSign, number>;
-  for (const id of Object.keys(DANGER_SIGNS) as DangerSign[]) danger[id] = noulOf(answers, `danger_${id}`);
+  const dangerConfidence = {} as Record<DangerSign, number>;
+  for (const id of Object.keys(DANGER_SIGNS) as DangerSign[]) {
+    danger[id] = n(`danger_${id}`).probability; dangerConfidence[id] = n(`danger_${id}`).confidence;
+  }
   const activity = {} as Record<Activity, number>;
-  for (const id of Object.keys(ACTIVITIES) as Activity[]) activity[id] = noulOf(answers, `activity_${id}`);
-  const symptoms: Record<string, ChoiceAnswer> = {};
-  for (const s of INTAKE_SYMPTOMS) symptoms[s.name] = choiceOf(answers, `symptom_${s.name}`);
-  return {
-    danger,
-    selfHarm: noulOf(answers, "self_harm"),
-    gettingWorse: noulOf(answers, "getting_worse"),
-    priorConcussion: noulOf(answers, "prior_concussion"),
-    seenDoctor: choiceOf(answers, "seen_doctor"),
-    injuryTiming: choiceOf(answers, "injury_timing"),
-    symptoms,
-    activity,
+  for (const id of Object.keys(ACTIVITIES) as Activity[]) activity[id] = n(`activity_${id}`).probability;
+  const symptoms: Record<string, SymptomAnswer> = {};
+  for (const { name } of INTAKE_SYMPTOMS) symptoms[name] = {
+    ...answers[`symptom_${name}`] as { score: number; confidence: number; probabilities: Record<string, number> },
+    mentioned: n(`mentioned_${name}`),
   };
+  return { danger, dangerConfidence, activity, symptoms, selfHarm: n("self_harm").probability,
+    selfHarmConfidence: n("self_harm").confidence, gettingWorse: n("getting_worse").probability,
+    priorConcussion: n("prior_concussion").probability, seenDoctor: n("seen_doctor"),
+    injuryTiming: answers.injury_timing as ChoiceAnswer, injuryCause: answers.injury_cause as ChoiceAnswer };
+}
+export async function readIntake(note: string, opts: IntakeOptions): Promise<IntakeRead> {
+  const allQuestions = buildQuestions();
+  const formAnswers: Record<string, StructuredAnswer> = {};
+  for (const [key, raw] of Object.entries(opts.answered ?? {})) {
+    if (!allQuestions[key]) throw new TypeError("Unknown form question");
+    formAnswers[key] = normalizeAnswer(allQuestions[key], raw);
+  }
+  const questions = buildQuestions(formAnswers);
+  const started = Date.now();
+  const base = { questionsVersion: QUESTIONS_VERSION, keywords: scanKeywords(note), questions, formAnswers,
+    tickedRedFlags: (opts.tickedRedFlags ?? []).filter(id => Object.hasOwn(DANGER_SIGNS, id)),
+    hoursSinceInjury: typeof opts.hoursSinceInjury === "number" && Number.isFinite(opts.hoursSinceInjury) && opts.hoursSinceInjury >= 0 ? opts.hoursSinceInjury : null };
+  if (!opts.client && Object.keys(questions).length) return { ...base, source: "keywords_only", model: null, scores: null, answers: {}, error: "NotConfigured", latencyMs: 0 };
+  let answers: Record<string, StructuredAnswer> = {};
+  try {
+    const response = Object.keys(questions).length ? await opts.client!.systemOne(
+      { state: { intake_note: note }, questions, ...(opts.model ? { model: opts.model } : {}) },
+      { timeout: opts.timeoutMs ?? DEFAULT_TIMEOUT_MS, retry: { maxRetries: 0 } },
+    ) : { model: "form-only", answers: {} };
+    for (const [key, question] of Object.entries(questions)) answers[key] = normalizeAnswer(question, response.answers[key]);
+    return { ...base, source: "typesafe", model: response.model, scores: mapAnswers({ ...answers, ...formAnswers }),
+      answers, error: null, latencyMs: Date.now() - started };
+  } catch (error) {
+    const allowed = ["APITimeoutError", "APIConnectionError", "AuthenticationError", "RateLimitError", "TypeError"];
+    const name = error instanceof Error && allowed.includes(error.name) ? error.name : "Error";
+    return { ...base, source: "keywords_only", model: null, scores: null, answers, error: name, latencyMs: Date.now() - started };
+  }
 }

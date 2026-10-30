@@ -1,22 +1,24 @@
 // The questions TypeSafe (System One, Jev) answers about a free-form intake note.
 // Each question is narrow and literal, one judgment each, so one answer can't hide another.
 // Shapes match @typesafe-ai/sdk's Questions type; this file has no SDK import so it stays testable.
-import { checkInSymptoms, defaultSymptoms } from "@workspace/recovery-journal";
+import { checkInSymptoms } from "@workspace/recovery-journal";
 
-export const QUESTIONS_VERSION = "intake-questions-2026-10-28.1";
+export const QUESTIONS_VERSION = "intake-questions-2026-10-29.1";
 
-/** The CRT6 red flags (BJSM 2023). */
+/** Separate safety questions; keyword checks run alongside these. */
 export const DANGER_SIGNS = {
-  neck_pain_or_tenderness: { label: "Neck pain or tenderness", ask: "Does the person say they have pain or tenderness in their neck?" },
+  neck_pain_or_tenderness: { label: "Severe neck pain", ask: "Does the person say they have severe neck pain?" },
   seizure: { label: "Seizure or convulsion", ask: "Does the person say they had a seizure, fit or convulsion?" },
   double_vision: { label: "Double vision", ask: "Does the person say they have double vision?" },
   loss_of_consciousness: { label: "Loss of consciousness", ask: "Does the person say they lost consciousness, blacked out or were knocked out?" },
   weakness_or_tingling: { label: "Weakness or tingling in arms or legs", ask: "Does the person say they have weakness, numbness, tingling or burning in their arms or legs?" },
-  getting_drowsier: { label: "Getting more drowsy", ask: "Does the person say they are getting more and more drowsy, or are hard to wake up?" },
-  vomiting: { label: "Vomiting", ask: "Does the person say they have vomited or keep vomiting?" },
-  severe_or_increasing_headache: { label: "Severe or increasing headache", ask: "Does the person say they have a severe headache, or a headache that keeps getting worse?" },
+  getting_drowsier: { label: "Unusual drowsiness or confusion", ask: "Does the person describe unusual drowsiness or confusion, or being hard to wake?" },
+  vomiting: { label: "Repeated vomiting", ask: "Does the person say they have vomited repeatedly or keep vomiting?" },
+  severe_or_increasing_headache: { label: "Headache that keeps getting worse", ask: "Does the person say their headache keeps getting worse?" },
   increasing_restlessness_or_agitation: { label: "Increasing restlessness or agitation", ask: "Does the person say they are more and more restless, agitated or combative?" },
   visible_skull_deformity: { label: "Visible skull deformity", ask: "Does the person describe a visible dent, deformity or open wound on their head?" },
+  slurred_speech: { label: "Slurred speech", ask: "Does the person say their speech is slurred?" },
+  new_head_hit: { label: "New hit to the head", ask: "Does the person say they have had a new hit to the head since the original injury?" },
 } as const;
 export type DangerSign = keyof typeof DANGER_SIGNS;
 
@@ -29,29 +31,14 @@ export const ACTIVITIES = {
 } as const;
 export type Activity = keyof typeof ACTIVITIES;
 
-/** The six default journal symptoms, from the shared journal library. */
+/** All 11 symptoms use the exact shared journal IDs. */
 const SPOKEN_LABELS: Record<string, string> = { light: "Light sensitivity" };
-export const INTAKE_SYMPTOMS = defaultSymptoms.map((name) => {
-  const item = checkInSymptoms.find((s) => s.name === name)!;
+export const INTAKE_SYMPTOMS = checkInSymptoms.map((item) => {
   return { name: item.name, label: SPOKEN_LABELS[item.name] ?? item.label };
 });
 
 export const SYMPTOM_LEVEL_LABELS = ["Not noticeable", "Less noticeable", "Noticeable", "More noticeable"] as const;
 
-const symptomCriteria = {
-  not_mentioned: "The person does not mention this symptom at all.",
-  not_noticeable: "The person says they do not have this symptom, or that it is gone.",
-  less_noticeable: "The person says this symptom is mild, slight, or only now and then.",
-  noticeable: "The person says this symptom is clearly there and affects their day.",
-  more_noticeable: "The person says this symptom is strong, severe, or hard to get through the day with.",
-} as const;
-export const SYMPTOM_CHOICE_TO_LEVEL = {
-  not_mentioned: null,
-  not_noticeable: 0,
-  less_noticeable: 1,
-  noticeable: 2,
-  more_noticeable: 3,
-} as const;
 
 const symptomPrompts: Record<string, string> = {
   headache: "How does the person describe headaches or head pain?",
@@ -71,28 +58,42 @@ export const INJURY_TIMING = {
 } as const;
 export type InjuryTiming = keyof typeof INJURY_TIMING;
 
-export const SEEN_DOCTOR = {
-  seen: "The person says they have seen a doctor, nurse, urgent care or emergency room about this injury.",
-  not_seen: "The person says they have not seen any doctor or clinician about this injury.",
-  not_mentioned: "The person does not say whether they have seen a doctor or clinician.",
-} as const;
-
 type Noul = { type: "noul"; instructions: string };
 type Choice = { type: "choice"; instructions: string; criteria: Record<string, string> };
+type Score = { type: "score"; instructions: string; criteria: readonly string[] };
+export type IntakeQuestion = Noul | Choice | Score;
+export const SYMPTOM_SCORE_CRITERIA = [
+  "Not present or gone.",
+  "Noticeable but does not affect daily activities.",
+  "Limits some activities such as work, school, screens or exercise.",
+  "Prevents normal daily activities.",
+] as const;
+export const INJURY_CAUSES = {
+  sport: "Sport", fall: "Fall", vehicle_crash: "Vehicle crash", work: "Work",
+  assault: "Assault", other: "Other",
+} as const;
 
 const noul = (instructions: string): Noul => ({ type: "noul", instructions });
 const choice = (instructions: string, criteria: Record<string, string>): Choice => ({ type: "choice", instructions, criteria });
 
 /** Every question asked in one TypeSafe call. Keys are the answer names. */
-export function buildQuestions(): Record<string, Noul | Choice> {
-  const q: Record<string, Noul | Choice> = {};
+export function buildQuestions(answered: Record<string, unknown> = {}): Record<string, IntakeQuestion> {
+  const q: Record<string, IntakeQuestion> = {};
   for (const [id, sign] of Object.entries(DANGER_SIGNS)) q[`danger_${id}`] = noul(sign.ask);
   q.self_harm = noul("Does the person express thoughts of harming themselves or ending their life, or say they feel hopeless?");
   q.getting_worse = noul("Does the person say their symptoms are getting worse over the days since the injury?");
   q.prior_concussion = noul("Does the person say they have had a concussion before this one?");
-  q.seen_doctor = choice("Has the person seen a doctor or clinician about this injury since it happened?", SEEN_DOCTOR);
+  q.seen_doctor = noul("Has a clinician already assessed this injury?");
+  q.injury_cause = choice("What caused the injury? Choose only the cause described, without implying an order.", INJURY_CAUSES);
   q.injury_timing = choice("When did the injury happen, based only on what the person says?", INJURY_TIMING);
-  for (const s of INTAKE_SYMPTOMS) q[`symptom_${s.name}`] = choice(symptomPrompts[s.name] ?? `How does the person describe ${s.label.toLowerCase()}?`, symptomCriteria);
+  for (const s of INTAKE_SYMPTOMS) {
+    q[`mentioned_${s.name}`] = noul(`Does the note mention ${s.label.toLowerCase()} at all, including saying it is absent or gone?`);
+    q[`symptom_${s.name}`] = {
+      type: "score",
+      instructions: `${symptomPrompts[s.name] ?? `How does the person describe ${s.label.toLowerCase()}?`} Rate the effect on daily activities only from what is written. The separate mentioned question determines whether this is recorded.`,
+      criteria: SYMPTOM_SCORE_CRITERIA,
+    };
+  }
   for (const [id, a] of Object.entries(ACTIVITIES)) q[`activity_${id}`] = noul(a.ask);
-  return q;
+  return Object.fromEntries(Object.entries(q).filter(([key]) => !Object.hasOwn(answered, key)));
 }

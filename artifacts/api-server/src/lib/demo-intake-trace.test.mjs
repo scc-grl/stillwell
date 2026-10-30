@@ -9,7 +9,6 @@ test("demo tracing keeps numeric scores and outcome without story or free-form f
   const privateText = "PRIVATE_SYNTHETIC_STORY_MARKER";
   const { read, decision } = await runIntake(privateText, { client: fakeClient(calm) });
   read.error = privateText;
-  read.model = privateText;
   read.keywords.danger = [privateText];
   decision.headline = privateText;
   decision.reasons = [{ rule: "S1", text: privateText }];
@@ -25,6 +24,9 @@ test("demo tracing keeps numeric scores and outcome without story or free-form f
   assert.equal(trace.scores.symptom_headache_confidence, read.scores.symptoms.headache.confidence);
   assert.ok(Object.values(trace.scores).every(value => typeof value === "number" && value >= 0 && value <= 1));
   assert.equal(trace.metadata.rulesVersion, decision.rulesVersion);
+  assert.equal(trace.metadata.logic.modelVersion, "jev-fake");
+  assert.equal(trace.metadata.logic.questions.length, 44);
+  assert.deepEqual(trace.metadata.logic.ruleIds, decision.ruleIds);
 });
 
 test("keyword-only emergency and crisis traces never contain the triggering words", async () => {
@@ -32,7 +34,7 @@ test("keyword-only emergency and crisis traces never contain the triggering word
     const { read, decision } = await runIntake(story, { client: null });
     const trace = demoIntakeTrace(read, decision, "voice");
     assert.ok(["go_to_er", "crisis_support"].includes(trace.output.outcome));
-    assert.deepEqual(trace.scores, {});
+    assert.deepEqual(trace.scores, { red_flag_outcome: 1 });
     assert.equal(trace.output.stage, null);
     assert.equal(JSON.stringify(trace).includes(story), false);
     assert.equal("keywordHits" in trace.metadata, false);

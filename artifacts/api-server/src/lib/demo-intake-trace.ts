@@ -1,4 +1,4 @@
-import type { Decision, IntakeRead } from "@workspace/intake-ai";
+import { intakeLogicTrace, redFlagOutcomeScore, type Decision, type IntakeRead } from "@workspace/intake-ai";
 
 /** Explicit allowlist: never pass story text, quotes, errors, or free-form answers. */
 export function demoIntakeTrace(read: IntakeRead, decision: Decision, inputMode: "typed" | "voice") {
@@ -20,7 +20,7 @@ export function demoIntakeTrace(read: IntakeRead, decision: Decision, inputMode:
   return {
     input: { inputMode },
     output: { outcome: decision.outcome, stage: decision.stage?.stage ?? null },
-    scores,
+    scores: { ...scores, red_flag_outcome: redFlagOutcomeScore(decision) },
     metadata: {
       demo: true,
       readSource: read.source,
@@ -28,6 +28,7 @@ export function demoIntakeTrace(read: IntakeRead, decision: Decision, inputMode:
       rulesVersion: decision.rulesVersion,
       questionsVersion: read.questionsVersion,
       outcome: decision.outcome,
+      logic: intakeLogicTrace(read, decision),
     },
     tags: ["demo", decision.outcome],
   };

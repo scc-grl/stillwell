@@ -1,158 +1,106 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildQuestions, decide, readIntake, runIntake, scanKeywords, THRESHOLDS } from "../src/index.ts";
-import { calm, failingClient, fakeClient } from "./fake-client.ts";
-
-const rules = (d: { reasons: { rule: string }[] }) => d.reasons.map((r) => r.rule);
-
-test("asks every question in one TypeSafe call, with a 3 second timeout and no retries", async () => {
+import { buildQuestions, DANGER_SIGNS, INTAKE_SYMPTOMS, RULES_VERSION, QUESTIONS_VERSION, runIntake, intakeLogicTrace, redFlagOutcomeScore, STAGE_GATES } from "../src/index.ts";
+import { calm, failingClient, fakeClient, type Overrides } from "./fake-client.ts";
+const run = (o: Overrides = {}) => runIntake("synthetic note", { client: fakeClient({ ...calm, ...o }) });
+test("versioned 12 separate flags, 11 mention + Score pairs, unordered cause and unchanged activity prompts", () => {
+  const q = buildQuestions();
+  assert.equal(QUESTIONS_VERSION, "intake-questions-2026-10-29.1");
+  assert.equal(RULES_VERSION, "intake-rules-2026-10-29.2");
+  assert.equal(Object.keys(DANGER_SIGNS).length, 12);
+  assert.equal(INTAKE_SYMPTOMS.length, 11);
+  assert.equal(Object.keys(q).length, 44);
+  for (const s of INTAKE_SYMPTOMS) {
+    assert.equal(q[`mentioned_${s.name}`].type, "noul");
+    assert.equal(q[`symptom_${s.name}`].type, "score");
+  }
+  assert.equal(q.seen_doctor.type, "noul");
+  assert.equal(q.injury_cause.type, "choice");
+});
+test("form answered questions are not sent; all other questions use one bounded call", async () => {
   const client = fakeClient(calm);
-  await readIntake("I hit my head at practice two weeks ago.", { client });
+  const { read } = await runIntake("synthetic", { client, answered: { seen_doctor: { noul: 1 } } });
   assert.equal(client.calls.length, 1);
-  const { request, options } = client.calls[0];
-  assert.deepEqual(request.state, { intake_note: "I hit my head at practice two weeks ago." });
-  assert.equal(Object.keys(request.questions).length, 25);
-  assert.equal(Object.keys(buildQuestions()).filter((k) => k.startsWith("danger_")).length, 10);
-  assert.deepEqual(options, { timeout: 3000, retry: { maxRetries: 0 } });
+  assert.equal(client.calls[0].request.questions.seen_doctor, undefined);
+  assert.deepEqual(client.calls[0].options, { timeout: 10000, retry: { maxRetries: 0 } });
+  assert.equal(read.scores?.seenDoctor.probability, 1);
 });
-
-test("Maya: three Noticeable symptoms, walks fine, spin class not -> find a doctor + journal, Stage 2", async () => {
-  const { decision } = await runIntake("note", { client: fakeClient({
-    ...calm,
-    symptom_headache: { choice: "noticeable", confidence: 0.9 },
-    symptom_fog: { choice: "noticeable", confidence: 0.88 },
-    symptom_fatigue: { choice: "noticeable", confidence: 0.85 },
-    activity_light_exercise: 0.5,
-    activity_harder_solo_exercise: 0.08,
-  }) });
-  assert.equal(decision.outcome, "find_doctor");
-  assert.deepEqual(rules(decision), ["D3"]);
-  assert.equal(decision.startJournal, true);
-  assert.equal(decision.stage?.stage, 2);
-  assert.equal(decision.stage?.amsterdamStep, 2);
+for (const flag of Object.keys(DANGER_SIGNS)) {
+  test(`emergency threshold inclusive for ${flag}`, async () => {
+    assert.equal((await run({ [`danger_${flag}`]: 0.2 })).decision.outcome, "go_to_er");
+    assert.notEqual((await run({ [`danger_${flag}`]: 0.199 })).decision.outcome, "go_to_er");
+    assert.equal((await run({ [`danger_${flag}`]: { noul: 0.01, confidence: 0.49 } })).decision.outcome, "go_to_er");
+  });
+}
+test("ticked flag and keyword retain precedence when TypeSafe fails", async () => {
+  assert.equal((await runIntake("note", { client: failingClient, tickedRedFlags: ["slurred_speech"] })).decision.outcome, "go_to_er");
+  assert.equal((await runIntake("I passed out", { client: null })).decision.outcome, "go_to_er");
+  assert.equal((await runIntake("I feel hopeless", { client: null })).decision.outcome, "crisis_support");
 });
-
-test("a danger sign scored exactly 0.2 sends to the ER; 0.19 does not", async () => {
-  const er = await runIntake("note", { client: fakeClient({ ...calm, danger_vomiting: THRESHOLDS.danger }) });
-  assert.equal(er.decision.outcome, "go_to_er");
-  assert.equal(er.decision.stage, null);
-  const ok = await runIntake("note", { client: fakeClient({ ...calm, danger_vomiting: 0.19 }) });
-  assert.equal(ok.decision.outcome, "start_journal");
+test("ER precedes crisis; crisis precedes low-confidence confirmation", async () => {
+  const both = await run({ danger_seizure: 0.2, self_harm: 0.2 });
+  assert.equal(both.decision.outcome, "go_to_er"); assert.equal(both.decision.crisisLineShown, true);
+  assert.equal((await run({ self_harm: { noul: 0.01, confidence: 0.49 } })).decision.outcome, "crisis_support");
+  assert.equal((await run({ self_harm: 0.2 })).decision.outcome, "crisis_support");
 });
-
-test("self-harm at 0.2 shows crisis support; with a danger sign too, ER wins and 988 still shows", async () => {
-  const crisis = await runIntake("note", { client: fakeClient({ ...calm, self_harm: 0.2 }) });
-  assert.equal(crisis.decision.outcome, "crisis_support");
-  const both = await runIntake("note", { client: fakeClient({ ...calm, self_harm: 0.6, danger_seizure: 0.9 }) });
-  assert.equal(both.decision.outcome, "go_to_er");
-  assert.equal(both.decision.crisisLineShown, true);
-  assert.deepEqual(rules(both.decision), ["E1", "C1"]);
+test("unavailable or mentioned symptom confidence below .6 needs taps before worsening rule", async () => {
+  assert.equal((await runIntake("note", { client: failingClient })).decision.outcome, "use_tap_questions");
+  const d = (await run({ mentioned_headache: 0.9, symptom_headache: { score: 2, confidence: 0.59 }, getting_worse: 0.9 })).decision;
+  assert.equal(d.outcome, "use_tap_questions"); assert.ok(d.ruleIds.includes("R0"));
+  assert.notEqual((await run({ mentioned_headache: 0.9, symptom_headache: { score: 2, confidence: 0.6 } })).decision.outcome, "use_tap_questions");
 });
-
-test("the keyword scan alone is enough, even when every AI score is low", async () => {
-  const { decision } = await runIntake("I threw up twice this morning", { client: fakeClient(calm) });
-  assert.equal(decision.outcome, "go_to_er");
-  assert.match(decision.reasons[0].text, /vomiting/);
-  assert.deepEqual(scanKeywords("I feel hopeless").selfHarm, ["self-harm"]);
-  assert.deepEqual(scanKeywords("I have thrown up three times").danger, ["vomiting"]);
+test("unmentioned symptoms never become zero or affect the composite", async () => {
+  const d = (await run({ symptom_headache: { score: 3, confidence: 0.1 } })).decision;
+  assert.equal(d.symptoms[0].level, null); assert.equal(d.symptoms[0].levelLabel, "Not recorded");
+  assert.equal(d.composite.total, 0); assert.equal(d.outcome, "start_journal");
+  const absent = (await run({ mentioned_headache: 1, symptom_headache: 0 })).decision;
+  assert.equal(absent.symptoms[0].level, 0);
 });
-
-test("TypeSafe failing falls back to the keyword scan and tap questions, without leaking the error text", async () => {
-  const read = await readIntake("my head hurts", { client: failingClient });
-  assert.equal(read.source, "keywords_only");
-  assert.equal(read.error, "APITimeoutError");
-  assert.equal(decide(read).outcome, "use_tap_questions");
-  const urgent = await readIntake("I passed out again", { client: failingClient });
-  assert.equal(decide(urgent).outcome, "go_to_er");
-  const none = await readIntake("my head hurts", { client: null });
-  assert.equal(none.error, "NotConfigured");
+test("worsening at .7 gives no stage, below .7 does not; D2/D3 are prompts, not no-stage outcomes", async () => {
+  const d = (await run({ getting_worse: 0.7 })).decision;
+  assert.equal(d.outcome, "find_doctor"); assert.equal(d.stage, null); assert.deepEqual(d.ruleIds, ["D1"]);
+  assert.equal((await run({ getting_worse: 0.699 })).decision.outcome, "start_journal");
+  const p = (await run({ seen_doctor: 0.1, injury_timing: { choice: "over_four_weeks" } })).decision;
+  assert.deepEqual(p.clinicianPrompts.map(r => r.rule), ["D2","D3"]); assert.equal(p.stage?.stage, 2);
 });
-
-test("under 48 hours: find a doctor and start the journal, capped at Stage 1", async () => {
-  const { decision } = await runIntake("note", { client: fakeClient({ ...calm, injury_timing: { choice: "under_48_hours", confidence: 0.95 }, activity_harder_solo_exercise: 0.9 }) });
-  assert.equal(decision.outcome, "find_doctor");
-  assert.deepEqual(rules(decision), ["T1"]);
-  assert.equal(decision.startJournal, true);
-  assert.equal(decision.stage?.stage, 1);
+test("P1 requires daily tasks and walking or light exercise; unsure never counts yes", async () => {
+  assert.equal((await run()).decision.stage?.stage, 2);
+  assert.equal((await run({ activity_harder_solo_exercise: 0.7 })).decision.stage?.stage, 3);
+  assert.equal((await run({ activity_daily_tasks: 0.69, activity_harder_solo_exercise: 0.9 })).decision.stage?.stage, 1);
+  assert.equal((await run({ activity_walking: 0.5, activity_light_exercise: 0.3, activity_harder_solo_exercise: 0.9 })).decision.stage?.stage, 1);
 });
-
-test("getting worse: find a doctor, no protocol stage", async () => {
-  const { decision } = await runIntake("note", { client: fakeClient({ ...calm, getting_worse: 0.85 }) });
-  assert.equal(decision.outcome, "find_doctor");
-  assert.deepEqual(rules(decision), ["D2"]);
-  assert.equal(decision.stage, null);
-  assert.match(decision.stageNote ?? "", /getting worse/);
+test("P2 exact max 2.5 or total 9 caps to one, using fractional scores", async () => {
+  const max = (await run({ mentioned_headache: 1, symptom_headache: 2.5, activity_harder_solo_exercise: 1 })).decision;
+  assert.equal(max.stage?.stage, 1); assert.ok(max.ruleIds.includes("P2")); assert.equal(max.composite.max, 2.5);
+  const o: Overrides = {};
+  for (const s of INTAKE_SYMPTOMS.slice(0,6)) { o[`mentioned_${s.name}`] = 1; o[`symptom_${s.name}`] = 1.5; }
+  const total = (await run(o)).decision;
+  assert.equal(total.composite.total, 9); assert.equal(total.stage?.stage, 1);
 });
-
-test("getting worse at 0.5 is unsure: no D2, but Stillwell asks", async () => {
-  const { decision } = await runIntake("note", { client: fakeClient({ ...calm, getting_worse: 0.5 }) });
-  assert.ok(!rules(decision).includes("D2"));
-  assert.ok(decision.followUps.some((f) => /getting worse/.test(f)));
+test("P3 exact max 1.5 or four symptoms caps to two", async () => {
+  const a = (await run({ activity_harder_solo_exercise: 1, mentioned_headache: 1, symptom_headache: 1.5 })).decision;
+  assert.equal(a.stage?.stage, 2); assert.ok(a.ruleIds.includes("P3"));
+  const o: Overrides = { activity_harder_solo_exercise: 1 };
+  for (const s of INTAKE_SYMPTOMS.slice(0,4)) { o[`mentioned_${s.name}`] = 1; o[`symptom_${s.name}`] = 1; }
+  assert.equal((await run(o)).decision.stage?.stage, 2);
 });
-
-test("not mentioning a doctor still recommends one, and asks", async () => {
-  const { decision } = await runIntake("note", { client: fakeClient({ ...calm, seen_doctor: { choice: "not_mentioned", confidence: 0.9 } }) });
-  assert.deepEqual(rules(decision), ["D1"]);
-  assert.ok(decision.followUps.includes("Have you seen a doctor since the injury?"));
-  const notSeen = await runIntake("note", { client: fakeClient({ ...calm, seen_doctor: { choice: "not_seen", confidence: 0.9 } }) });
-  assert.deepEqual(rules(notSeen.decision), ["D1"]);
+test("P4 under 48 hours, exact timing and D3 >28days; missing timing stays unknown", async () => {
+  const make = (hours: number) => runIntake("note", { client: fakeClient({ ...calm, activity_harder_solo_exercise: 1 }), hoursSinceInjury: hours });
+  assert.equal((await make(47.99)).decision.stage?.stage, 1);
+  assert.equal((await make(48)).decision.stage?.stage, 3);
+  assert.ok(!(await make(672)).decision.ruleIds.includes("D3"));
+  assert.ok((await make(672.1)).decision.ruleIds.includes("D3"));
+  const unknown = (await run({ injury_timing: { choice: "not_mentioned" } })).decision;
+  assert.equal(unknown.composite.hoursSinceInjury, null);
 });
-
-test("over 4 weeks adds D4; unclear timing asks instead", async () => {
-  const late = await runIntake("note", { client: fakeClient({ ...calm, injury_timing: { choice: "over_four_weeks", confidence: 0.9 } }) });
-  assert.deepEqual(rules(late.decision), ["D4"]);
-  const unclear = await runIntake("note", { client: fakeClient({ ...calm, injury_timing: { choice: "over_four_weeks", confidence: 0.6 } }) });
-  assert.equal(unclear.decision.outcome, "start_journal");
-  assert.ok(unclear.decision.followUps.includes("About how long ago did the injury happen?"));
-});
-
-test("every doctor reason that applies is listed", async () => {
-  const { decision } = await runIntake("note", { client: fakeClient({
-    ...calm,
-    seen_doctor: { choice: "not_seen", confidence: 0.9 },
-    injury_timing: { choice: "over_four_weeks", confidence: 0.9 },
-    symptom_headache: { choice: "noticeable" }, symptom_sleep: { choice: "noticeable" }, symptom_mood: { choice: "more_noticeable" },
-  }) });
-  assert.deepEqual(rules(decision), ["D1", "D3", "D4"]);
-});
-
-test("any More noticeable symptom places at Stage 1 (P1)", async () => {
-  const { decision } = await runIntake("note", { client: fakeClient({ ...calm, symptom_light: { choice: "more_noticeable" }, activity_harder_solo_exercise: 0.95 }) });
-  assert.equal(decision.stage?.stage, 1);
-  assert.equal(decision.stage?.reasons[0].rule, "P1");
-});
-
-test("harder solo exercise places at Stage 3, never higher", async () => {
-  const { decision } = await runIntake("note", { client: fakeClient({ ...calm, activity_light_exercise: 0.9, activity_harder_solo_exercise: 0.95 }) });
-  assert.equal(decision.stage?.stage, 3);
-});
-
-test("unsure about the higher activity goes one stage lower (P3)", async () => {
-  const { decision } = await runIntake("note", { client: fakeClient({ ...calm, activity_walking: 0.1, activity_harder_solo_exercise: 0.5 }) });
-  assert.equal(decision.stage?.stage, 2);
-  assert.ok(decision.stage?.reasons.some((r) => r.rule === "P3"));
-  const none = await runIntake("note", { client: fakeClient({ ...calm, activity_daily_tasks: 0.02, activity_walking: 0.02 }) });
-  assert.equal(none.decision.stage?.stage, 1);
-  assert.equal(none.decision.stage?.reasons[0].rule, "P0");
-});
-
-test("unmentioned symptoms stay unrecorded; low-confidence levels are flagged to confirm", async () => {
-  const { decision } = await runIntake("note", { client: fakeClient({ ...calm, symptom_headache: { choice: "less_noticeable", confidence: 0.6 } }) });
-  const headache = decision.symptoms.find((x) => x.name === "headache")!;
-  assert.equal(headache.levelLabel, "Less noticeable");
-  assert.equal(headache.needsConfirm, true);
-  assert.equal(decision.symptoms.find((x) => x.name === "sleep")!.levelLabel, "Not recorded");
-});
-
-test("a calm note with a doctor already seen starts the journal (S1)", async () => {
-  const { decision } = await runIntake("note", { client: fakeClient(calm) });
-  assert.equal(decision.outcome, "start_journal");
-  assert.deepEqual(rules(decision), ["S1"]);
-  assert.equal(decision.stage?.stage, 2);
-});
-
-test("an earlier concussion is surfaced as a resource, not a rule", async () => {
-  const { decision } = await runIntake("note", { client: fakeClient({ ...calm, prior_concussion: 0.9 }) });
-  assert.equal(decision.outcome, "start_journal");
-  assert.equal(decision.resources.length, 1);
+test("next stage gates and safety scorer; trace includes questions/answers but never story", async () => {
+  const { read, decision } = await run({ activity_harder_solo_exercise: 1 });
+  assert.equal(decision.nextStage?.stage, 4);
+  assert.equal(decision.nextStage?.gate, "Opens when symptoms are gone even with exercise");
+  assert.equal(STAGE_GATES[5], "Opens with a clinician's okay");
+  const trace = intakeLogicTrace(read, decision);
+  assert.equal(trace.questions.length, 44); assert.equal(trace.modelVersion, "jev-fake");
+  assert.ok(!JSON.stringify(trace).includes("synthetic note"));
+  assert.equal(redFlagOutcomeScore({ redFlagFired: true, outcome: "start_journal" }), 0);
+  assert.equal(redFlagOutcomeScore({ redFlagFired: true, outcome: "go_to_er" }), 1);
 });
