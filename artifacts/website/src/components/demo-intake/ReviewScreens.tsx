@@ -36,7 +36,6 @@ export function SummaryScreen({
         <p className="eyebrow">Part 1 of 2 · Your answers</p>
         <h1 className="display text-4xl font-medium leading-tight sm:text-5xl">Summary</h1>
         <p className="max-w-2xl text-base leading-7 text-muted-foreground">Your own words are beside each answer. Change anything that isn't right.</p>
-        <p className="text-sm text-muted-foreground">Only details found in your story or answers you add are shown. Missing details stay unrecorded.</p>
       </header>
 
       <div className="space-y-5">
