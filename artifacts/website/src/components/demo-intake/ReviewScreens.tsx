@@ -184,7 +184,7 @@ export function RoadmapScreen({
         <p className="eyebrow">Part 2 of 2 · Protocol roadmap</p>
         <h1 className="display text-4xl font-medium leading-tight sm:text-5xl">Where you might be today</h1>
         <p className="max-w-3xl text-base leading-7 text-muted-foreground">
-          Based on what you've shared, Stillwell compared your details with the current international concussion consensus (Amsterdam 2022), the latest guidance on returning to activity.
+          We reviewed your information and found the closest match to the details shared with the current international concussion consensus (Amsterdam 2022). Please review details below.
           {stage ? <> It suggests starting at <strong className="text-foreground">Stage {stage.stage}, {stage.name}</strong>.</> : stageNote ? <> No starting stage was suggested. {stageNote}</> : " A starting stage wasn't available from these details."}
         </p>
       </header>
