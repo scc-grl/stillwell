@@ -139,7 +139,7 @@ export function DemoPatientDashboard({
           </div>
           <div className="rounded-xl border-2 border-dashed border-primary/40 p-4">
             <div className="flex flex-wrap items-start justify-between gap-2">
-              <strong className="text-sm">From your intake · Stage 2 of 6 · Light to moderate activity</strong>
+              <strong className="text-sm">Protocol Stage 2 of 6 · Light to moderate activity</strong>
               <span className="rounded-full border border-primary/40 bg-secondary px-3 py-1 text-xs text-secondary-foreground">Fictional example</span>
             </div>
             <div className="mt-3 flex gap-1.5" role="img" aria-label="Stage 2 of 6">
