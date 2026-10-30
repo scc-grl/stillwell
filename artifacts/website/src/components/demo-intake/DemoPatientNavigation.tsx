@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BookOpen, ClipboardList, LayoutDashboard, Settings2, UsersRound, X } from "lucide-react";
+import { BookOpen, LayoutDashboard, Settings2, UsersRound, X } from "lucide-react";
 import { Button } from "@workspace/stillwell-design-system/components/ui/button";
 import { Card } from "@workspace/stillwell-design-system/components/ui/card";
 import stillwellMark from "@workspace/stillwell-design-system/brand/stillwell-mark.svg";
@@ -7,7 +7,6 @@ import stillwellMark from "@workspace/stillwell-design-system/brand/stillwell-ma
 export type DemoPatientSection = "dashboard" | "journal";
 
 const previewSections = [
-  { label: "Care protocol", icon: ClipboardList },
   { label: "Care team", icon: UsersRound },
   { label: "Account", icon: Settings2 },
 ] as const;
