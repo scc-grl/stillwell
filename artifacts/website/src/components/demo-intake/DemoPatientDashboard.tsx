@@ -124,7 +124,6 @@ export function DemoPatientDashboard({
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Your care protocol</p>
-              <h2 className="mt-2 font-serif text-2xl font-medium">With clinician support</h2>
             </div>
             {!routineEditing ? (
               <Button type="button" variant="outline" size="sm" onClick={() => {
