@@ -87,7 +87,7 @@ export function DemoShell({
               }`}
             >
               <span className="flex flex-col items-start gap-0.5">
-                <span className="text-sm font-semibold">{option.startsWith("Maya") ? "Maya J. · Patient" : "Ray F. · Clinician - "}</span>
+                <span className="text-sm font-semibold">{option.startsWith("Maya") ? "Maya J. · Patient" : "Ray F. · Clinician"}</span>
                 <span className={persona === option ? "text-muted-foreground" : "text-background/65"}>{option.startsWith("Maya") ? "20 · college soccer" : "Sports medicine physician"}</span>
               </span>
             </Button>
