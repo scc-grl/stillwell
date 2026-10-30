@@ -35,9 +35,8 @@ export function SummaryScreen({
       <header className="mb-7 space-y-3">
         <p className="eyebrow">Part 1 of 2 · Your answers</p>
         <h1 className="display text-4xl font-medium leading-tight sm:text-5xl">Summary</h1>
-        <p className="max-w-2xl text-base leading-7 text-muted-foreground">Your own words are beside each answer. Change anything that isn't right.</p>
+        <p className="max-w-2xl text-base leading-7 text-muted-foreground">Based on what you have shared, review/edit your response and confirm. </p>
       </header>
-
       <div className="space-y-5">
         <Card className="p-5 sm:p-7" data-testid="summary-injury-card">
           <h2 className="display mb-5 text-2xl font-medium">About the injury</h2>
@@ -48,7 +47,7 @@ export function SummaryScreen({
               return (
                 <div key={field.label} className="grid gap-3 py-4 sm:grid-cols-[minmax(10rem,0.7fr)_1.3fr_auto] sm:items-center" data-testid={`answer-field-${index + 1}`}>
                   <dt className="text-sm font-semibold">{field.label}</dt>
-                <dd className="text-sm leading-6 text-muted-foreground">{present ? field.quote : "Not mentioned"}{field.uncertain && <span className="ml-2 text-xs font-medium text-accent-foreground">Please check</span>}</dd>
+                  <dd className="text-sm leading-6 text-muted-foreground">{present ? field.quote : "Not mentioned"}{field.uncertain && <span className="ml-2 text-xs font-medium text-accent-foreground">Please check</span>}</dd>
                   {isEditing ? (
                     <div className="flex gap-2 sm:col-span-3 sm:justify-end">
                       <Input value={draft} onChange={(event) => setDraft(event.target.value)} aria-label={`${field.label} answer`} className="min-h-11" data-testid={`input-edit-${index + 1}`} />
