@@ -123,7 +123,7 @@ export function DemoPatientDashboard({
         <Card className="space-y-5 p-5 sm:p-6" data-testid="demo-dashboard-routine">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Your care protocol</p>
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Log Recovery Activities</p>
             </div>
             {!routineEditing ? (
               <Button type="button" variant="outline" size="sm" onClick={() => {
