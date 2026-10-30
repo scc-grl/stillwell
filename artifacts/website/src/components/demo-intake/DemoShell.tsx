@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { Link } from "wouter";
-import { ArrowLeft, BookOpen, CalendarDays, ChartNoAxesCombined, ClipboardList, LayoutDashboard, Mail, Menu, Users, X } from "lucide-react";
+import { ArrowLeft, BookOpen, ChartNoAxesCombined, ClipboardList, LayoutDashboard, Menu, Users, X } from "lucide-react";
 import { Button } from "@workspace/stillwell-design-system/components/ui/button";
 import stillwellMark from "@workspace/stillwell-design-system/brand/stillwell-mark.svg";
 
@@ -127,8 +127,6 @@ export function DemoShell({
               {navItem("ray-intake", "Intake summary", "nav-ray-intake", <ClipboardList className="size-4" />)}
               {navItem("ray-insights", "Insights", "nav-ray-insights", <ChartNoAxesCombined className="size-4" />)}
               {navItem("ray-journal", "Journal", "nav-ray-journal", <BookOpen className="size-4" />)}
-              {navItem("ray-day", "One day in detail", "nav-ray-day", <CalendarDays className="size-4" />)}
-              {navItem("ray-messages", "Messages", "nav-ray-messages", <Mail className="size-4" />)}
             </div>
           </div>
         </>}
