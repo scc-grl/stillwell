@@ -66,7 +66,7 @@ export default function DemoLandingPage() {
                 <li className="flex gap-3"><strong className="text-primary">2</strong>Spots patterns, like sleep slipping, before the next visit</li>
                 <li className="flex gap-3"><strong className="text-primary">3</strong>Reads the journal and replies to Maya</li>
               </ol>
-              <Button asChild variant="outline" className="mt-auto min-h-12 w-fit rounded-full px-6"><Link href="/demo/intake?persona=ray">Follow his journey <ArrowRight aria-hidden="true" /></Link></Button>
+              <Button disabled variant="outline" className="mt-auto min-h-12 w-fit rounded-full border-border bg-muted px-6 text-muted-foreground">Demo Coming Soon</Button>
             </Card>
           </div>
         </section>
