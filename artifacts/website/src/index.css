@@ -642,6 +642,19 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .stage-section { background-color:hsl(var(--background)); }
 .stage-current-label { display:inline-block; margin: .35rem 0 0 .5rem; border-radius:9999px; background:var(--field); color:var(--graphite); padding:.25rem .5rem; font-size:.65rem; font-weight:600; }
 .founder-quote-band { background-color:var(--tile-sage); }
+.founder-quote { max-width: 58rem; }
+.founder-quote-text {
+  margin: 0;
+  color: hsl(var(--foreground));
+  font-family: "Newsreader", var(--app-font-serif, Georgia, serif);
+  font-size: clamp(1.85rem, 3.4vw, 3rem);
+  font-weight: 400;
+  line-height: 1.22;
+  letter-spacing: -.025em;
+  text-wrap: pretty;
+}
+.founder-quote-text span { display: block; text-wrap: balance; }
+.founder-quote-text span + span { margin-top: .32em; }
 .marketing-home p.text-xs,
 .marketing-home p.text-sm,
 .marketing-home p[class*="text-["] { font-size:1rem; line-height:1.6; color:var(--graphite); }
@@ -660,6 +673,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .website-theme-surface.dark .marketing-home h2.display,
 .website-theme-surface.dark .marketing-home h3.display { color:hsl(var(--foreground))!important; }
 .website-theme-surface.dark .marketing-home > .founder-quote-band { background-color:var(--tile-sage); }
+.website-theme-surface.dark .founder-quote-text { color:hsl(var(--foreground)); }
 .eyebrow { display:flex; align-items:center; gap:9px; color:#547364; font-size:10px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; }
 .eyebrow::before { content:""; width:22px; height:1px; background:#a6b9aa; }
 .partner-example-grain { background-image:radial-gradient(hsl(var(--primary) / 0.1) 0.75px, transparent 0.75px); background-size:14px 14px; }
