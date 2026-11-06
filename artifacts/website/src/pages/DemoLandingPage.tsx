@@ -78,7 +78,6 @@ export default function DemoLandingPage() {
             <Button asChild variant="outline" className="min-h-12 rounded-full border-background/40 px-6 text-background"><Link href="/clinicians/">I'm a clinician</Link></Button>
           </div>
         </section>
-        <p className="text-sm leading-6 text-muted-foreground">Stillwell is not a diagnosis tool. It can't diagnose or treat a concussion; please see a medical provider for that. Not for a new head injury or an emergency.</p>
       </main>
     </div>
   );
