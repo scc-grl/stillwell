@@ -13,7 +13,7 @@ export default function DemoLandingPage() {
         <section className="grid items-center gap-10 lg:grid-cols-2 lg:gap-12">
           <div className="space-y-5">
             <p className="eyebrow">Care for the in-between</p>
-            <h1 className="display max-w-2xl text-5xl font-normal leading-tight sm:text-6xl">Recovery can feel less like guesswork.</h1>
+            <h1 className="display max-w-2xl text-5xl font-normal leading-tight sm:text-6xl">Recovery can feel less like guesswork</h1>
             <p className="max-w-xl text-base leading-7 text-muted-foreground">Athletes have trainers, physicians and a protocol from day one. Stillwell puts that support around you, whatever caused your concussion. A plan and the people you choose, all on the same page</p>
             <div className="flex flex-wrap gap-3 pt-1">
               <Button asChild className="min-h-12 rounded-full px-6"><Link href="/sign-up">Sign up <ArrowUpRight aria-hidden="true" /></Link></Button>
