@@ -21,7 +21,6 @@ import { clearClinicianSetupDraft } from "@/pages/PartnersPages";
 import { PublicLayout } from "@/components/PublicSite";
 import { IllustrationTile, PaperNote, SiteButton } from "@/components/SiteComponents";
 import { WebsiteThemeProvider } from "@/components/WebsiteTheme";
-import { STAGES } from "@/components/demo-intake/demo-data";
 import { clearDraft, readDraft } from "@/lib/recovery";
 import { clearAccountChoice, clearRegistrationIntent, readAccountChoice, readRegistrationIntent, storeRegistrationIntent } from "@/lib/account";
 import { trackEvent } from "@/lib/analytics";
@@ -86,6 +85,15 @@ const appearance = {
   },
 };
 
+const HOMEPAGE_STAGES = [
+  { name: "Rest and settle", description: "A day or two of easy daily life: less screen time and reading." },
+  { name: "Ease back in", description: "Short walks, light reading, simple tasks, high rest intervals." },
+  { name: "Build steady", description: "Longer exercise and activity below your symptom limit." },
+  { name: "Full days again", description: "Full-time work or school without adjustments, no contact." },
+  { name: "Full effort", description: "Full-intensity training, demanding work like driving or working at height." },
+  { name: "Back to life", description: "A clinician clears you for everything; you move into a long-term brain-health plan." },
+] as const;
+
 function Landing() {
   return (
     <PublicLayout>
@@ -125,16 +133,17 @@ function Landing() {
             <div className="mx-auto max-w-2xl text-center">
               <p className="eyebrow justify-center">A map, not a race</p>
               <h2 id="stages-heading" className="display mt-4 text-4xl font-medium leading-tight text-foreground sm:text-5xl">Six stages, one page at a time.</h2>
-              <p className="mt-4 text-base leading-7 text-graphite">The six-stage roadmap is here to make the path easier to see. The highlight is illustrative, not a stage assignment for any real person.</p>
+              <p className="mt-4 text-base leading-7 text-graphite">Stillwell’s six adapted concussion recovery stages, from rest and easy daily life to getting back to what matters. The highlight is illustrative, not a stage assignment for any real person.</p>
             </div>
             <ol className="mt-10 grid list-none gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3">
-              {STAGES.map((name, index) => <li key={name} className={`stage-paper-card rounded-xl ${index === 2 ? "is-current" : ""}`} data-testid={`card-roadmap-stage-${index + 1}`}>
+              {HOMEPAGE_STAGES.map(({ name, description }, index) => <li key={name} className={`stage-paper-card rounded-xl ${index === 2 ? "is-current" : ""}`} data-testid={`card-roadmap-stage-${index + 1}`}>
                 <span className="stage-number">0{index + 1}</span>
                 {index === 2 && <span className="stage-current-label">You are here · illustrative only</span>}
                 <h3 className="display mt-4 text-xl font-medium leading-snug text-foreground">{name}</h3>
+                <p className="mt-3 text-base leading-6 text-graphite">{description}</p>
               </li>)}
             </ol>
-            <p className="mt-6 text-center text-sm text-graphite">Follows Amsterdam 2022 Concussion Consensus Guidelines</p>
+            <p className="mt-6 text-center text-sm text-graphite">Adapted for Stillwell from the Amsterdam 2022 concussion consensus.</p>
           </div>
         </section>
         <section className="founder-quote-band px-5 py-12 sm:px-8 sm:py-14 lg:px-12 lg:py-16">
