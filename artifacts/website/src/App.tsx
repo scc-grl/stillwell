@@ -140,7 +140,7 @@ function Landing() {
         <section className="founder-quote-band px-5 py-12 sm:px-8 sm:py-14 lg:px-12 lg:py-16">
           <blockquote className="founder-quote mx-auto text-center">
             <p className="founder-quote-text text-foreground">
-              <span>“I was told to monitor it and come back in two months.</span>
+              <span>“I had a clear CT scan and was told to monitor it and come back in two months,</span>
               <span>Stillwell is what I wish I'd had in between.”</span>
             </p>
           </blockquote>
