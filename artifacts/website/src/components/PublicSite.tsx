@@ -31,7 +31,6 @@ export function PublicHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [location] = useLocation();
   const closeMenu = () => setMenuOpen(false);
-  const recoveryActive = location === "/" || location.startsWith("/quiz") || location.startsWith("/dashboard");
   const howActive = location.startsWith("/demo");
   const resourceActive = location.startsWith("/faqs");
   const navClass = (active: boolean) => `site-nav-link min-h-11 inline-flex items-center ${active ? "site-nav-active" : ""}`;
@@ -39,7 +38,6 @@ export function PublicHeader() {
     <div className="mx-auto flex max-w-[1240px] items-center justify-between px-5 py-3 sm:px-8 lg:px-12 lg:py-4">
       <Brand journal testId="link-header-stillwell-home"/>
       <nav className="hidden items-center gap-6 text-sm font-semibold text-graphite lg:flex" aria-label="Main navigation">
-        <Link data-testid="link-nav-recovery" href="/quiz" className={navClass(recoveryActive)}>Self Recovery</Link>
         <a data-testid="link-nav-care" href="/clinicians/" className={navClass(location.startsWith("/clinicians") || location.startsWith("/find-your-clinician"))}>Find Care</a>
         <Link data-testid="link-nav-resources" href="/faqs" className={navClass(resourceActive)}>Resource Library</Link>
         <Link data-testid="link-nav-how-it-works" href="/demo" className={navClass(howActive)}>How it works</Link>
@@ -52,7 +50,6 @@ export function PublicHeader() {
       <Button type="button" variant="outline" size="icon" data-testid="button-mobile-menu" className="rounded-full text-primary lg:hidden" onClick={() => setMenuOpen(value => !value)} aria-label={menuOpen ? "Close navigation" : "Open navigation"} aria-expanded={menuOpen} aria-controls="mobile-public-navigation">{menuOpen ? <X size={18}/> : <Menu size={18}/>}</Button>
     </div>
     {menuOpen && <nav id="mobile-public-navigation" className="grid gap-1 border-t border-border bg-background px-5 py-3 lg:hidden" aria-label="Mobile navigation">
-      <Link data-testid="link-mobile-self-recovery" onClick={closeMenu} href="/quiz" className={`rounded-lg px-3 py-3 text-sm text-secondary-foreground hover:bg-secondary ${recoveryActive ? "site-nav-active" : ""}`}>Self Recovery</Link>
       <a data-testid="link-mobile-find-care" onClick={closeMenu} href="/clinicians/" className="rounded-lg px-3 py-3 text-sm text-secondary-foreground hover:bg-secondary">Find Care</a>
       <Link data-testid="link-mobile-resource-library" onClick={closeMenu} href="/faqs" className={`rounded-lg px-3 py-3 text-sm text-secondary-foreground hover:bg-secondary ${resourceActive ? "site-nav-active" : ""}`}>Resource Library</Link>
       <Link data-testid="link-mobile-how-it-works" onClick={closeMenu} href="/demo" className={`rounded-lg px-3 py-3 text-sm text-secondary-foreground hover:bg-secondary ${howActive ? "site-nav-active" : ""}`}>How it works</Link>
