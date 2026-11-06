@@ -10,7 +10,7 @@ export default function CareTeamSharingFeature() {
         <Users className="size-6 shrink-0 text-primary" aria-hidden="true" />
         <div className="space-y-2">
           <h2 id="care-team-feature" className="font-serif text-2xl font-medium text-foreground">Share with your care team</h2>
-          <p className="text-sm leading-7 text-muted-foreground">Invite a clinician, or accept their request, to let them read your journal. They can't edit it. If you stop sharing, they keep what you shared up to then but see nothing new.</p>
+          <p className="text-sm leading-7 text-muted-foreground">Build your care team. Invite a clinician, or accept their request, include friends or family. </p>
         </div>
       </Card>
     </section>
