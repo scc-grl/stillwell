@@ -39,7 +39,7 @@ export default function DemoLandingPage() {
           <div className="max-w-2xl space-y-3">
             <p className="eyebrow">How it works</p>
             <h2 id="demo-stories-heading" className="display text-4xl font-normal sm:text-5xl">Two people, one recovery.</h2>
-            <p className="text-base leading-7 text-muted-foreground">Follow a sample patient and her sports medicine physician through Stillwell. They're made up, and so is their data. The screens are the real ones.</p>
+            <p className="text-base leading-7 text-muted-foreground">Follow a sample patient and her sports medicine physician through Stillwell</p>
           </div>
           <div className="grid gap-5 lg:grid-cols-2">
             <Card className="flex flex-col gap-5 p-6 sm:p-7">
