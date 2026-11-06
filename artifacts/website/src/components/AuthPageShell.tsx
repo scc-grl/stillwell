@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "wouter";
 import { Brand } from "@/components/PublicSite";
+import { ThemeToggle } from "@/components/WebsiteTheme";
 
 type AuthPageShellProps = {
   eyebrow: string;
@@ -22,7 +23,10 @@ export default function AuthPageShell({
   return (
     <main className="stillwell min-h-[100dvh] px-4 py-8 sm:px-8 sm:py-12">
       <div className="mx-auto flex w-full max-w-md flex-col items-center">
-        <Brand />
+        <div className="flex w-full items-center justify-between">
+          <Brand journal />
+          <ThemeToggle testId="button-theme-toggle-auth" />
+        </div>
         <div className="mt-10 w-full text-center">
           <p className="eyebrow justify-center">{eyebrow}</p>
           <h1 className="display mt-3 text-3xl font-medium leading-tight text-foreground">{title}</h1>

@@ -3,7 +3,7 @@ import { ClerkProvider, SignIn, SignUp, useClerk, useUser } from "@clerk/react";
 import { publishableKeyFromHost } from "@clerk/react/internal";
 import { shadcn } from "@clerk/themes";
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
-import { Activity, ArrowRight, CalendarDays, CircleAlert, Leaf, Menu, ShieldCheck, Sparkles } from "lucide-react";
+import { Activity, ArrowRight, CalendarDays, CircleAlert, Leaf, Menu, ShieldCheck } from "lucide-react";
 import { Link, Redirect, Route, Router as WouterRouter, Switch, useLocation } from "wouter";
 import { getGetAccountTypeQueryKey, useCompleteAccountRegistration, useCreateAccountRegistrationIntent, useGetAccountType } from "@workspace/api-client-react";
 import type { AccountType } from "@workspace/api-client-react";
@@ -19,6 +19,9 @@ import PublicInfoPage from "@/pages/PublicInfoPage";
 import UnsubscribePage from "@/pages/UnsubscribePage";
 import { clearClinicianSetupDraft } from "@/pages/PartnersPages";
 import { PublicLayout } from "@/components/PublicSite";
+import { IllustrationTile, PaperNote, SiteButton } from "@/components/SiteComponents";
+import { WebsiteThemeProvider } from "@/components/WebsiteTheme";
+import { STAGES } from "@/components/demo-intake/demo-data";
 import { clearDraft, readDraft } from "@/lib/recovery";
 import { clearAccountChoice, clearRegistrationIntent, readAccountChoice, readRegistrationIntent, storeRegistrationIntent } from "@/lib/account";
 import { trackEvent } from "@/lib/analytics";
@@ -52,49 +55,95 @@ const appearance = {
     colorInput: "#fffefa",
     colorInputForeground: "#29463b",
     colorNeutral: "#dce3d8",
-    fontFamily: "'DM Sans', sans-serif",
-    borderRadius: "1rem",
+    fontFamily: "'Atkinson Hyperlegible Next', sans-serif",
+    borderRadius: "0.75rem",
   },
   elements: {
     rootBox: "w-full flex justify-center",
-    cardBox: "bg-[#fbfaf5] rounded-[24px] w-[440px] max-w-full overflow-hidden border border-[#dce3d8]",
+    cardBox: "bg-card text-card-foreground rounded-xl w-[440px] max-w-full overflow-hidden border border-border",
     card: "!shadow-none !border-0 !bg-transparent !rounded-none",
     footer: "!shadow-none !border-0 !bg-transparent !rounded-none",
-    headerTitle: "text-[#29463b] font-semibold",
-    headerSubtitle: "text-[#718077]",
-    socialButtonsBlockButtonText: "text-[#405849] font-medium",
-    formFieldLabel: "text-[#405849] font-medium",
-    footerActionLink: "text-[#345849] font-semibold",
-    footerActionText: "text-[#718077]",
-    dividerText: "text-[#81877c]",
-    identityPreviewEditButton: "text-[#345849]",
-    formFieldSuccessText: "text-[#4f765c]",
-    alertText: "text-[#854c43]",
+    headerTitle: "text-foreground font-semibold",
+    headerSubtitle: "text-graphite",
+    socialButtonsBlockButtonText: "text-foreground font-medium",
+    formFieldLabel: "text-graphite font-medium",
+    footerActionLink: "text-primary font-semibold",
+    footerActionText: "text-graphite",
+    dividerText: "text-graphite",
+    identityPreviewEditButton: "text-primary",
+    formFieldSuccessText: "text-primary",
+    alertText: "text-notice-foreground",
     logoBox: "hidden",
-    socialButtonsBlockButton: "rounded-xl border-[#dce3d8] bg-[#fffefa] hover:bg-[#f2f4ed]",
-    formButtonPrimary: "rounded-full bg-[#345849] hover:bg-[#28493b] text-[#fbfaf5]",
-    formFieldInput: "rounded-xl border-[#dce3d8] bg-[#fffefa] text-[#29463b]",
+    socialButtonsBlockButton: "rounded-xl border-border bg-field hover:bg-secondary",
+    formButtonPrimary: "rounded-full bg-primary hover:bg-primary/90 text-primary-foreground",
+    formFieldInput: "rounded-xl border-border bg-field text-foreground",
     footerAction: "border-t border-[#e5e9e0]",
-    dividerLine: "bg-[#e2e6dc]",
+    dividerLine: "bg-border",
     alert: "rounded-xl",
-    otpCodeFieldInput: "border-[#dce3d8] text-[#29463b]",
+    otpCodeFieldInput: "border-border text-foreground",
     formFieldRow: "mb-4",
-    main: "text-[#29463b]",
+    main: "text-foreground",
   },
 };
 
 function Landing() {
   return <PublicLayout>
-    <main id="main">
-      <section className="mx-auto grid max-w-[1240px] items-center gap-10 px-5 pb-16 pt-10 sm:px-8 sm:pb-20 sm:pt-14 lg:grid-cols-[1fr_.92fr] lg:gap-14 lg:px-12 lg:pb-24 lg:pt-16">
-        <div className="reveal relative z-[1]"><div className="mb-7 inline-flex items-center gap-2 rounded-full border border-[#cfdbcf] bg-[#edf1e8] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[.15em] text-[#587364]"><Sparkles size={13}/> Care for the in-between</div>
-          <h1 className="display max-w-[650px] text-[clamp(3rem,7vw,5.7rem)] font-medium leading-[.99] tracking-[-.058em] text-[#29453a]">Recovery can feel <span className="italic text-[#7b8f7d]">less</span> like guesswork.</h1>
-          <p className="mt-7 max-w-[520px] text-[16px] leading-[1.8] text-[#56665d] sm:text-[17px]">A private, self-guided journal for concussion recovery—and lingering post-concussive symptoms. Notice what changes, choose gentle routines, and bring your own reflections to a clinician if you want.</p>
-          <p className="mt-4 max-w-[520px] text-sm leading-7 text-muted-foreground">{JOURNAL_SHARING_COPY}</p>
-          <div className="mt-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center"><Link href="/quiz" onClick={() => trackEvent("recovery_quiz_started", { entry_point: "hero" })} className="group inline-flex min-h-[52px] items-center gap-5 rounded-full bg-[#345849] px-6 py-3 text-[14px] font-semibold text-[#fffdf8] transition-colors hover:bg-[#28493b]">Start a private journal<span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 transition-transform group-hover:translate-x-0.5"><ArrowRight size={15}/></span></Link><a href="#how" className="inline-flex min-h-11 items-center gap-2 px-1 py-3 text-[13px] font-medium text-[#567164] hover:text-[#29453a]">See how it works <ArrowRight size={14}/></a></div>
-          <div className="mt-8 flex items-center gap-3 text-[12px] text-[#718077]"><ShieldCheck size={16} className="text-[#6b8978]"/> Your experience is optional, personal, and user-led.</div>
+    <main id="main" className="marketing-home">
+      <section className="hero-field relative overflow-hidden">
+        <div aria-hidden="true" className="paper-grain pointer-events-none absolute inset-0 opacity-50" />
+        <div className="relative mx-auto grid max-w-[1240px] items-center gap-12 px-5 py-14 sm:px-8 sm:py-20 lg:grid-cols-2 lg:gap-16 lg:px-12 lg:py-24">
+          <div className="reveal relative z-[1]">
+            <p className="eyebrow">A little more room between visits</p>
+            <h1 className="display mt-5 max-w-[680px] text-5xl font-medium leading-tight tracking-tight text-foreground sm:text-6xl lg:text-7xl">
+              Recovery happens <span className="pencil-circle italic">between</span> visits.
+            </h1>
+            <p className="mt-7 max-w-[540px] text-lg leading-8 text-graphite">
+              A daily journal, a clear recovery stage, and a clinician who reviews your progress with you.
+            </p>
+            <p className="mt-4 max-w-[540px] text-base leading-7 text-graphite">{JOURNAL_SHARING_COPY}</p>
+            <div className="mt-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+              <SiteButton asChild onClick={() => trackEvent("recovery_quiz_started", { entry_point: "hero" })}>
+                <Link href="/quiz">Start your intake <ArrowRight aria-hidden="true" /></Link>
+              </SiteButton>
+              <SiteButton tone="secondary" asChild><Link href="/demo">See how it works <ArrowRight aria-hidden="true" /></Link></SiteButton>
+            </div>
+            <div className="mt-8 flex items-center gap-3 text-sm text-graphite">
+              <ShieldCheck size={18} aria-hidden="true" className="shrink-0 text-primary" />
+              Your experience is optional, personal, and user-led.
+            </div>
+          </div>
+          <div className="reveal-late relative mx-auto flex min-h-[24rem] w-full max-w-[35rem] items-center justify-center sm:min-h-[30rem]">
+            <div className="hero-paper-glow absolute inset-x-[8%] top-[6%] h-[82%] rounded-[48%] bg-tile-sage/70" aria-hidden="true" />
+            <div className="relative z-[1] w-full max-w-[24rem]">
+              <PaperNote />
+            </div>
+            <div className="absolute bottom-[1%] right-[2%] z-[2] sm:bottom-[4%] sm:right-[1%]">
+              <IllustrationTile />
+            </div>
+          </div>
         </div>
-        <div className="reveal-late relative mx-auto w-full max-w-[580px] lg:ml-auto"><div className="hero-art relative aspect-[1.07/1] overflow-hidden rounded-[47%_47%_43%_43%/42%_42%_51%_51%] sm:aspect-[1.12/1]"><div className="grain pointer-events-none absolute inset-0"/><div className="absolute left-[13%] top-[13%] h-[74%] w-[74%] rounded-full border border-white/45"/><div className="absolute left-[22%] top-[21%] h-[58%] w-[58%] rounded-full border border-white/55"/><div className="absolute left-[34%] top-[33%] h-[34%] w-[34%] rounded-full bg-[#f2e9d8]/80 shadow-[0_20px_60px_rgba(70,91,72,.12)]"/><div className="absolute left-[42%] top-[39%] h-[24%] w-[24%] rounded-full border border-[#738b78]/70"/><span className="absolute left-[43%] top-[18%] h-3 w-3 rounded-full bg-[#bf765f]"/><span className="absolute right-[20%] top-[44%] h-2 w-2 rounded-full bg-[#557568]"/><span className="absolute bottom-[25%] left-[21%] h-2.5 w-2.5 rounded-full bg-[#c89965]"/><div className="absolute left-[17%] top-[10%] flex items-center gap-2 rounded-full border border-white/80 bg-[#fbfaf4]/85 px-3.5 py-2 text-[11px] font-medium text-[#486457] shadow-lg backdrop-blur-sm"><span className="h-1.5 w-1.5 rounded-full bg-[#78917c]"/> Care, at your pace</div><div className="absolute bottom-[10%] right-[11%] max-w-[205px] rounded-[20px] border border-white/70 bg-[#fbfaf4]/90 p-4 shadow-xl backdrop-blur-sm"><p className="text-[10px] font-semibold uppercase tracking-[.16em] text-[#829083]">A steadier next step</p><p className="display mt-1.5 text-[21px] leading-[1.15] tracking-[-.035em] text-[#355345]">Built around what matters to you.</p></div><span className="absolute bottom-[13%] left-[8%] text-[10px] uppercase tracking-[.17em] text-[#61786b]">One day at a time</span></div><div className="absolute -bottom-7 left-[13%] hidden h-12 w-12 items-center justify-center rounded-full border border-[#d8ded2] bg-[#f5f4ed] text-[#6b8674] sm:flex"><Leaf size={19}/></div></div>
+      </section>
+      <section aria-labelledby="stages-heading" className="stage-section px-5 py-16 sm:px-8 sm:py-20 lg:px-12 lg:py-24">
+        <div className="mx-auto max-w-[1240px]">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="eyebrow justify-center">A map, not a race</p>
+            <h2 id="stages-heading" className="display mt-4 text-4xl font-medium leading-tight text-foreground sm:text-5xl">Six stages, one page at a time.</h2>
+            <p className="mt-4 text-base leading-7 text-graphite">The six-stage roadmap is here to make the path easier to see. The highlight is illustrative, not a stage assignment for any real person.</p>
+          </div>
+          <ol className="mt-10 grid list-none gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3">
+            {STAGES.map((name, index) => <li key={name} className={`stage-paper-card rounded-xl ${index === 2 ? "is-current" : ""}`} data-testid={`card-roadmap-stage-${index + 1}`}>
+              <span className="stage-number">0{index + 1}</span>
+              {index === 2 && <span className="stage-current-label">You are here · illustrative only</span>}
+              <h3 className="display mt-4 text-xl font-medium leading-snug text-foreground">{name}</h3>
+            </li>)}
+          </ol>
+          <p className="mt-6 text-center text-sm text-graphite">Illustrative overview only; this is not clinical placement or advice.</p>
+        </div>
+      </section>
+      <section className="founder-quote-band px-5 py-10 sm:px-8 sm:py-12 lg:px-12">
+        <blockquote className="mx-auto max-w-4xl text-center">
+          <p className="display text-3xl leading-tight text-foreground sm:text-4xl">“I was told to monitor it and come back in two months. Stillwell is what I wish I'd had in between.”</p>
+        </blockquote>
       </section>
       <CareTeamSharingFeature />
       <section className="border-y border-[#e0e4db] bg-[#edeFE7]"><div className="mx-auto grid max-w-[1240px] gap-8 px-5 py-7 sm:grid-cols-3 sm:gap-5 sm:px-8 lg:px-12">{[[ShieldCheck,"Your pace","No streaks, targets, or pressure to fill every day."],[Leaf,"Your choices","Track only the routines and symptoms you choose."],[Menu,"Your record","Edit or delete entries whenever you need."]].map(([Icon,title,text])=>{const I=Icon as typeof ShieldCheck;return <div key={title as string} className="flex items-start gap-3"><span className="mt-0.5 text-[#6e8877]"><I size={19}/></span><div><p className="text-[13px] font-semibold text-[#354c40]">{title as string}</p><p className="mt-1 text-[12px] leading-5 text-[#718077]">{text as string}</p></div></div>})}</div></section>
@@ -102,7 +151,7 @@ function Landing() {
       <section id="how" className="bg-[#e7ede5]"><div className="mx-auto grid max-w-[1240px] gap-10 px-5 py-20 sm:px-8 lg:grid-cols-[.75fr_1.25fr] lg:gap-16 lg:px-12 lg:py-24"><div><p className="eyebrow">A clear, considered start</p><h2 className="display mt-3 max-w-[430px] text-[clamp(2.4rem,5vw,3.7rem)] leading-[1.04] tracking-[-.05em] text-[#29453a]">A little more room to find your own rhythm.</h2><p className="mt-5 text-sm leading-7 text-[#64736a]">Nothing here tells you what your recovery should look like. The journal follows what you choose to notice.</p></div><div className="grid gap-0 sm:grid-cols-3">{[{num:"01",title:"Choose what matters",body:"Pick a support style and personal routine areas. Change them later."},{num:"02",title:"Start with today",body:"Reflect on symptoms and daily activities only if it feels useful."},{num:"03",title:"Return when you want",body:"Your private history stays editable, with simple controls to delete."}].map((item,i)=><article key={item.num} className={`border-t border-[#cbd7cb] py-6 sm:border-l sm:border-t-0 sm:px-5 sm:py-2 ${i===0?"sm:border-l-0 sm:pl-0":""}`}><span className="display text-[30px] text-[#a4b4a4]">{item.num}</span><h3 className="mt-4 text-sm font-semibold leading-6 text-[#344d40]">{item.title}</h3><p className="mt-2 text-xs leading-6 text-[#758078]">{item.body}</p></article>)}</div></div></section>
       <section className="mx-auto grid max-w-[1240px] gap-12 px-5 py-20 sm:px-8 lg:grid-cols-[.9fr_1.1fr] lg:items-center lg:px-12 lg:py-24"><div className="relative overflow-hidden rounded-[28px] bg-[#d4e0d5] p-6 sm:p-8"><div className="absolute -left-16 -top-20 h-64 w-64 rounded-full border border-white/70"/><div className="absolute bottom-[-90px] right-[-50px] h-[290px] w-[290px] rounded-full bg-[#f1ead8]/70"/><div className="relative rounded-[21px] border border-white/80 bg-[#fbfaf5]/95 p-6 shadow-lg"><p className="eyebrow">A sample, not an instruction</p><h3 className="display mt-2 text-[27px] text-[#355345]">The day, with room to adjust</h3><div className="mt-6 space-y-4">{[["Morning","Choose what feels possible; leave space around it."],["Midday","Pause before your energy runs low."],["Later","Notice what helped. Decide what to keep."]].map(([time,text],i)=><div key={time} className="flex gap-3"><div className="flex w-5 shrink-0 flex-col items-center"><span className={`mt-1 h-2 w-2 rounded-full ${i===1?"bg-[#c18a68]":"bg-[#78917b]"}`}/>{i<2&&<span className="mt-1 h-8 w-px bg-[#dce4d8]"/>}</div><div><p className="text-xs font-semibold text-[#435c4e]">{time}</p><p className="mt-1 text-[11px] leading-5 text-[#7b867c]">{text}</p></div></div>)}</div></div><p className="relative mt-4 text-right text-[10px] text-[#6d8071]">A reflection, not a prescribed routine.</p></div><div><p className="eyebrow">Everyday support, shaped around you</p><h2 className="display mt-3 max-w-[500px] text-[clamp(2.4rem,5vw,3.8rem)] leading-[1.03] tracking-[-.05em] text-[#29453a]">Support your routines, not a checklist.</h2><p className="mt-5 max-w-[470px] text-sm leading-7 text-[#65746a]">Keep track of the routines that matter to you: food and hydration, clinician-cleared low-risk movement, an optional quiet pause, or pacing reflections. No treatment recommendations, activity prescriptions, or per-person medical algorithms.</p></div></section>
       <section id="boundaries" className="mx-auto max-w-[1240px] px-5 pb-10 sm:px-8 lg:px-12"><div className="rounded-[28px] border border-[#e2d5c6] bg-[#f3eee4] p-6 sm:p-9"><div className="flex gap-4"><span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#d9c9b7] text-[#a2715c]"><CircleAlert size={18}/></span><div><p className="text-sm font-semibold text-[#554b42]">Clear boundaries are part of good care.</p><p className="mt-2 max-w-[900px] text-xs leading-6 text-[#777066]">Stillwell is an educational recovery journal for adults, not a diagnostic tool, treatment prescription, or substitute for medical advice. It is not for a new head injury, urgent symptoms, or emergency care. If symptoms are worsening, contact a clinician. For severe or rapidly worsening symptoms, seek emergency care now or call your local emergency number. If you work with a clinician, bring your reflections to discussions at any stage of recovery. This app does not provide clinical consultations.</p></div></div></div></section>
-      <section className="px-5 pb-20 pt-8 sm:px-8 lg:px-12 lg:pb-24"><div className="relative mx-auto max-w-[1240px] overflow-hidden rounded-[30px] bg-[#355747] px-6 py-10 text-[#f8f7f0] sm:px-10 sm:py-12 lg:px-14"><div className="absolute -right-16 -top-32 h-[350px] w-[350px] rounded-full border border-white/10"/><div className="relative grid gap-8 sm:grid-cols-[1fr_auto] sm:items-center"><div><p className="text-[10px] font-semibold uppercase tracking-[.18em] text-[#c3d2c3]">A thoughtful place to begin</p><h2 className="display mt-3 max-w-[620px] text-[clamp(2.2rem,5vw,3.5rem)] leading-[1.04] tracking-[-.045em]">Let today be enough to start.</h2><p className="mt-4 max-w-[520px] text-sm leading-6 text-[#d8e1d7]">Create a private space for what you want to remember. Skip what you don’t.</p></div><Link href="/quiz" onClick={() => trackEvent("recovery_quiz_started", { entry_point: "footer" })} className="inline-flex min-h-[50px] items-center justify-between gap-7 rounded-full bg-[#f5f3e9] px-5 text-[13px] font-semibold text-[#355747] hover:bg-white">Start your journal <ArrowRight size={16}/></Link></div></div></section>
+      <section className="px-5 pb-20 pt-8 sm:px-8 lg:px-12 lg:pb-24"><div className="marketing-cta relative mx-auto max-w-[1240px] overflow-hidden rounded-[30px] bg-primary px-6 py-10 text-primary-foreground sm:px-10 sm:py-12 lg:px-14"><div className="absolute -right-16 -top-32 h-[350px] w-[350px] rounded-full border border-white/10"/><div className="relative grid gap-8 sm:grid-cols-[1fr_auto] sm:items-center"><div><p className="marketing-cta-eyebrow text-[10px] font-semibold uppercase tracking-[.18em] text-primary-foreground">A thoughtful place to begin</p><h2 className="display mt-3 max-w-[620px] text-[clamp(2.2rem,5vw,3.5rem)] leading-[1.04] tracking-[-.045em]">Let today be enough to start.</h2><p className="mt-4 max-w-[520px] text-sm leading-6 text-primary-foreground">Create a private space for what you want to remember. Skip what you don’t.</p></div><SiteButton tone="secondary" asChild className="marketing-cta-button" onClick={() => trackEvent("recovery_quiz_started", { entry_point: "footer" })}><Link href="/quiz">Start your journal <ArrowRight size={16}/></Link></SiteButton></div></div></section>
     </main>
   </PublicLayout>;
 }
@@ -325,6 +374,11 @@ function ClerkCacheInvalidator() {
 }
 function Routes() {
   const [location, setLocation] = useLocation();
+  const publicPartnerPage = ["/partners/health-systems-clinicians", "/partners/care-areas", "/partners/physiotherapy-mobility"]
+    .some((path) => location === path || location.startsWith(`${path}/`));
+  const themeEnabled = !location.startsWith("/clinician/") && !location.startsWith("/clinicians")
+    && !location.startsWith("/invite/") && !location.startsWith("/request/")
+    && (!location.startsWith("/partners") || publicPartnerPage);
   useEffect(() => {
     const metadata: Record<string, { title: string; description: string }> = {
       "/clinician/sign-in": { title: "Clinician sign in", description: "Sign in to the Stillwell clinician portal. Patient journal data is not available to clinician accounts." },
@@ -371,7 +425,9 @@ function Routes() {
     signIn: { start: { title: "Welcome back", subtitle: "Sign in to your Stillwell account" } },
     signUp: { start: { title: "Create your Stillwell account", subtitle: "A personal place for your Stillwell experience" } },
   }} routerPush={to => setLocation(stripBase(to))} routerReplace={to => setLocation(stripBase(to), { replace: true })}>
-    <QueryClientProvider client={queryClient}><ClerkCacheInvalidator/><Switch>
+     <QueryClientProvider client={queryClient}><ClerkCacheInvalidator/>
+        <WebsiteThemeProvider enabled={themeEnabled}>
+       <Switch>
       <Route path="/" component={HomeRedirect}/>
       <Route path="/sign-in/*?" component={SignInPage}/>
       <Route path="/clinician/sign-in/*?"><Redirect to="/clinicians/sign-in"/></Route>
@@ -401,7 +457,9 @@ function Routes() {
       <Route path="/partners/care-areas"><PublicLayout><PublicInfoPage content={{ eyebrow: "Partner with Stillwell", title: "Care areas, including diet & gut health", description: "Placeholder information about areas Stillwell may describe in educational journal content.", placeholder: "Diet and gut health are areas to describe here, not advice, recommendations, or treatment guidance.", partner: true }}/></PublicLayout></Route>
       <Route path="/partners/physiotherapy-mobility"><PublicLayout><PublicInfoPage content={{ eyebrow: "Partner with Stillwell", title: "Physiotherapy & mobility", description: "Placeholder information for organizations interested in physiotherapy and mobility as topics in a recovery journal.", placeholder: "This page is a placeholder. More information about how these topics may be described in Stillwell will be added here.", partner: true }}/></PublicLayout></Route>
       <Route><div className="min-h-[100dvh] bg-[#f5f4ed] p-10 text-center"><p className="eyebrow">Page not found</p><h1 className="display mt-3 text-4xl text-[#29463b]">Let’s find our way back.</h1><Link href="/" className="mt-6 inline-flex rounded-full bg-[#345849] px-5 py-3 text-sm text-white">Back to Stillwell</Link></div></Route>
-    </Switch></QueryClientProvider>
+       </Switch>
+       </WebsiteThemeProvider>
+     </QueryClientProvider>
   </ClerkProvider>;
 }
 function App() { return <WouterRouter base={basePath}><Routes/></WouterRouter>; }

@@ -21,11 +21,13 @@ import { CareTeamPanel } from "@/components/CareTeamPanel";
 import { pendingLink } from "@/lib/care-link";
 import { Card } from "@workspace/stillwell-design-system/components/ui/card";
 import { Checkbox } from "@workspace/stillwell-design-system/components/ui/checkbox";
+import { Brand } from "@/components/PublicSite";
+import { ThemeToggle } from "@/components/WebsiteTheme";
+import { BoundaryNotice } from "@/components/SiteComponents";
 import {
   ArrowRight,
   BookOpen,
   ClipboardList,
-  CircleAlert,
   Clock3,
   LayoutDashboard,
   LogOut,
@@ -46,13 +48,6 @@ import {
 } from "@workspace/recovery-journal";
 import type { CheckInSymptomName } from "@workspace/recovery-journal";
 
-function Brand() {
-  return <Link href="/" className="flex items-center gap-3 text-foreground" aria-label="Stillwell home">
-    <span className="brand-mark" aria-hidden="true" />
-    <span className="font-serif text-xl font-semibold tracking-tight">stillwell</span>
-  </Link>;
-}
-
 type PatientSection = "dashboard" | "journal" | "care-protocol" | "care-team" | "account";
 const patientNavigation: { id: Exclude<PatientSection, "account">; label: string; path: string; icon: typeof LayoutDashboard }[] = [
   { id: "dashboard", label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
@@ -72,7 +67,7 @@ function sectionForPath(path: string): PatientSection {
 function PatientDashboardNav({ section }: { section: PatientSection }) {
   return <header className="sticky top-0 z-20 border-b border-border bg-background/95 shadow-sm backdrop-blur">
     <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:px-8 md:flex-row md:items-center md:justify-between">
-      <Brand />
+      <Brand journal />
       <div className="grid w-full grid-cols-2 gap-2 md:w-auto md:flex md:items-center">
         <nav aria-label="Main navigation" className="col-span-2 grid grid-cols-2 gap-1 md:flex md:items-center">
           {patientNavigation.map(({ id, label, path, icon: Icon }) => <Button
@@ -92,6 +87,7 @@ function PatientDashboardNav({ section }: { section: PatientSection }) {
             <Settings2 className="size-4" />Account
           </Link>
         </Button>
+        <div className="col-span-2 flex justify-end md:col-span-1"><ThemeToggle testId="button-theme-toggle-dashboard" /></div>
       </div>
     </div>
   </header>;
@@ -131,25 +127,6 @@ export default function DashboardPage() {
   const saveRecoveryLog = useSaveRecoveryLog();
   const profile = recoveryQuery.data?.profile;
   const section = sectionForPath(location);
-  useEffect(() => {
-    if (section !== "journal") return;
-    const root = document.documentElement;
-    const existingDark = root.classList.contains("dark");
-    const existingScheme = root.style.colorScheme;
-    const preference = window.matchMedia("(prefers-color-scheme: dark)");
-    const applyTheme = () => {
-      const dark = existingDark || preference.matches;
-      root.classList.toggle("dark", dark);
-      root.style.colorScheme = dark ? "dark" : "light";
-    };
-    applyTheme();
-    preference.addEventListener("change", applyTheme);
-    return () => {
-      preference.removeEventListener("change", applyTheme);
-      root.classList.toggle("dark", existingDark);
-      root.style.colorScheme = existingScheme;
-    };
-  }, [section]);
   const logs = useMemo(() => [...(recoveryQuery.data?.logs ?? [])].sort((a, b) => b.date.localeCompare(a.date)), [recoveryQuery.data?.logs]);
   const [today, setToday] = useState(localDate);
   useEffect(() => {
@@ -265,7 +242,7 @@ export default function DashboardPage() {
     setLocation("/");
   }
 
-  return <main className="min-h-[100dvh] bg-background pb-12">
+  return <main className="stillwell min-h-[100dvh] bg-background pb-12">
     <PatientDashboardNav section={section} />
     <div className="mx-auto max-w-7xl space-y-6 px-4 pt-7 sm:px-8 sm:pt-10">
       {section === "dashboard" && <section className={`grid gap-5 ${profile && !recoveryQuery.isLoading && !recoveryQuery.isError ? "lg:grid-cols-[1.15fr_.85fr]" : ""}`} aria-label="Dashboard overview">
@@ -304,10 +281,7 @@ export default function DashboardPage() {
         <Button variant="outline" asChild><Link href="/dashboard">Back to dashboard</Link></Button>
       </section>}
 
-      {section === "dashboard" && <Card className="flex gap-3 border-accent bg-accent/30 p-4 text-sm leading-6">
-        <CircleAlert className="mt-0.5 size-5 shrink-0 text-accent-foreground" />
-        <p><strong className="font-semibold">A safety note.</strong> Stillwell is not for a new injury or emergency. If symptoms are worsening, contact a clinician. Severe or urgent symptoms need emergency care now.</p>
-      </Card>}
+      {section === "dashboard" && <BoundaryNotice />}
       {message && <Card role="status" className="border-secondary bg-secondary p-4 text-sm leading-6 text-secondary-foreground" data-testid="status-dashboard-feedback">{message}</Card>}
       {(section === "dashboard" || section === "journal" || section === "care-protocol") && recoveryQuery.isLoading && <Card aria-label="Loading your journal" className="animate-pulse space-y-4 p-6"><div className="h-4 w-40 rounded bg-muted" /><div className="h-24 rounded-xl bg-muted" /><div className="h-16 rounded-xl bg-muted" /></Card>}
       {(section === "dashboard" || section === "journal" || section === "care-protocol") && recoveryQuery.isError && <Card className="space-y-4 p-6"><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">We couldn’t open your journal</p><h2 className="font-serif text-3xl">Your notes haven’t gone anywhere.</h2><p className="text-sm leading-6 text-muted-foreground">Check your connection, then try loading the private journal again.</p><Button variant="outline" onClick={() => void recoveryQuery.refetch()} data-testid="button-retry-journal">Try again <ArrowRight /></Button></Card>}

@@ -1,6 +1,6 @@
 import { BookOpen, LayoutDashboard } from "lucide-react";
 import { Button } from "@workspace/stillwell-design-system/components/ui/button";
-import stillwellMark from "@workspace/stillwell-design-system/brand/stillwell-mark.svg";
+import { Brand } from "@/components/PublicSite";
 
 export type DemoPatientSection = "dashboard" | "journal";
 
@@ -18,10 +18,7 @@ export function DemoPatientNavigation({
   return (
     <>
       <header className="sticky top-16 z-10 -mx-4 flex flex-wrap items-center justify-between gap-3 border-b border-border bg-background/95 px-4 py-3 backdrop-blur-sm sm:-mx-8 sm:px-8 lg:top-0">
-        <div className="flex items-center gap-2">
-          <img src={stillwellMark} alt="" className="size-7" />
-          <span className="display text-xl font-semibold tracking-tight">stillwell</span>
-        </div>
+        <Brand journal />
         <nav aria-label="Maya's Stillwell" className="flex flex-wrap items-center gap-1">
           <Button
             type="button"

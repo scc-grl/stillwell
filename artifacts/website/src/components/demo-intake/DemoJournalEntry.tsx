@@ -7,7 +7,7 @@ import {
   ratingChoices,
   type CheckInSymptomName,
 } from "@workspace/recovery-journal";
-import { Button } from "@workspace/stillwell-design-system/components/ui/button";
+import { SiteButton as Button } from "@/components/SiteComponents";
 import { Card } from "@workspace/stillwell-design-system/components/ui/card";
 import { Textarea } from "@workspace/stillwell-design-system/components/ui/textarea";
 import {

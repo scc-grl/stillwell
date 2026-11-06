@@ -16,7 +16,7 @@ export default function AccountTypeChoicePage() {
   return (
     <main className="stillwell min-h-[100dvh] px-4 py-8 sm:px-8 sm:py-12">
       <div className="mx-auto flex max-w-5xl flex-col items-center">
-        <Brand />
+        <Brand journal />
         <section className="mt-12 w-full max-w-3xl text-center sm:mt-16" aria-labelledby="account-choice-title">
           <p className="eyebrow justify-center">A private recovery journal</p>
           <h1 id="account-choice-title" className="display mt-4 text-3xl font-medium leading-tight text-foreground sm:text-4xl">

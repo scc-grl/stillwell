@@ -6,6 +6,7 @@ import { Input } from "@workspace/stillwell-design-system/components/ui/input";
 import { FOUR_LEVELS, STAGES, type AnswerField, type Symptom } from "./demo-data";
 import { CareBoundary } from "./StoryScreens";
 import { STAGE_GATES } from "@workspace/intake-ai";
+import { NoticeabilityScale, StageIndicator } from "@/components/SiteComponents";
 
 export function SummaryScreen({
   fields,
@@ -115,21 +116,12 @@ export function SummaryScreen({
                         className="min-h-11"
                         data-testid={`input-symptom-quote-${index + 1}`}
                       />
-                      <div className="flex flex-wrap gap-2" role="group" aria-label={`${symptom.name} level`}>
-                        {FOUR_LEVELS.map((level, levelIndex) => (
-                          <Button
-                            key={level}
-                            type="button"
-                            variant={symptom.level === levelIndex ? "secondary" : "outline"}
-                            aria-pressed={symptom.level === levelIndex}
-                            className="min-h-11"
-                            onClick={() => updateSymptom(symptom.name, { level: levelIndex, uncertain: false })}
-                            data-testid={`button-level-${index + 1}-${levelIndex + 1}`}
-                          >
-                            {level}
-                          </Button>
-                        ))}
-                      </div>
+                      <NoticeabilityScale
+                        value={symptom.level}
+                        onValueChange={(level) => updateSymptom(symptom.name, { level, uncertain: false })}
+                        label={`${symptom.label} level`}
+                        testIdPrefix={`button-level-${index + 1}`}
+                      />
                         <Button type="button" variant="secondary" className="min-h-11" onClick={() => {
                         updateSymptom(symptom.name, { quote: draft.trim() ? `“${draft.trim()}”` : "" });
                         setEditingSymptom(null);
@@ -188,6 +180,7 @@ export function RoadmapScreen({
         </p>
       </header>
 
+      {stage && <div className="mb-4"><StageIndicator stage={stage.stage} /></div>}
       {stage ? <Card className="mb-5 border-primary/30 bg-secondary p-5 sm:p-7" data-testid="suggested-stage">
         <p className="text-sm text-muted-foreground">Suggested starting stage</p>
         <p className="mt-2 text-xl font-semibold" data-testid="suggested-stage-name"><strong>Stage {stage.stage} · {stage.name}</strong></p>

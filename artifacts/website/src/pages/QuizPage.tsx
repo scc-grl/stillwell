@@ -6,6 +6,8 @@ import { Button } from "@workspace/stillwell-design-system/components/ui/button"
 import { Card } from "@workspace/stillwell-design-system/components/ui/card";
 import { Checkbox } from "@workspace/stillwell-design-system/components/ui/checkbox";
 import { ShieldCheck } from "lucide-react";
+import { Brand } from "@/components/PublicSite";
+import { ThemeToggle } from "@/components/WebsiteTheme";
 import { ActivitiesEditor } from "@/components/ActivitiesEditor";
 import { DailyCheckInFlow } from "@/components/DailyCheckInFlow";
 import { clearDraft, emptyLog, writeDraft } from "@/lib/recovery";
@@ -48,12 +50,15 @@ export default function QuizPage() {
     setLocation(isSignedIn ? "/dashboard" : "/");
   }
 
-  if (!isLoaded) return <main className="min-h-[100dvh] bg-background p-6"><Card className="mx-auto h-12 max-w-3xl animate-pulse bg-muted" aria-label="Loading setup" /></main>;
+  if (!isLoaded) return <main className="stillwell min-h-[100dvh] bg-background p-6"><Card className="mx-auto h-12 max-w-3xl animate-pulse bg-muted" aria-label="Loading setup" /></main>;
 
-  return <main className="min-h-[100dvh] bg-background px-4 pb-10 pt-5 sm:px-8">
+  return <main className="stillwell min-h-[100dvh] bg-background px-4 pb-10 pt-5 sm:px-8">
     <header className="mx-auto flex max-w-5xl items-center justify-between gap-3">
-      <Link href="/" className="flex items-center gap-3 text-foreground" aria-label="Stillwell home"><span className="brand-mark" /><span className="font-serif text-xl font-semibold tracking-tight">stillwell</span></Link>
+      <Brand journal/>
+      <div className="flex items-center gap-2">
+      <ThemeToggle testId="button-theme-toggle-intake"/>
       <Link href="/privacy" className="inline-flex items-center gap-2 text-xs text-muted-foreground underline underline-offset-4"><ShieldCheck className="size-4" />Privacy &amp; data controls</Link>
+      </div>
     </header>
 
     <div className="mx-auto mt-8 max-w-3xl space-y-6">

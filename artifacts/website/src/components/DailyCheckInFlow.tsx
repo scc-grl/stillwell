@@ -10,6 +10,7 @@ import { Card } from "@workspace/stillwell-design-system/components/ui/card";
 import { Textarea } from "@workspace/stillwell-design-system/components/ui/textarea";
 import { ArrowLeft, ArrowRight, Check, Plus } from "lucide-react";
 import { SymptomSelector, useSymptomPreferences } from "./SymptomPreferences";
+import { NoticeabilityScale } from "@/components/SiteComponents";
 import {
   checkInSymptoms,
   dailyCheckInFromLog,
@@ -17,7 +18,6 @@ import {
   formatDate,
   formatWeekday,
   overallChoices,
-  ratingChoices,
   ratingLabel,
   summaryLine,
   symptomsForRecoveryLog,
@@ -222,9 +222,18 @@ export function DailyCheckInFlow({
       </div>
       <Card className="space-y-4 p-5">
         <div><h3 className="font-serif text-2xl font-medium">{symptom.label}</h3><p className="mt-2 text-sm text-muted-foreground">Choose the description that fits today, or skip.</p></div>
-        <div className="grid gap-2">
-          {ratingChoices.map((choice) => <Button key={choice.value} variant={currentAnswer.status === "recorded" && currentAnswer.rating === choice.value ? "default" : "outline"} aria-pressed={currentAnswer.status === "recorded" && currentAnswer.rating === choice.value} onClick={() => void answerSymptom({ name: symptom.name, status: "recorded", rating: choice.value }, symptomIndex + 1)} disabled={saving} data-testid={`rating-${symptom.name}-${choice.value}`}>{choice.label}</Button>)}
-        </div>
+        <NoticeabilityScale
+          value={currentAnswer.status === "recorded" ? currentAnswer.rating : null}
+          onValueChange={(rating) => void answerSymptom(
+            rating === null
+              ? { name: symptom.name, status: "not_recorded", rating: null }
+              : { name: symptom.name, status: "recorded", rating },
+            symptomIndex + 1,
+          )}
+          disabled={saving}
+          label={`${symptom.label}: choose a noticeability level`}
+          testIdPrefix={`rating-${symptom.name}`}
+        />
         <Button variant="outline" onClick={() => void answerSymptom({ name: symptom.name, status: "not_recorded", rating: null }, symptomIndex + 1)} disabled={saving}>Skip this symptom</Button>
       </Card>
       <div className="flex flex-col gap-2 sm:flex-row">
@@ -261,10 +270,19 @@ export function DailyCheckInFlow({
           <h3 className="font-serif text-xl font-medium">{config.label}</h3>
           <p className="text-sm text-muted-foreground">{answerLabel}</p>
           {page === "edit" && <p className="text-xs text-muted-foreground">Was: {previousLabel}</p>}
-          <div className="grid grid-cols-2 gap-2">
-            {ratingChoices.map((choice) => <Button key={choice.value} size="sm" variant={answer.status === "recorded" && answer.rating === choice.value ? "default" : "outline"} aria-pressed={answer.status === "recorded" && answer.rating === choice.value} onClick={() => setCheckIn((current) => ({ ...current, symptoms: current.symptoms.map((item) => item.name === config.name ? { name: config.name, status: "recorded", rating: choice.value } : item) }))}>{choice.label}</Button>)}
-            <Button size="sm" variant={answer.status === "not_recorded" ? "secondary" : "outline"} aria-pressed={answer.status === "not_recorded"} onClick={() => setCheckIn((current) => ({ ...current, symptoms: current.symptoms.map((item) => item.name === config.name ? { name: config.name, status: "not_recorded", rating: null } : item) }))}>Not recorded</Button>
-          </div>
+          <NoticeabilityScale
+            value={answer.status === "recorded" ? answer.rating : null}
+            onValueChange={(rating) => setCheckIn((current) => ({
+              ...current,
+              symptoms: current.symptoms.map((item) => item.name === config.name
+                ? rating === null
+                  ? { name: config.name, status: "not_recorded", rating: null }
+                  : { name: config.name, status: "recorded", rating }
+                : item),
+            }))}
+            label={`${config.label}: choose a noticeability level`}
+            testIdPrefix={`review-rating-${config.name}`}
+          />
         </Card>;
       })}
       <div className="space-y-2">

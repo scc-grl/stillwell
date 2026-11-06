@@ -27,7 +27,7 @@ import {
   Title as DialogTitle,
   Description as DialogDescription,
 } from "@radix-ui/react-dialog";
-import { Button } from "@workspace/stillwell-design-system/components/ui/button";
+import { SiteButton as Button, NoticeabilityScale } from "@/components/SiteComponents";
 import { Card } from "@workspace/stillwell-design-system/components/ui/card";
 import { Textarea } from "@workspace/stillwell-design-system/components/ui/textarea";
 import { ArrowLeft, ArrowRight, CalendarDays, Check, Plus, X } from "lucide-react";
@@ -443,11 +443,10 @@ export function JournalDatebook({
                       <p className="text-base font-medium">{symptom.label}{newlyAdded && <span className="ml-2 rounded-full bg-secondary px-2 py-1 text-xs text-secondary-foreground">New today</span>}</p>
                       {newlyAdded && <Button type="button" size="sm" variant="ghost" aria-label={`Remove ${symptom.label} from future tracking`} onClick={() => void removeNewSymptom(symptom.name)}><X aria-hidden="true" />Remove</Button>}
                     </div>
-                    <ChoiceButtons
-                      label={symptom.label}
-                      choices={ratingChoices}
+                    <NoticeabilityScale
+                      label={`${symptom.label}, how noticeable today`}
                       value={answer?.status === "recorded" ? answer.rating : null}
-                      onChange={(value) => patchAnswer(symptom.name, value as DailyCheckInSymptomAnswer["rating"])}
+                      onValueChange={(value) => patchAnswer(symptom.name, value as DailyCheckInSymptomAnswer["rating"])}
                     />
                   </div>;
                 })}

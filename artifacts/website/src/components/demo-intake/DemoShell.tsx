@@ -2,7 +2,8 @@ import { useState, type ReactNode } from "react";
 import { Link } from "wouter";
 import { ArrowLeft, BookOpen, ChartNoAxesCombined, ClipboardList, LayoutDashboard, Menu, Users, X } from "lucide-react";
 import { Button } from "@workspace/stillwell-design-system/components/ui/button";
-import stillwellMark from "@workspace/stillwell-design-system/brand/stillwell-mark.svg";
+import { Brand } from "@/components/PublicSite";
+import { ThemeToggle } from "@/components/WebsiteTheme";
 
 export type DemoView =
   | "story"
@@ -67,10 +68,7 @@ export function DemoShell({
   );
   const sidebar = (
     <>
-      <div className="flex items-center gap-3 px-5 py-6">
-        <img src={stillwellMark} alt="" className="size-9" />
-        <span className="display text-2xl font-semibold tracking-tight text-background">stillwell</span>
-      </div>
+      <div className="px-5 py-6"><Brand journal inverted /></div>
       <p className="px-5 text-[10px] font-bold uppercase tracking-[0.18em] text-background/70">How it works · sample</p>
       {!safetyStopped && <div className="mx-4 rounded-xl bg-foreground/70 p-1">
         <div className="grid gap-1" role="group" aria-label="Viewing as">
@@ -125,6 +123,7 @@ export function DemoShell({
         </>}
       </nav>}
       <div className="mt-auto space-y-4 p-4">
+        <ThemeToggle className="theme-toggle-inverse" testId="button-theme-toggle-demo-sidebar" />
         <p className="rounded-lg border border-background/20 bg-background/10 p-3 text-xs leading-5 text-background/85" data-testid="demo-privacy-notice">
           Made-up people and made-up data. Nothing you enter is saved.
         </p>
@@ -146,10 +145,9 @@ export function DemoShell({
       </aside>
       <div className="lg:pl-72">
         <header className="sticky top-0 z-20 flex min-h-16 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur-sm sm:px-8 lg:hidden">
+          <Brand journal />
           <div className="flex items-center gap-2">
-            <img src={stillwellMark} alt="" className="size-8" />
-            <span className="display text-xl font-semibold">stillwell</span>
-          </div>
+          <ThemeToggle testId="button-theme-toggle-demo-mobile" />
           <Button
             type="button"
             variant="outline"
@@ -162,6 +160,7 @@ export function DemoShell({
           >
             {mobileOpen ? <X /> : <Menu />}
           </Button>
+          </div>
         </header>
         {mobileOpen && (
           <div className="fixed inset-0 z-40 bg-foreground lg:hidden">
