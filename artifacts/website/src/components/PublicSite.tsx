@@ -77,7 +77,6 @@ function NewsletterForm() {
     });
   };
   return <div>
-    <p className="text-sm leading-6 text-graphite">Occasional notes from Stillwell, for the community around a more personal recovery journal.</p>
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto]" noValidate>
         <FormField control={form.control} name="email" render={({ field }) => <FormItem className="space-y-1.5">
@@ -97,9 +96,9 @@ export function PublicFooter() {
   return <footer className="public-footer border-t border-border bg-tile-clay text-foreground">
     <div className="mx-auto grid max-w-[1240px] gap-10 px-5 py-12 sm:grid-cols-2 sm:px-8 lg:grid-cols-4 lg:gap-8 lg:px-12 lg:py-14">
       <section aria-labelledby="footer-about"><h2 id="footer-about" className="text-xs font-semibold uppercase tracking-[.12em] text-foreground">About Stillwell</h2><ul className="mt-4 space-y-3 text-sm text-graphite"><li><Link data-testid="link-footer-history" href="/our-history" className="hover:underline">About Us</Link></li><li><Link data-testid="link-footer-faqs" href="/faqs" className="hover:underline">FAQs</Link></li><li><Link data-testid="link-footer-contact" href="/contact" className="hover:underline">Contact us</Link></li></ul></section>
-      <section aria-labelledby="footer-partners"><h2 id="footer-partners" className="text-xs font-semibold uppercase tracking-[.12em] text-foreground">Partner with Stillwell</h2><ul className="mt-4 space-y-3 text-sm text-graphite"><li><Link data-testid="link-footer-clinicians" href="/clinicians/" className="hover:underline">For clinicians</Link></li><li><Link data-testid="link-footer-clinician-sign-up" href="/clinicians/join" className="hover:underline">Athletic Programs</Link></li><li><Link data-testid="link-footer-directory" href="/find-your-clinician" className="hover:underline">Find your clinician (planned)</Link></li></ul></section>
-      <section aria-labelledby="footer-community"><h2 id="footer-community" className="text-xs font-semibold uppercase tracking-[.12em] text-foreground">Join the Stillwell community</h2><div className="mt-4"><NewsletterForm/></div></section>
-      <section aria-labelledby="footer-connect"><h2 id="footer-connect" className="text-xs font-semibold uppercase tracking-[.12em] text-foreground">Connect with Stillwell</h2><a data-testid="link-instagram-placeholder" href="https://www.instagram.com/stillwell_placeholder/" target="_blank" rel="noreferrer noopener" aria-label="Stillwell on Instagram (placeholder link; replace with official account)" className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-full border border-graphite px-4 py-2 text-sm text-graphite transition-colors hover:bg-background/50"><Instagram size={17}/>Instagram <ArrowUpRight size={14}/></a><p className="mt-3 max-w-[230px] text-xs leading-5 text-graphite">Placeholder social link; replace with the official Stillwell Instagram URL.</p></section>
+      <section aria-labelledby="footer-partners"><h2 id="footer-partners" className="text-xs font-semibold uppercase tracking-[.12em] text-foreground">Partner with Stillwell</h2><ul className="mt-4 space-y-3 text-sm text-graphite"><li><Link data-testid="link-footer-clinicians" href="/clinicians/" className="hover:underline">For clinicians</Link></li><li><Link data-testid="link-footer-clinician-sign-up" href="/clinicians/join" className="hover:underline">Athletic Programs</Link></li></ul></section>
+      <section aria-labelledby="footer-community"><h2 id="footer-community" className="text-xs font-semibold uppercase tracking-[.12em] text-foreground">Join the community</h2><div className="mt-4"><NewsletterForm/></div></section>
+      <section aria-labelledby="footer-connect"><h2 id="footer-connect" className="text-xs font-semibold uppercase tracking-[.12em] text-foreground">Connect with Stillwell</h2><a data-testid="link-instagram-placeholder" href="https://www.instagram.com/stillwell_placeholder/" target="_blank" rel="noreferrer noopener" aria-label="Stillwell on Instagram (placeholder link; replace with official account)" className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-full border border-graphite px-4 py-2 text-sm text-graphite transition-colors hover:bg-background/50"><Instagram size={17}/>Instagram <ArrowUpRight size={14}/></a></section>
     </div>
     <div className="border-t border-graphite/30 bg-tile-clay">
       <div className="mx-auto flex max-w-[1240px] flex-col gap-4 px-5 py-6 sm:px-8 lg:flex-row lg:items-center lg:justify-between lg:px-12">
@@ -111,7 +110,6 @@ export function PublicFooter() {
           <Link data-testid="link-footer-how-it-works" href="/demo" className="hover:underline">How it works</Link>
           <Link data-testid="link-footer-privacy" href="/privacy" className="hover:underline">Privacy</Link>
           <Link data-testid="link-footer-clinician-portal" href="/clinicians/" className="hover:underline">For clinicians</Link>
-          <Link data-testid="link-footer-directory" href="/find-your-clinician" className="hover:underline">Find your clinician (planned)</Link>
           <Link data-testid="link-footer-sign-in" href="/sign-in" className="hover:underline">Sign in</Link>
         </nav>
         <p className="text-xs text-graphite">© {new Date().getFullYear()} Stillwell</p>
