@@ -107,10 +107,6 @@ function Landing() {
               </SiteButton>
               <SiteButton tone="secondary" asChild><Link href="/demo">See how it works <ArrowRight aria-hidden="true" /></Link></SiteButton>
             </div>
-            <div className="mt-8 flex items-center gap-3 text-sm text-graphite">
-              <ShieldCheck size={18} aria-hidden="true" className="shrink-0 text-primary" />
-              Your experience is optional, personal, and user-led.
-            </div>
           </div>
           <div className="reveal-late relative mx-auto flex min-h-[24rem] w-full max-w-[35rem] items-center justify-center sm:min-h-[30rem]">
             <div className="hero-paper-glow absolute inset-x-[8%] top-[6%] h-[82%] rounded-[48%] bg-tile-sage/70" aria-hidden="true" />
