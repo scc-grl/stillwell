@@ -75,7 +75,6 @@ export default function DemoLandingPage() {
           <div className="space-y-2"><h2 className="display text-3xl font-normal">Ready to start your own?</h2><p className="text-sm leading-6 text-background/80">Your journal is private unless you invite a clinician.</p></div>
           <div className="flex flex-wrap gap-3">
             <Button asChild variant="secondary" className="min-h-12 rounded-full px-6"><Link href="/sign-up">Sign up</Link></Button>
-            <Button asChild variant="outline" className="min-h-12 rounded-full border-background/40 px-6 text-background"><Link href="/clinicians/">I'm a clinician</Link></Button>
           </div>
         </section>
       </main>
