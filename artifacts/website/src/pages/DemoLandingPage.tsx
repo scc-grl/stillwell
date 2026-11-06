@@ -38,7 +38,7 @@ export default function DemoLandingPage() {
         <section aria-labelledby="demo-stories-heading" className="space-y-6">
           <div className="max-w-2xl space-y-3">
             <p className="eyebrow">How it works</p>
-            <h2 id="demo-stories-heading" className="display text-4xl font-normal sm:text-5xl">Two people, one recovery.</h2>
+            <h2 id="demo-stories-heading" className="display text-4xl font-normal sm:text-5xl">Two people, one recovery</h2>
             <p className="text-base leading-7 text-muted-foreground">Follow a sample patient and her sports medicine physician through Stillwell</p>
           </div>
           <div className="grid gap-5 lg:grid-cols-2">
