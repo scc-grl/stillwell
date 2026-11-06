@@ -40,8 +40,8 @@ test("the theme defaults to the OS, persists per account, and has an accessible 
   assert.match(theme, /prefers-color-scheme: dark/);
   assert.match(theme, /stillwell\.theme\.user\./);
   assert.match(theme, /localStorage\.setItem/);
-  assert.match(theme, /aria-label="Dark mode"/);
-  assert.match(theme, /aria-pressed=\{dark\}/);
+  assert.match(theme, /aria-label=\{dark \? "Switch to light mode" : "Switch to dark mode"\}/);
+  assert.match(theme, /<span>\{dark \? "Light mode" : "Dark mode"\}<\/span>/);
   assert.match(theme, /if \(!enabled\) return/);
   assert.match(theme, /root\.classList\.toggle\("website-v2", previousScope\)/);
 });

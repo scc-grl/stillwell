@@ -86,11 +86,10 @@ export function ThemeToggle({ className = "", testId = "button-theme-toggle" }: 
     size="sm"
     className={`theme-toggle ${className}`}
     onClick={toggle}
-    aria-label="Dark mode"
-    aria-pressed={dark}
+    aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
     data-testid={testId}
   >
     {dark ? <Sun aria-hidden="true" size={16} /> : <Moon aria-hidden="true" size={16} />}
-    <span>Dark mode</span>
+    <span>{dark ? "Light mode" : "Dark mode"}</span>
   </Button>;
 }

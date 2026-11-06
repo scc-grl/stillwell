@@ -7,6 +7,7 @@ import { Link, useLocation } from "wouter";
 import { useSubscribeNewsletter } from "@workspace/api-client-react";
 import { Button } from "@workspace/stillwell-design-system/components/ui/button";
 import { Input } from "@workspace/stillwell-design-system/components/ui/input";
+import { tokens } from "@workspace/stillwell-design-system/tokens";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import stillwellMark from "@workspace/stillwell-design-system/brand/stillwell-mark.svg";
 import { SiteButton } from "@/components/SiteComponents";
@@ -16,6 +17,11 @@ const subscriptionSchema = z.object({
   email: z.string().trim().email("Enter a valid email address.").max(254, "Email address is too long."),
 });
 type SubscriptionValues = z.infer<typeof subscriptionSchema>;
+const newsletterControlStyle = {
+  backgroundColor: tokens.color.light.card,
+  color: tokens.color.light.foreground,
+  colorScheme: "light",
+} as const;
 
 export function Brand({ inverted = false, large = false, journal = false, testId = "link-stillwell-home" }: { inverted?: boolean; large?: boolean; journal?: boolean; testId?: string }) {
   return <Link href="/" aria-label="Stillwell home" data-testid={testId} className={journal
@@ -81,11 +87,11 @@ function NewsletterForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="mt-4 grid gap-3 sm:grid-cols-[1fr_auto]" noValidate>
         <FormField control={form.control} name="email" render={({ field }) => <FormItem className="space-y-1.5">
           <FormLabel className="sr-only">Email address</FormLabel>
-          <FormControl><Input {...field} type="email" autoComplete="email" placeholder="Your email address" data-testid="input-newsletter-email" aria-label="Email address" disabled={subscribe.isPending} className="border-border bg-background text-foreground placeholder:text-muted-foreground"/></FormControl>
+          <FormControl><Input {...field} type="email" autoComplete="email" placeholder="Your email address" data-testid="input-newsletter-email" aria-label="Email address" disabled={subscribe.isPending} style={newsletterControlStyle} className="border-border placeholder:text-inherit placeholder:opacity-70"/></FormControl>
           <FormDescription className="sr-only">Enter your email to receive occasional Stillwell updates.</FormDescription>
           <FormMessage data-testid="status-newsletter-validation" className="text-foreground"/>
         </FormItem>}/>
-        <Button type="submit" size="sm" disabled={subscribe.isPending} data-testid="button-newsletter-subscribe" className="min-h-12 bg-background text-primary hover:bg-secondary">{subscribe.isPending ? "Subscribing…" : "Subscribe"}</Button>
+        <Button type="submit" size="sm" disabled={subscribe.isPending} data-testid="button-newsletter-subscribe" style={newsletterControlStyle} className="min-h-12 hover:brightness-95">{subscribe.isPending ? "Subscribing…" : "Subscribe"}</Button>
       </form>
     </Form>
     {feedback && <p data-testid="status-newsletter-feedback" role={feedback.kind === "error" ? "alert" : "status"} aria-live={feedback.kind === "error" ? "assertive" : "polite"} className={`mt-3 rounded-xl px-3 py-2 text-xs ${feedback.kind === "success" ? "bg-secondary text-secondary-foreground" : "border border-notice-border bg-notice text-notice-foreground"}`}>{feedback.message}</p>}
