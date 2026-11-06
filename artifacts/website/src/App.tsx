@@ -133,7 +133,7 @@ function Landing() {
             <div className="mx-auto max-w-2xl text-center">
               <p className="eyebrow justify-center">A map, not a race</p>
               <h2 id="stages-heading" className="display mt-4 text-4xl font-medium leading-tight text-foreground sm:text-5xl">Six stages, one page at a time.</h2>
-              <p className="mt-4 text-base leading-7 text-graphite">Stillwell’s six adapted concussion recovery stages, from rest and easy daily life to getting back to what matters. The highlight is illustrative, not a stage assignment for any real person.</p>
+              <p className="mt-4 text-base leading-7 text-graphite">From rest and easy daily life to getting back to what matters. Ongoing monitoring and support.</p>
             </div>
             <ol className="mt-10 grid list-none gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3">
               {HOMEPAGE_STAGES.map(({ name, description }, index) => <li key={name} className={`stage-paper-card rounded-xl ${index === 2 ? "is-current" : ""}`} data-testid={`card-roadmap-stage-${index + 1}`}>
@@ -143,7 +143,7 @@ function Landing() {
                 <p className="mt-3 text-base leading-6 text-graphite">{description}</p>
               </li>)}
             </ol>
-            <p className="mt-6 text-center text-sm text-graphite">Adapted for Stillwell from the Amsterdam 2022 concussion consensus.</p>
+            <p className="mt-6 text-center text-sm text-graphite">Derived from the Amsterdam 2022 Consensus Guideline for Sport Related Concussion.</p>
           </div>
         </section>
         <section className="founder-quote-band px-5 py-12 sm:px-8 sm:py-14 lg:px-12 lg:py-16">
