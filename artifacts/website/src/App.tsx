@@ -28,7 +28,6 @@ import InviteRoute from "@/pages/InvitePage";
 import RequestRoute from "@/pages/RequestPage";
 import { careMemory, pendingLink } from "@/lib/care-link";
 import { CarePortal } from "@workspace/clinician-care-portal";
-import { JOURNAL_SHARING_COPY } from "@/components/CareTeamSharingFeature";
 
 const clerkPubKey = publishableKeyFromHost(window.location.hostname, import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
 const clerkProxyUrl = import.meta.env.VITE_CLERK_PROXY_URL;
@@ -109,7 +108,7 @@ function Landing() {
               <p className="mt-7 max-w-[540px] text-lg leading-8 text-graphite">
                 A daily journal, a clear recovery stage, and a clinician who reviews your progress with you.
               </p>
-              <p className="mt-4 max-w-[540px] text-base leading-7 text-graphite">{JOURNAL_SHARING_COPY}</p>
+              <p className="mt-4 max-w-[540px] text-graphite text-[23px]">Stillwell turns the time between visits into structured recovery, with the discipline of sport and the care of a team behind every step.</p>
               <div className="mt-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
                 <SiteButton asChild onClick={() => trackEvent("recovery_quiz_started", { entry_point: "hero" })}>
                   <Link href="/quiz">Start your intake <ArrowRight aria-hidden="true" /></Link>
