@@ -812,7 +812,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
   position: relative;
   max-width: 25rem;
   overflow: visible;
-  border: 0;
+  border: 2px solid #ffffff;
   border-radius: .2rem;
   background-color: var(--field);
   background-image: repeating-linear-gradient(to bottom, transparent 0, transparent 31px, var(--paper-rule) 32px);
@@ -836,7 +836,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .paper-note-signoff { margin-top: 1.15rem; color: var(--graphite); font-size: .72rem; }
 
 .illustration-tile { width: 8.5rem; transform: rotate(3deg); }
-.illustration-card { border: .5rem solid var(--field); border-radius: .25rem; background: var(--field); box-shadow: var(--shadow-paper); padding: 0 0 .5rem; }
+.illustration-card { border: .5rem solid var(--field); outline: 2px solid #ffffff; border-radius: .25rem; background: var(--field); box-shadow: var(--shadow-paper); padding: 0 0 .5rem; }
 .illustration-art { overflow: hidden; background: var(--tile-sage); }
 .illustration-artwork { position: relative; display: grid; height: 100%; place-items: center; background-image: radial-gradient(var(--graphite) .55px, transparent .55px); background-size: 8px 8px; }
 .illustration-sprout { width: 52%; height: 58%; color: var(--graphite); }

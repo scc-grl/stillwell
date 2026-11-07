@@ -87,7 +87,7 @@ export function PaperNote() {
     <div className="paper-note-wrap">
       <Card className="paper-note" aria-label="A handwritten journal note, shown as an example">
         <p className="paper-note-date">Example entry · Tuesday, week two</p>
-        <p className="paper-note-script">“9 hours of sleep. headache dissipated, mild nauseau.”</p>
+        <p className="paper-note-script">“9 hours of sleep. headache dissipated, mild dizziness”</p>
         <p className="paper-note-signoff">One day, in my own words.</p>
       </Card>
       <span className="paper-note-washi" aria-hidden="true" />
