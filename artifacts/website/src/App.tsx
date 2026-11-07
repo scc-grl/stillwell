@@ -102,7 +102,7 @@ function Landing() {
           <div className="relative mx-auto grid max-w-[1240px] items-center gap-12 px-5 py-14 sm:px-8 sm:py-20 lg:grid-cols-2 lg:gap-16 lg:px-12 lg:py-24">
             <div className="reveal relative z-[1]">
               <p className="eyebrow">A little more room between visits</p>
-              <h1 className="display mt-5 max-w-[680px] text-5xl font-medium leading-tight tracking-tight text-foreground sm:text-6xl lg:text-7xl">
+              <h1 className="display mt-5 max-w-[680px] font-medium tracking-tight text-foreground sm:text-6xl lg:text-7xl text-[89px]">
                 Recovery happens <span className="pencil-circle italic">between</span> visits.
               </h1>
               <p className="mt-7 max-w-[540px] text-lg leading-8 text-graphite">
