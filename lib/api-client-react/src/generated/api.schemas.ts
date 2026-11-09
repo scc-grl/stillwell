@@ -145,6 +145,13 @@ export const DailyCheckInSymptomAnswerRating = {
   NUMBER_1: 1,
   NUMBER_2: 2,
   NUMBER_3: 3,
+  NUMBER_4: 4,
+  NUMBER_5: 5,
+  NUMBER_6: 6,
+  NUMBER_7: 7,
+  NUMBER_8: 8,
+  NUMBER_9: 9,
+  NUMBER_10: 10,
 } as const;
 
 export interface DailyCheckInSymptomAnswer {
@@ -158,6 +165,16 @@ export interface DailyCheckInSymptomAnswer {
      */
   addedOn?: string;
 }
+
+/**
+ * Absent on historical four-step entries; convert those ratings 0/1/2/3 to 0/3/6/9.
+ */
+export type DailyCheckInRatingScale = typeof DailyCheckInRatingScale[keyof typeof DailyCheckInRatingScale];
+
+
+export const DailyCheckInRatingScale = {
+  ten_point_v1: 'ten_point_v1',
+} as const;
 
 export type DailyCheckInSelectedSymptomsItem = typeof DailyCheckInSelectedSymptomsItem[keyof typeof DailyCheckInSelectedSymptomsItem];
 
@@ -203,6 +220,8 @@ export const DailyCheckInOverallFeeling = {
 } as const;
 
 export interface DailyCheckIn {
+  /** Absent on historical four-step entries; convert those ratings 0/1/2/3 to 0/3/6/9. */
+  ratingScale?: DailyCheckInRatingScale;
   /** @maxItems 11 */
   selectedSymptoms?: DailyCheckInSelectedSymptomsItem[];
   /** @nullable */
@@ -788,6 +807,96 @@ export const ClinicianVerificationResponseVerificationStatus = {
 export interface ClinicianVerificationResponse {
   userId: string;
   verificationStatus: ClinicianVerificationResponseVerificationStatus;
+}
+
+export interface IntakeConsentInput {
+  consentAccepted: true;
+  syntheticOnly: true;
+}
+
+export interface IntakeConsent {
+  id: string;
+  version: string;
+  consentedAt: string;
+}
+
+export type PatientIntakeInputSampleId = typeof PatientIntakeInputSampleId[keyof typeof PatientIntakeInputSampleId];
+
+
+export const PatientIntakeInputSampleId = {
+  maya: 'maya',
+  bike: 'bike',
+  worsening: 'worsening',
+  work: 'work',
+  emergency: 'emergency',
+  crisis: 'crisis',
+} as const;
+
+/**
+ * Structured tap answers only. No patient text is accepted.
+ */
+export type PatientIntakeInputAnswered = { [key: string]: unknown };
+
+export interface PatientIntakeInput {
+  /** @minLength 1 */
+  consentId: string;
+  sampleId: PatientIntakeInputSampleId;
+  /** Structured tap answers only. No patient text is accepted. */
+  answered?: PatientIntakeInputAnswered;
+}
+
+export type PatientIntakeResultDecision = { [key: string]: unknown };
+
+export type RecoveryStageStage = typeof RecoveryStageStage[keyof typeof RecoveryStageStage];
+
+
+export const RecoveryStageStage = {
+  NUMBER_1: '1',
+  NUMBER_2: '2',
+  NUMBER_3: '3',
+  NUMBER_4: '4',
+  NUMBER_5: '5',
+  NUMBER_6: '6',
+  maintenance: 'maintenance',
+} as const;
+
+export type RecoveryStageStatus = typeof RecoveryStageStatus[keyof typeof RecoveryStageStatus];
+
+
+export const RecoveryStageStatus = {
+  provisional: 'provisional',
+  confirmed: 'confirmed',
+  proposed: 'proposed',
+} as const;
+
+export type RecoveryStageSource = typeof RecoveryStageSource[keyof typeof RecoveryStageSource];
+
+
+export const RecoveryStageSource = {
+  intake: 'intake',
+  weekly: 'weekly',
+  clinician: 'clinician',
+} as const;
+
+export interface RecoveryStage {
+  id: string;
+  stage: RecoveryStageStage;
+  status: RecoveryStageStatus;
+  source: RecoveryStageSource;
+  reasons: string[];
+  ruleIds: string[];
+  rulesVersion: string;
+  /** @nullable */
+  confirmedBy?: string | null;
+  createdAt: string;
+  syntheticOnly: boolean;
+}
+
+export interface PatientIntakeResult {
+  decision: PatientIntakeResultDecision;
+  source: string;
+  syntheticOnly: boolean;
+  stage: RecoveryStage | null;
 }
 
 /**

@@ -3,7 +3,7 @@ import test from "node:test";
 import { normalizeExpected, scoreIntake } from "./intake-eval-support.ts";
 test("dataset label aliases map without treating missing expected symptoms as zero", () => {
   const e = normalizeExpected({ expected_outcome: "see_doctor_first", starting_stage: 2, red_flag: false, self_harm: false, symptom_ratings: { headache: { level: 2 }, sleep: "not_recorded" } });
-  assert.deepEqual(e, { outcome: "find_doctor", stage: 2, danger: false, selfHarm: false, symptoms: { headache: 2, sleep: null } });
+  assert.deepEqual(e, { outcome: "find_doctor", stage: 2, danger: false, selfHarm: false, symptoms: { headache: 6, sleep: null } });
   assert.equal(Object.hasOwn(e.symptoms, "fatigue"), false);
 });
 test("unknown labels are unscored, never counted as a successful label match", () => {
@@ -13,12 +13,18 @@ test("unknown labels are unscored, never counted as a successful label match", (
 });
 test("symptom exact and within-one scoring requires a recorded value, never infers unmentioned zero", () => {
   const scores = scoreIntake({ outcome: "start_journal", stage: 2, crisisLineShown: false, readSource: "typesafe", symptoms: { headache: 1, sleep: null, mood: null } },
-    normalizeExpected({ outcome: "start_journal", stage: 2, symptoms: { headache: 2, sleep: null, mood: 0 } }));
+    normalizeExpected({ outcome: "start_journal", stage: 2, ratingScale: "ten_point_v1", symptoms: { headache: 2, sleep: null, mood: 0 } }));
   const get = name=>scores.find(s=>s.name===name).score;
   assert.equal(get("symptom_headache_exact"), 0);
   assert.equal(get("symptom_headache_within_one"), 1);
   assert.equal(get("symptom_sleep_exact"), 1);
   assert.equal(get("symptom_mood_within_one"), 0);
+});
+test("legacy Braintrust symptom positions convert once and explicit ten-point labels stay unchanged", () => {
+  assert.deepEqual(normalizeExpected({ symptoms: { headache: 0, fatigue: 1, fog: 2, sleep: 3 } }).symptoms,
+    { headache: 0, fatigue: 3, fog: 6, sleep: 9 });
+  assert.equal(normalizeExpected({ ratingScale: "ten_point_v1", symptoms: { headache: 3, sleep: 10 } }).symptoms.headache, 3);
+  assert.throws(() => normalizeExpected({ symptoms: { headache: 10 } }), /ratingScale/);
 });
 test("danger and self-harm recalls and stage-not-above remain independent", () => {
   const scores = scoreIntake({ outcome: "go_to_er", stage: null, crisisLineShown: true, readSource: "keywords_only", symptoms: {} }, normalizeExpected({ outcome: "go_to_er", stage: null, danger: true, selfHarm: true }));

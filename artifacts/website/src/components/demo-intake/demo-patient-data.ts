@@ -9,7 +9,7 @@ export const MAYA_DEMO_DATE = "2026-10-29";
 export const MAYA_DEMO_DATE_LABEL = "Thursday, October 29";
 
 export type DemoOverall = (typeof overallChoices)[number]["value"];
-export type DemoRating = 0 | 1 | 2 | 3;
+export type DemoRating = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 export type DemoSleepQuality = "poor" | "fair" | "good" | "great";
 export type DemoNap = "none" | "under_30" | "30_or_more";
 
@@ -102,18 +102,18 @@ export function createMayaDemoState(): MayaDemoState {
       },
     ],
     entries: [
-      makeEntry("2026-10-29", "good", { headache: 1, fatigue: 1, fog: 1, sleep: 0, mood: 0, light: 1 }, {
+      makeEntry("2026-10-29", "good", { headache: 3, fatigue: 3, fog: 3, sleep: 0, mood: 0, light: 3 }, {
         hoursSlept: 8,
         bedtime: "23:00",
         wakeTime: "07:00",
         quality: "good",
       }, "", false),
-      makeEntry("2026-10-28", "okay", { headache: 1, fatigue: 1, fog: 2, sleep: 0, mood: 1, light: 1 }),
-      makeEntry("2026-10-27", "low", { headache: 2, fatigue: 2, fog: 2, sleep: 1, mood: 1, light: 2 }),
-      makeEntry("2026-10-26", "okay", { headache: 1, fatigue: 1, fog: 1, sleep: 1, mood: 0, light: 1 }),
-      makeEntry("2026-10-23", "okay", { headache: 1, fatigue: 1, fog: 1, sleep: 0, mood: 0, light: 1 }),
-      makeEntry("2026-10-22", "good", { headache: 0, fatigue: 1, fog: 1, sleep: 0, mood: 0, light: 0 }),
-      makeEntry("2026-10-21", "okay", { headache: 1, fatigue: 1, fog: 1, sleep: 1, mood: 0, light: 1 }),
+      makeEntry("2026-10-28", "okay", { headache: 3, fatigue: 3, fog: 6, sleep: 0, mood: 3, light: 3 }),
+      makeEntry("2026-10-27", "low", { headache: 6, fatigue: 6, fog: 6, sleep: 3, mood: 3, light: 6 }),
+      makeEntry("2026-10-26", "okay", { headache: 3, fatigue: 3, fog: 3, sleep: 3, mood: 0, light: 3 }),
+      makeEntry("2026-10-23", "okay", { headache: 3, fatigue: 3, fog: 3, sleep: 0, mood: 0, light: 3 }),
+      makeEntry("2026-10-22", "good", { headache: 0, fatigue: 3, fog: 3, sleep: 0, mood: 0, light: 0 }),
+      makeEntry("2026-10-21", "okay", { headache: 3, fatigue: 3, fog: 3, sleep: 3, mood: 0, light: 3 }),
     ],
   };
 }

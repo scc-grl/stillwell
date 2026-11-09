@@ -1,0 +1,106 @@
+paths:
+  /recovery/intake/consent:
+    post:
+      operationId: consentRecoveryIntake
+      tags: [recovery]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IntakeConsentInput"
+      responses:
+        "201":
+          description: Consent recorded before any AI call. Development synthetic preview only.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IntakeConsent"
+  /recovery/intake:
+    post:
+      operationId: runRecoveryIntake
+      tags: [recovery]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PatientIntakeInput"
+      responses:
+        "200":
+          description: Synthetic intake decision and provisional stage, if appropriate.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientIntakeResult"
+  /recovery/stages:
+    get:
+      operationId: getRecoveryStages
+      tags: [recovery]
+      responses:
+        "200":
+          description: Stage history owned by the authenticated patient.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RecoveryStage"
+components:
+  schemas:
+    IntakeConsentInput:
+      type: object
+      additionalProperties: false
+      required: [consentAccepted, syntheticOnly]
+      properties:
+        consentAccepted: { type: boolean, enum: [true] }
+        syntheticOnly: { type: boolean, enum: [true] }
+    IntakeConsent:
+      type: object
+      required: [id, version, consentedAt]
+      properties:
+        id: { type: string }
+        version: { type: string }
+        consentedAt: { type: string, format: date-time }
+    PatientIntakeInput:
+      type: object
+      additionalProperties: false
+      required: [consentId, sampleId]
+      properties:
+        consentId: { type: string, minLength: 1 }
+        sampleId:
+          type: string
+          enum: [maya, bike, worsening, work, emergency, crisis]
+        answered:
+          type: object
+          additionalProperties: true
+          description: Structured tap answers only. No patient text is accepted.
+    PatientIntakeResult:
+      type: object
+      required: [decision, source, stage, syntheticOnly]
+      properties:
+        decision: { type: object, additionalProperties: true }
+        source: { type: string }
+        syntheticOnly: { type: boolean }
+        stage:
+          anyOf:
+            - $ref: "#/components/schemas/RecoveryStage"
+            - type: "null"
+    RecoveryStage:
+      type: object
+      required: [id, stage, status, source, reasons, ruleIds, rulesVersion, createdAt, syntheticOnly]
+      properties:
+        id: { type: string }
+        stage: { type: string, enum: ["1", "2", "3", "4", "5", "6", maintenance] }
+        status: { type: string, enum: [provisional, confirmed, proposed] }
+        source: { type: string, enum: [intake, weekly, clinician] }
+        reasons:
+          type: array
+          items: { type: string }
+        ruleIds:
+          type: array
+          items: { type: string }
+        rulesVersion: { type: string }
+        confirmedBy: { type: [string, "null"] }
+        createdAt: { type: string, format: date-time }
+        syntheticOnly: { type: boolean }

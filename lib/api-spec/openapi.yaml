@@ -21,6 +21,12 @@ tags:
   - name: admin
     description: Stillwell team review tools
 paths:
+  /recovery/intake/consent:
+    $ref: "./intake.yaml#/paths/~1recovery~1intake~1consent"
+  /recovery/intake:
+    $ref: "./intake.yaml#/paths/~1recovery~1intake"
+  /recovery/stages:
+    $ref: "./intake.yaml#/paths/~1recovery~1stages"
   /patient/care-team:
     $ref: "./care-team.yaml#/paths/~1patient~1care-team"
   /patient/care-team/invites:
@@ -732,7 +738,7 @@ components:
           enum: [recorded, not_recorded]
         rating:
           type: integer
-          enum: [0, 1, 2, 3]
+          enum: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
           nullable: true
         addedOn:
           type: string
@@ -743,6 +749,10 @@ components:
       additionalProperties: false
       required: [overallFeeling, symptoms, summary]
       properties:
+        ratingScale:
+          type: string
+          enum: [ten_point_v1]
+          description: Absent on historical four-step entries; convert those ratings 0/1/2/3 to 0/3/6/9.
         selectedSymptoms:
           type: array
           maxItems: 11

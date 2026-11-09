@@ -388,6 +388,9 @@ export class CareTeamService {
       await tx.query("DELETE FROM care_team_invites WHERE inviter_id=$1 AND direction=$2", [user.id, PATIENT_INVITE]);
       // Delete inbound requests addressed to any verified account email as well.
       await tx.query("DELETE FROM care_team_invites WHERE direction=$1 AND status='pending' AND invitee_email=ANY($2::text[])", [CLINICIAN_REQUEST, user.emails.filter(e => e.verified).map(e => normalized(e.address))]);
+      await tx.query("DELETE FROM recovery_stages WHERE owner_id=$1", [user.id]);
+      await tx.query("DELETE FROM recovery_intake_consents WHERE owner_id=$1", [user.id]);
+      await tx.query("DELETE FROM recovery_intake_attempts WHERE owner_id=$1", [user.id]);
       await tx.query("DELETE FROM recovery_profiles WHERE owner_id=$1", [user.id]);
     });
   }

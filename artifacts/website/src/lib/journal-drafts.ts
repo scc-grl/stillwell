@@ -14,13 +14,30 @@ export function storageKey(ownerId: string, date: string) {
   return `stillwell.journal-draft:${encodeURIComponent(ownerId)}:${date}`;
 }
 
+function currentScaleDraft(draft: JournalDraft): JournalDraft {
+  if (draft.dailyCheckIn.ratingScale === "ten_point_v1") return draft;
+  const legacyRatings: Record<number, 0 | 3 | 6 | 9> = { 0: 0, 1: 3, 2: 6, 3: 9 };
+  return {
+    ...draft,
+    dailyCheckIn: {
+      ...draft.dailyCheckIn,
+      ratingScale: "ten_point_v1",
+      symptoms: draft.dailyCheckIn.symptoms.map((answer) => {
+        if (answer.status !== "recorded" || answer.rating === null) return answer;
+        const rating = legacyRatings[answer.rating];
+        return rating === undefined ? answer : { ...answer, rating };
+      }),
+    },
+  };
+}
+
 export function readJournalDraft(ownerId: string, date: string, storage: DraftStorage = localStorage): JournalDraft | null {
   try {
     const raw = storage.getItem(storageKey(ownerId, date));
     if (!raw) return null;
     const draft = JSON.parse(raw) as JournalDraft;
     return draft?.date === date && Array.isArray(draft.dailyCheckIn?.symptoms) && draft.sleep
-      ? draft : null;
+      ? currentScaleDraft(draft) : null;
   } catch {
     return null;
   }

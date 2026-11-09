@@ -15,6 +15,7 @@ import PrivacyPage from "@/pages/PrivacyPage";
 import QuizPage from "@/pages/QuizPage";
 import DemoIntakePage from "@/pages/DemoIntakePage";
 import DemoLandingPage from "@/pages/DemoLandingPage";
+import SyntheticIntakePage from "@/pages/SyntheticIntakePage";
 import PublicInfoPage from "@/pages/PublicInfoPage";
 import UnsubscribePage from "@/pages/UnsubscribePage";
 import { clearClinicianSetupDraft } from "@/pages/PartnersPages";
@@ -86,10 +87,10 @@ const appearance = {
 
 const HOMEPAGE_STAGES = [
   { name: "Rest and settle", description: "A day or two of easy daily life: less screen time and reading." },
-  { name: "Ease back in", description: "Short walks, light reading, simple tasks, high rest intervals." },
-  { name: "Build steady", description: "Longer exercise and activity below your symptom limit." },
-  { name: "Full days again", description: "Full-time work or school without adjustments, no contact." },
-  { name: "Full effort", description: "Full-intensity training, demanding work like driving or working at height." },
+  { name: "Everyday activity", description: "Short walks, light reading, simple tasks, high rest intervals." },
+  { name: "Light exercise", description: "Longer exercise and activity below your symptom limit." },
+  { name: "Building back", description: "Full-time work or school without adjustments, no contact." },
+  { name: "Full days", description: "Full-intensity training, demanding work like driving or working at height." },
   { name: "Back to life", description: "A clinician clears you for everything; you move into a long-term brain-health plan." },
 ] as const;
 
@@ -403,6 +404,7 @@ function Routes() {
       "/dashboard/care-protocol": { title: "Your care protocol", description: "Review your chosen routine, reflection roadmap, and optional resources." },
       "/dashboard/care-team": { title: "Your care team", description: "Manage who can read your Stillwell journal and review planned support options." },
       "/dashboard/account": { title: "Your account", description: "Manage your Stillwell account, privacy, and recovery-data controls." },
+      "/dashboard/intake": { title: "Synthetic intake preview", description: "A signed-in development preview that accepts only fabricated, read-only samples." },
       "/dashboard": { title: "Your dashboard", description: "Review your Stillwell journal progress, chosen routine, and care team." },
       "/account/continue": { title: "Setting up your Stillwell account", description: "Confirming your Stillwell account type." },
       "/our-history": { title: "Our history", description: "Learn about the Stillwell Recovery journal and the values behind its user-led approach." },
@@ -446,6 +448,7 @@ function Routes() {
       <Route path="/quiz" component={QuizRoute}/>
       <Route path="/demo" component={DemoLandingPage}/>
       <Route path="/demo/intake" component={DemoIntakePage}/>
+      <Route path="/dashboard/intake"><AccountTypeGate required="patient"><SyntheticIntakePage/></AccountTypeGate></Route>
       <Route path={PATIENT_DASHBOARD_ROUTE} component={PrivateDashboard}/>
       <Route path="/invite/:token">{(params) => <InviteRoute token={params.token}/>}</Route>
       <Route path="/request/:token">{(params) => <RequestRoute token={params.token}/>}</Route>
