@@ -59,6 +59,8 @@ import type {
   GetMyCareRequestsDefault,
   GetMyCareTeamDefault,
   HealthStatus,
+  IntakeConsent,
+  IntakeConsentInput,
   JournalShareAreasInput,
   NewsletterSubscriptionAccepted,
   NewsletterSubscriptionInput,
@@ -68,6 +70,8 @@ import type {
   PartnerRequestList,
   PatientClinicianConnection,
   PatientClinicianConnectionList,
+  PatientIntakeInput,
+  PatientIntakeResult,
   PreviewCareInvite200,
   PreviewCareInviteDefault,
   PreviewCareRequest200,
@@ -78,6 +82,7 @@ import type {
   RecoveryLogSaveInput,
   RecoveryPreferences,
   RecoveryProfile,
+  RecoveryStage,
   RecoveryStartInput,
   RecoveryState,
   RemoveCareClinicianDefault,
@@ -123,6 +128,265 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getConsentRecoveryIntakeUrl = () => {
+
+
+
+
+  return `/api/recovery/intake/consent`
+}
+
+export const consentRecoveryIntake = async (intakeConsentInput: IntakeConsentInput, options?: Parameters<typeof customFetch>[1]): Promise<IntakeConsent> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<IntakeConsent>(getConsentRecoveryIntakeUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(intakeConsentInput)
+  }
+);}
+
+
+
+
+
+export const getConsentRecoveryIntakeMutationKey = () => ['consentRecoveryIntake'] as const;
+
+export const getConsentRecoveryIntakeMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof consentRecoveryIntake>>, TError,ConsentRecoveryIntakeMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof consentRecoveryIntake>>, TError,ConsentRecoveryIntakeMutationVariables, TContext> => {
+
+const mutationKey = getConsentRecoveryIntakeMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof consentRecoveryIntake>>, ConsentRecoveryIntakeMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  consentRecoveryIntake(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ConsentRecoveryIntakeMutationResult = NonNullable<Awaited<ReturnType<typeof consentRecoveryIntake>>>
+    export type ConsentRecoveryIntakeMutationBody = BodyType<IntakeConsentInput>
+    export type ConsentRecoveryIntakeMutationError = ErrorType<unknown>
+    export type ConsentRecoveryIntakeMutationVariables = {data: BodyType<IntakeConsentInput>}
+
+    export const useConsentRecoveryIntake = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof consentRecoveryIntake>>, TError,ConsentRecoveryIntakeMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof consentRecoveryIntake>>,
+        TError,
+        ConsentRecoveryIntakeMutationVariables,
+        TContext
+      > => {
+      return useMutation(getConsentRecoveryIntakeMutationOptions(options), queryClient);
+    }
+
+export const getRunRecoveryIntakeUrl = () => {
+
+
+
+
+  return `/api/recovery/intake`
+}
+
+export const runRecoveryIntake = async (patientIntakeInput: PatientIntakeInput, options?: Parameters<typeof customFetch>[1]): Promise<PatientIntakeResult> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<PatientIntakeResult>(getRunRecoveryIntakeUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(patientIntakeInput)
+  }
+);}
+
+
+
+
+
+export const getRunRecoveryIntakeMutationKey = () => ['runRecoveryIntake'] as const;
+
+export const getRunRecoveryIntakeMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runRecoveryIntake>>, TError,RunRecoveryIntakeMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof runRecoveryIntake>>, TError,RunRecoveryIntakeMutationVariables, TContext> => {
+
+const mutationKey = getRunRecoveryIntakeMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof runRecoveryIntake>>, RunRecoveryIntakeMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  runRecoveryIntake(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RunRecoveryIntakeMutationResult = NonNullable<Awaited<ReturnType<typeof runRecoveryIntake>>>
+    export type RunRecoveryIntakeMutationBody = BodyType<PatientIntakeInput>
+    export type RunRecoveryIntakeMutationError = ErrorType<unknown>
+    export type RunRecoveryIntakeMutationVariables = {data: BodyType<PatientIntakeInput>}
+
+    export const useRunRecoveryIntake = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runRecoveryIntake>>, TError,RunRecoveryIntakeMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof runRecoveryIntake>>,
+        TError,
+        RunRecoveryIntakeMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRunRecoveryIntakeMutationOptions(options), queryClient);
+    }
+
+export const getGetRecoveryStagesUrl = () => {
+
+
+
+
+  return `/api/recovery/stages`
+}
+
+export const getRecoveryStages = async ( options?: Parameters<typeof customFetch>[1]): Promise<RecoveryStage[]> => {
+
+  return customFetch<RecoveryStage[]>(getGetRecoveryStagesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRecoveryStagesQueryKey = () => {
+    return [
+    `/api/recovery/stages`
+    ] as const;
+    }
+
+
+export const getGetRecoveryStagesQueryOptions = <TData = Awaited<ReturnType<typeof getRecoveryStages>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRecoveryStages>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRecoveryStagesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRecoveryStages>>> = ({ signal }) => getRecoveryStages({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRecoveryStages>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetRecoveryStagesQueryResult = NonNullable<Awaited<ReturnType<typeof getRecoveryStages>>>
+export type GetRecoveryStagesQueryError = ErrorType<unknown>
+
+
+export function useGetRecoveryStages<TData = Awaited<ReturnType<typeof getRecoveryStages>>, TError = ErrorType<unknown>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRecoveryStages>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRecoveryStages>>,
+          TError,
+          Awaited<ReturnType<typeof getRecoveryStages>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRecoveryStages<TData = Awaited<ReturnType<typeof getRecoveryStages>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRecoveryStages>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRecoveryStages>>,
+          TError,
+          Awaited<ReturnType<typeof getRecoveryStages>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRecoveryStages<TData = Awaited<ReturnType<typeof getRecoveryStages>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRecoveryStages>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetRecoveryStages<TData = Awaited<ReturnType<typeof getRecoveryStages>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRecoveryStages>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetRecoveryStagesQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getGetMyCareTeamUrl = () => {
 

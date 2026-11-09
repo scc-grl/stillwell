@@ -100,7 +100,7 @@ export function JournalDatebook({
   const [showAllDates, setShowAllDates] = useState(false);
   const [checkIn, setCheckIn] = useState<DailyCheckIn>(() => savedToday
     ? dailyCheckInFromLog(savedToday)
-    : { overallFeeling: null, worseWithActivity: null, symptoms: checkInSymptoms.map(({ name }) => ({ name, status: "not_recorded", rating: null })), summary: "" });
+    : { ratingScale: "ten_point_v1", overallFeeling: null, worseWithActivity: null, symptoms: checkInSymptoms.map(({ name }) => ({ name, status: "not_recorded", rating: null })), summary: "" });
   const [sleep, setSleep] = useState<NonNullable<RecoveryLogInput["sleep"]>>(
     () => savedToday?.sleep ?? { hoursSlept: null, bedtime: null, wakeTime: null, quality: null, wakings: null, nap: null, note: "" },
   );
@@ -169,7 +169,7 @@ export function JournalDatebook({
     } else {
       setCheckIn(serverLog
         ? dailyCheckInFromLog(serverLog)
-        : { overallFeeling: null, worseWithActivity: null, symptoms: checkInSymptoms.map(({ name }) => ({ name, status: "not_recorded", rating: null })), summary: "" });
+          : { ratingScale: "ten_point_v1", overallFeeling: null, worseWithActivity: null, symptoms: checkInSymptoms.map(({ name }) => ({ name, status: "not_recorded", rating: null })), summary: "" });
       setSleep(serverLog?.sleep ?? { hoursSlept: null, bedtime: null, wakeTime: null, quality: null, wakings: null, nap: null, note: "" });
       setDraftSavedAt(null);
       setDraftStartedAt(null);

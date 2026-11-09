@@ -3,6 +3,7 @@ export * from "./keywords.ts";
 export * from "./reader.ts";
 export * from "./decide.ts";
 export * from "./trace.ts";
+export * from "./synthetic.ts";
 
 import { readIntake, type IntakeRead, type IntakeOptions } from "./reader.ts";
 import { decide, type Decision } from "./decide.ts";

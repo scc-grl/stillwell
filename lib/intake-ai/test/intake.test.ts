@@ -1,12 +1,24 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildQuestions, DANGER_SIGNS, INTAKE_SYMPTOMS, RULES_VERSION, QUESTIONS_VERSION, runIntake, intakeLogicTrace, redFlagOutcomeScore, STAGE_GATES } from "../src/index.ts";
+import { buildQuestions, DANGER_SIGNS, INTAKE_SYMPTOMS, RULES_VERSION, QUESTIONS_VERSION, runIntake, intakeLogicTrace, redFlagOutcomeScore, STAGE_GATES, normalizeAnswer } from "../src/index.ts";
 import { calm, failingClient, fakeClient, type Overrides } from "./fake-client.ts";
 const run = (o: Overrides = {}) => runIntake("synthetic note", { client: fakeClient({ ...calm, ...o }) });
+test("provider rubric limit is respected; model positions normalize once and tap scores stay exact", () => {
+  const q = buildQuestions().symptom_headache;
+  assert.equal(q.criteria.length, 10);
+  const provider = normalizeAnswer(q, { score: 9, confidence: 1 }, true);
+  assert.equal(provider.score, 10);
+  assert.equal(provider.providerPosition, 9);
+  const moderate = normalizeAnswer(q, { score: 4.5, confidence: 1 }, true);
+  assert.equal(moderate.score, 5);
+  const tap = normalizeAnswer(q, { score: 9, confidence: 1 });
+  assert.equal(tap.score, 9);
+  assert.equal(tap.providerPosition, undefined);
+});
 test("versioned 12 separate flags, 11 mention + Score pairs, unordered cause and unchanged activity prompts", () => {
   const q = buildQuestions();
-  assert.equal(QUESTIONS_VERSION, "intake-questions-2026-10-29.1");
-  assert.equal(RULES_VERSION, "intake-rules-2026-10-29.2");
+  assert.equal(QUESTIONS_VERSION, "intake-questions-2026-11-09.2");
+  assert.equal(RULES_VERSION, "intake-rules-2026-11-09.1");
   assert.equal(Object.keys(DANGER_SIGNS).length, 12);
   assert.equal(INTAKE_SYMPTOMS.length, 11);
   assert.equal(Object.keys(q).length, 44);
@@ -69,19 +81,19 @@ test("P1 requires daily tasks and walking or light exercise; unsure never counts
   assert.equal((await run({ activity_daily_tasks: 0.69, activity_harder_solo_exercise: 0.9 })).decision.stage?.stage, 1);
   assert.equal((await run({ activity_walking: 0.5, activity_light_exercise: 0.3, activity_harder_solo_exercise: 0.9 })).decision.stage?.stage, 1);
 });
-test("P2 exact max 2.5 or total 9 caps to one, using fractional scores", async () => {
-  const max = (await run({ mentioned_headache: 1, symptom_headache: 2.5, activity_harder_solo_exercise: 1 })).decision;
-  assert.equal(max.stage?.stage, 1); assert.ok(max.ruleIds.includes("P2")); assert.equal(max.composite.max, 2.5);
+test("P2 exact max 7.5 or total 27 caps to one on the ten-point scale", async () => {
+  const max = (await run({ mentioned_headache: 1, symptom_headache: 7.5, activity_harder_solo_exercise: 1 })).decision;
+  assert.equal(max.stage?.stage, 1); assert.ok(max.ruleIds.includes("P2")); assert.equal(max.composite.max, 7.5);
   const o: Overrides = {};
-  for (const s of INTAKE_SYMPTOMS.slice(0,6)) { o[`mentioned_${s.name}`] = 1; o[`symptom_${s.name}`] = 1.5; }
+  for (const s of INTAKE_SYMPTOMS.slice(0,6)) { o[`mentioned_${s.name}`] = 1; o[`symptom_${s.name}`] = 4.5; }
   const total = (await run(o)).decision;
-  assert.equal(total.composite.total, 9); assert.equal(total.stage?.stage, 1);
+  assert.equal(total.composite.total, 27); assert.equal(total.stage?.stage, 1);
 });
-test("P3 exact max 1.5 or four symptoms caps to two", async () => {
-  const a = (await run({ activity_harder_solo_exercise: 1, mentioned_headache: 1, symptom_headache: 1.5 })).decision;
+test("P3 exact max 4.5 or four counted symptoms caps to two", async () => {
+  const a = (await run({ activity_harder_solo_exercise: 1, mentioned_headache: 1, symptom_headache: 4.5 })).decision;
   assert.equal(a.stage?.stage, 2); assert.ok(a.ruleIds.includes("P3"));
   const o: Overrides = { activity_harder_solo_exercise: 1 };
-  for (const s of INTAKE_SYMPTOMS.slice(0,4)) { o[`mentioned_${s.name}`] = 1; o[`symptom_${s.name}`] = 1; }
+  for (const s of INTAKE_SYMPTOMS.slice(0,4)) { o[`mentioned_${s.name}`] = 1; o[`symptom_${s.name}`] = 3; }
   assert.equal((await run(o)).decision.stage?.stage, 2);
 });
 test("P4 under 48 hours, exact timing and D3 >28days; missing timing stays unknown", async () => {

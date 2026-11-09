@@ -35,10 +35,10 @@ export const overallChoices = [
   { value: "great", label: "Great" },
 ] as const;
 
-export const ratingChoices = [
-  { value: 0, label: "Not noticeable" }, { value: 1, label: "Less noticeable" },
-  { value: 2, label: "Noticeable" }, { value: 3, label: "More noticeable" },
-] as const;
+export const ratingChoices = Array.from({ length: 11 }, (_, value) => ({
+  value: value as 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10,
+  label: value === 0 ? "0 None" : value === 5 ? "5 Moderate" : value === 10 ? "10 Worst" : String(value),
+}));
 
 export const activityChoices = [
   { value: "done", label: "Done" },
@@ -75,13 +75,14 @@ export const setupCopy = {
 const legacySeverity = [0, 3, 6, 9] as const;
 const trackedLegacyNames = new Set<string>(checkInSymptoms.slice(0, 6).map((symptom) => symptom.legacyName));
 
-/** Historical severities remain storage-compatible; new UI always uses named ratings. */
-export function legacyScoreToRating(severity: number): 0 | 1 | 2 | 3 {
-  return severity === 0 ? 0 : severity <= 3 ? 1 : severity <= 6 ? 2 : 3;
+/** Historical legacy severities are already 0–10; preserve them, including zero. */
+export function legacyScoreToRating(severity: number): typeof ratingChoices[number]["value"] {
+  return Math.max(0, Math.min(10, Math.round(severity))) as typeof ratingChoices[number]["value"];
 }
 
 export function makeEmptyDailyCheckIn(): DailyCheckIn {
   return {
+    ratingScale: "ten_point_v1",
     overallFeeling: null,
     worseWithActivity: null,
     symptoms: checkInSymptoms.map(({ name }) => ({ name, status: "not_recorded", rating: null })),
@@ -94,10 +95,15 @@ export function dailyCheckInFromLog(log: Pick<RecoveryLogInput, "symptoms" | "da
   if (log.dailyCheckIn) {
     return {
       ...log.dailyCheckIn,
+      ratingScale: "ten_point_v1",
       symptoms: empty.symptoms.map((missing) => {
         const answer = log.dailyCheckIn!.symptoms.find((item) => item.name === missing.name);
         if (!answer) return missing;
-        if (answer.status === "recorded" && ratingChoices.some((item) => item.value === answer.rating)) return answer;
+        if (answer.status === "recorded" && answer.rating !== null) {
+          const rating = log.dailyCheckIn!.ratingScale === "ten_point_v1"
+            ? answer.rating : legacySeverity[answer.rating as 0 | 1 | 2 | 3];
+          if (ratingChoices.some(item => item.value === rating)) return { ...answer, rating };
+        }
         return answer.addedOn ? { ...missing, addedOn: answer.addedOn } : missing;
       }),
     };
@@ -122,7 +128,7 @@ export function symptomsForRecoveryLog(checkIn: DailyCheckIn, existing: readonly
   const tracked = checkIn.symptoms.flatMap((answer) => {
     if (answer.status !== "recorded" || answer.rating === null) return [];
     const config = checkInSymptoms.find((item) => item.name === answer.name);
-    return config ? [{ name: config.legacyName, severity: legacySeverity[answer.rating] }] : [];
+    return config ? [{ name: config.legacyName, severity: answer.rating }] : [];
   });
   const boundedTracked = tracked.slice(0, MAX_RECOVERY_LOG_SYMPTOMS);
   const boundedPreserved = preserved.slice(0, MAX_RECOVERY_LOG_SYMPTOMS - boundedTracked.length);

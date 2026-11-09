@@ -241,7 +241,7 @@ export function EmergencyScreen({ quotes }: { quotes: string[] }) {
   );
 }
 
-export function CrisisScreen({ onExit }: { onExit: () => void }) {
+export function CrisisScreen({ onExit, exitLabel = "Exit demo" }: { onExit: () => void; exitLabel?: string }) {
   return (
     <>
       <Card className="mx-auto max-w-3xl space-y-6 border-destructive/40 p-6 sm:p-9" role="alert" data-testid="crisis-screen">
@@ -249,7 +249,7 @@ export function CrisisScreen({ onExit }: { onExit: () => void }) {
         <h1 className="display text-4xl font-medium leading-tight sm:text-5xl">Please reach out now.</h1>
         <p className="text-lg leading-7">If you may hurt yourself or feel unsafe, call or text <strong>988</strong> in the U.S. or Canada for immediate crisis support. If you are in immediate danger, call your local emergency number or go to an emergency department.</p>
         <p className="text-sm leading-6 text-muted-foreground">If you can, tell someone you trust and ask them to stay with you. Stillwell has stopped this intake; your safety comes first.</p>
-        <Button type="button" variant="outline" className="min-h-11 w-fit" onClick={onExit}>Exit demo</Button>
+        <Button type="button" variant="outline" className="min-h-11 w-fit" onClick={onExit}>{exitLabel}</Button>
       </Card>
       <CareBoundary />
     </>

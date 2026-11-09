@@ -18,3 +18,5 @@
 - [Clinician prototype scope](clinician-prototype-scope.md) — clinician surfaces retain a proof-of-concept label; patient-facing roles and pages must not show it.
 - [Demo emergency warning](demo-emergency-warning.md) — emergency instructions are a warning with no action buttons; demo-shell navigation stays separate.
 - [Expo security compatibility](expo-security-compatibility.md) — keep security-only updates within the current SDK; verify transitive module interop with native bundles, not just audits.
+- [Synthetic intake boundary](synthetic-intake-boundary.md) — founder approved synthetic-only testing until TypeSafe vendor/privacy requirements are resolved.
+- [TypeSafe rubric limit](typesafe-score-rubric.md) — provider Score rubrics support at most ten criteria; normalize model positions separately from patient taps.

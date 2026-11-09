@@ -6,11 +6,14 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { DailyCheckInOverallFeeling } from './dailyCheckInOverallFeeling';
+import type { DailyCheckInRatingScale } from './dailyCheckInRatingScale';
 import type { DailyCheckInSelectedSymptomsItem } from './dailyCheckInSelectedSymptomsItem';
 import type { DailyCheckInSymptomAnswer } from './dailyCheckInSymptomAnswer';
 import type { DailyCheckInWorseWithActivity } from './dailyCheckInWorseWithActivity';
 
 export interface DailyCheckIn {
+  /** Absent on historical four-step entries; convert those ratings 0/1/2/3 to 0/3/6/9. */
+  ratingScale?: DailyCheckInRatingScale;
   /** @maxItems 11 */
   selectedSymptoms?: DailyCheckInSelectedSymptomsItem[];
   /** @nullable */

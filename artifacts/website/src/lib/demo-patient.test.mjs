@@ -14,7 +14,7 @@ test("Maya starts with the six shared symptoms and the approved day-28 responses
   const today = state.entries.find(entry => entry.date === MAYA_DEMO_DATE);
   assert.equal(today.overall, "good");
   assert.equal(today.saved, false);
-  assert.deepEqual(today.symptoms, { headache: 1, fatigue: 1, fog: 1, sleep: 0, mood: 0, light: 1 });
+  assert.deepEqual(today.symptoms, { headache: 3, fatigue: 3, fog: 3, sleep: 0, mood: 0, light: 3 });
   assert.equal(today.sleep.hoursSlept, 8);
   assert.equal(today.sleep.quality, "good");
   assert.equal(today.note, "");
@@ -52,7 +52,7 @@ test("editing and saving a day preserves other fields, other dates, settings and
   assert.deepEqual(saved.routine, state.routine);
   assert.deepEqual(saved.trackedSymptoms, state.trackedSymptoms);
   assert.equal(saved.entries[0].overall, "good");
-  assert.equal(saved.entries[0].symptoms.fatigue, 1);
+  assert.equal(saved.entries[0].symptoms.fatigue, 3);
   assert.equal(saved.entries[0].symptoms.nausea, null);
   assert.equal(saved.entries[0].sleep.hoursSlept, 7.5);
   assert.equal(saved.entries[0].note, "A made-up reflection.");
@@ -82,7 +82,7 @@ test("fresh sessions reset edits and empty entries never infer skipped values", 
   state.trackedSymptoms.pop();
   state.routine[0].done = false;
   const fresh = createMayaDemoState();
-  assert.equal(fresh.entries[0].symptoms.headache, 1);
+  assert.equal(fresh.entries[0].symptoms.headache, 3);
   assert.equal(fresh.entries[0].sleep.hoursSlept, 8);
   assert.equal(fresh.trackedSymptoms.length, 6);
   assert.equal(fresh.routine[0].done, true);

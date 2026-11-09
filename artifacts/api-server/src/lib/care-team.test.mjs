@@ -38,7 +38,7 @@ const advance = minutes => { clock = new Date(clock.getTime() + minutes * 60000)
 before(async () => {
   await admin.query(`CREATE SCHEMA ${schema}`);
   pool = new Pool({ connectionString: process.env.DATABASE_URL, options: `-c search_path=${schema},public` });
-  for (const table of ["recovery_profiles", "recovery_logs", "care_team_links", "care_team_invites", "care_team_snapshots", "care_team_email_sends"])
+  for (const table of ["recovery_profiles", "recovery_logs", "care_team_links", "care_team_invites", "care_team_snapshots", "care_team_email_sends", "recovery_stages", "recovery_intake_consents", "recovery_intake_attempts"])
     await pool.query(`CREATE TABLE ${schema}.${table} (LIKE public.${table} INCLUDING ALL)`);
   await pool.query(`ALTER TABLE ${schema}.recovery_logs ADD FOREIGN KEY(owner_id) REFERENCES ${schema}.recovery_profiles(owner_id) ON DELETE CASCADE`);
   await pool.query(`ALTER TABLE ${schema}.care_team_snapshots ADD FOREIGN KEY(link_id) REFERENCES ${schema}.care_team_links(id) ON DELETE CASCADE`);

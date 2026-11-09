@@ -15,6 +15,8 @@ import {
 import { getClerkProxyHost } from "../middlewares/clerkProxyMiddleware";
 import { recoveryLogWrite } from "../lib/recovery-log-write";
 import { careIdentity, careTeamService } from "../lib/care-team-runtime";
+import { patientIntakeRouter } from "./patient-intake";
+import { dailyCheckInFromLog } from "@workspace/recovery-journal";
 
 const router: IRouter = Router();
 const CONSENT_VERSION = "2026-10-08";
@@ -68,6 +70,8 @@ router.use("/recovery", (req, res, next) => {
     .catch(next);
 });
 
+router.use("/recovery", patientIntakeRouter);
+
 router.get("/recovery", async (req, res): Promise<void> => {
   res.json(await stateFor(owner(req)));
 });
@@ -80,6 +84,7 @@ router.post("/recovery/start", async (req, res): Promise<void> => {
   }
   const ownerId = owner(req);
   const { preferences, firstLog } = parsed.data;
+  if (firstLog.dailyCheckIn) firstLog.dailyCheckIn = dailyCheckInFromLog(firstLog);
   await db.transaction(async (tx) => {
     await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtextextended(${`patient:${ownerId}`},0))`);
     // A retry or parallel signup callback must not create a second first summary.

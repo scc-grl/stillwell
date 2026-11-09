@@ -17,7 +17,7 @@ export default defineConfig({
   "api-client-react": {
     input: {
       target: "./openapi.yaml",
-      parserOptions: { externalRefs: { allow: ["./care-team.yaml"] } },
+      parserOptions: { externalRefs: { allow: ["./care-team.yaml", "./intake.yaml"] } },
       override: {
         transformer: titleTransformer,
       },
@@ -47,7 +47,7 @@ export default defineConfig({
   zod: {
     input: {
       target: "./openapi.yaml",
-      parserOptions: { externalRefs: { allow: ["./care-team.yaml"] } },
+      parserOptions: { externalRefs: { allow: ["./care-team.yaml", "./intake.yaml"] } },
       override: {
         transformer: titleTransformer,
       },

@@ -79,8 +79,8 @@ export function RecoveryLogSummary({ log }: { log: RecoveryLog }) {
                   ))}
                 </View>
                 <View style={styles.scaleLabels}>
-                  <Text variant="caption">Not noticeable</Text>
-                  <Text variant="caption">More noticeable</Text>
+                  <Text variant="caption">0 None</Text>
+                  <Text variant="caption">10 Worst</Text>
                 </View>
               </View>
             );
