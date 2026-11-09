@@ -36,8 +36,10 @@ test("website fonts, radius, shadows, focus and reduced motion are defined local
   assert.match(css, /outline:\s*3px solid var\(--progress-fill\); outline-offset:\s*3px/);
   assert.match(css, /prefers-reduced-motion:reduce[\s\S]*animation:none!important/);
 });
-test("the theme defaults to the OS, persists per account, and has an accessible toggle", () => {
-  assert.match(theme, /prefers-color-scheme: dark/);
+test("the theme defaults to light, persists per account, and has an accessible toggle", () => {
+  assert.match(theme, /const \[dark, setDark\] = useState\(false\)/);
+  assert.match(theme, /setDark\(saved === "dark"\)/);
+  assert.doesNotMatch(theme, /prefers-color-scheme|matchMedia/);
   assert.match(theme, /stillwell\.theme\.user\./);
   assert.match(theme, /localStorage\.setItem/);
   assert.match(theme, /aria-label=\{dark \? "Switch to light mode" : "Switch to dark mode"\}/);

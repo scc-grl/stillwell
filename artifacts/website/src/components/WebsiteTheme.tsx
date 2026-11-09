@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useLayoutEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useLayoutEffect, useMemo, useState, type ReactNode } from "react";
 import { Moon, Sun } from "lucide-react";
 import { useUser } from "@clerk/react";
 import { Button } from "@workspace/stillwell-design-system/components/ui/button";
@@ -11,36 +11,19 @@ function themeKey(userId?: string) {
   return userId ? `stillwell.theme.user.${userId}` : ANONYMOUS_THEME_KEY;
 }
 
-function systemTheme() {
-  return typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches;
-}
-
 export function WebsiteThemeProvider({ children, enabled = true }: { children: ReactNode; enabled?: boolean }) {
   const { user } = useUser();
   const userId = user?.id;
   const key = themeKey(userId);
-  const [dark, setDark] = useState(systemTheme);
+  const [dark, setDark] = useState(false);
 
   useLayoutEffect(() => {
     try {
       const saved = window.localStorage.getItem(key);
-      setDark(saved === "dark" ? true : saved === "light" ? false : systemTheme());
+      setDark(saved === "dark");
     } catch {
-      setDark(systemTheme());
+      setDark(false);
     }
-  }, [key]);
-
-  useEffect(() => {
-    const media = window.matchMedia("(prefers-color-scheme: dark)");
-    const syncSystem = () => {
-      try {
-        if (window.localStorage.getItem(key) === null) setDark(media.matches);
-      } catch {
-        setDark(media.matches);
-      }
-    };
-    media.addEventListener("change", syncSystem);
-    return () => media.removeEventListener("change", syncSystem);
   }, [key]);
 
   // Radix dialogs render outside the app wrapper. Give those portals the same
