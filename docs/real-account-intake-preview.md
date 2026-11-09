@@ -48,3 +48,11 @@ The live Braintrust eval reached an empty dataset (zero rows); no accuracy score
 https://www.braintrust.dev/app/scc-grl/p/stillwell-intake/experiments/intake-rules-2026-11-09.1
 
 No publishing or production database changes were performed. Real-patient AI intake, voice/free-text entry, actual clinician alerts and queue delivery remain disabled/deferred.
+
+### Signed-in browser pass
+
+Verified consent disabled until checked, Not now returning without consent, fixed samples with personal text disabled, the real TypeSafe reading path, an 11-symptom Summary, explicit confirmation, provisional Stage 1 and reasons, and the persisted synthetic stage on the dashboard after reload. The work sample was used for the normal path; the conservative safety rules can send Maya's sample to the emergency outcome.
+
+The emergency sample displayed a button-free warning and added no stage. The stage view fit a 390×844 viewport without horizontal overflow; dashboard dark mode was checked. Delete-all removed the synthetic stage, and the test session was signed out.
+
+The numeric symptom Change picker showed 0–10, but a Vite reconnect interrupted the rerun. Its final request/result was not browser-verified; structured-answer validation and reader-domain conversion are covered by automated tests. Consent-row cleanup was not independently inspected after delete-all. The Clerk test sign-in account may remain because the approved test helper does not provide account deletion.
