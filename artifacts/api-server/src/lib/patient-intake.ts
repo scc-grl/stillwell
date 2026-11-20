@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { INTAKE_CONSENT_VERSION, type Decision } from "@workspace/intake-ai";
-import { provisionalStageFor, syntheticIntakeInput } from "./patient-intake-policy";
+import { provisionalStageFor, patientIntakeInput, realTextIntakeAllowed } from "./patient-intake-policy";
 import type { SqlPool } from "./recovery-lock";
 import { transaction } from "./recovery-lock";
 
@@ -9,10 +9,15 @@ export class IntakeError extends Error {
 }
 type Run = (note: string, answered: Record<string, unknown>) => Promise<{ decision: Decision; source: string }>;
 export class PatientIntakeService {
-  constructor(private pool: SqlPool, private run: Run) {}
+  constructor(private pool: SqlPool, private run: Run,
+    private enabled = () => realTextIntakeAllowed(process.env.NODE_ENV, process.env.REAL_ACCOUNT_INTAKE_ENABLED)) {}
+  private assertEnabled() {
+    if (!this.enabled()) throw new IntakeError(403, "Story intake is temporarily unavailable. You can still use your journal.");
+  }
   async consent(ownerId: string) {
+    this.assertEnabled();
     const { rows: [row] } = await this.pool.query(
-      "INSERT INTO recovery_intake_consents(owner_id,version,synthetic_only) VALUES($1,$2,true) RETURNING *",
+      "INSERT INTO recovery_intake_consents(owner_id,version,synthetic_only) VALUES($1,$2,false) RETURNING *",
       [ownerId, INTAKE_CONSENT_VERSION]);
     return { id: row.id, version: row.version, consentedAt: new Date(row.consented_at).toISOString() };
   }
@@ -21,13 +26,14 @@ export class PatientIntakeService {
     return rows.map(stageDto);
   }
   async execute(ownerId: string, body: unknown) {
+    this.assertEnabled();
     let input;
-    try { input = syntheticIntakeInput(body); } catch {
-      throw new IntakeError(400, "Choose a sample story and use only the preview tap answers. Real patient text is not accepted.");
+    try { input = patientIntakeInput(body); } catch {
+      throw new IntakeError(400, "Enter your story (up to 4,000 characters) and use only the intake answer fields.");
     }
     const { rows: [consent] } = await this.pool.query(
       "SELECT * FROM recovery_intake_consents WHERE id=$1 AND owner_id=$2", [input.consentId, ownerId]);
-    if (!consent || consent.version !== INTAKE_CONSENT_VERSION || !consent.synthetic_only) {
+    if (!consent || consent.version !== INTAKE_CONSENT_VERSION || consent.synthetic_only !== false) {
       throw new IntakeError(403, "Start the intake and give consent before reading a story.");
     }
     if (Date.now() - new Date(consent.consented_at).getTime() > 86400000) {
@@ -36,10 +42,14 @@ export class PatientIntakeService {
     await transaction(this.pool, async tx => {
       await tx.query("SELECT pg_advisory_xact_lock(hashtextextended($1,0))", [`intake:${ownerId}`]);
       const { rows: [count] } = await tx.query("SELECT count(*)::int n FROM recovery_intake_attempts WHERE owner_id=$1 AND created_at > now() - interval '1 hour'", [ownerId]);
-      if (count.n >= 10) throw new IntakeError(429, "You've tried the preview 10 times this hour. Try again later.");
+      if (count.n >= 10) throw new IntakeError(429, "You've tried the intake 10 times this hour. Try again later.");
       await tx.query("INSERT INTO recovery_intake_attempts(owner_id) VALUES($1)", [ownerId]);
     });
-    const result = await this.run(input.sample.story, input.answered);
+    // Only sanitized story and allowlisted structured answers cross this boundary.
+    // Identity/consent are matched locally and are never passed to the AI runner.
+    this.assertEnabled();
+    const result = await this.run(input.story, input.answered);
+    this.assertEnabled();
     const candidate = provisionalStageFor(result.decision);
     let stage = null;
     if (candidate) {
@@ -49,19 +59,19 @@ export class PatientIntakeService {
         await tx.query("SELECT pg_advisory_xact_lock(hashtextextended($1,0))", [`patient:${ownerId}`]);
         const { rows: stillConsented } = await tx.query("SELECT id FROM recovery_intake_consents WHERE id=$1 AND owner_id=$2", [consent.id, ownerId]);
         if (!stillConsented.length) throw new IntakeError(409, "This intake was removed. Start again with consent.");
-        const key = createHash("sha256").update(JSON.stringify({ sample: input.sample.id, ...candidate })).digest("hex");
+        const key = createHash("sha256").update(JSON.stringify(candidate)).digest("hex");
         const { rows } = await tx.query(
           `INSERT INTO recovery_stages(owner_id,stage,status,source,reasons,rule_ids,rules_version,synthetic_only,intake_consent_id,decision_key)
-           VALUES($1,$2,'provisional','intake',$3,$4,$5,true,$6,$7)
+           VALUES($1,$2,'provisional','intake',$3,$4,$5,false,$6,$7)
            ON CONFLICT (intake_consent_id,decision_key) DO NOTHING RETURNING *`,
           [ownerId, candidate.stage, JSON.stringify(candidate.reasons), JSON.stringify(candidate.ruleIds), candidate.rulesVersion, consent.id, key]);
         const row = rows[0] ?? (await tx.query("SELECT * FROM recovery_stages WHERE intake_consent_id=$1 AND decision_key=$2 AND owner_id=$3", [consent.id, key, ownerId])).rows[0];
         return stageDto(row);
       });
     }
-    // TODO #35: assigned-clinician safety alerts and review queue. Never send
-    // a real clinician an alert from synthetic testing; safety outcomes store no stage.
-    return { ...result, stage, syntheticOnly: true };
+    // TODO #35: assigned-clinician safety alerts/review queue are not delivered yet.
+    // Safety outcomes store no stage. Never persist or log the story.
+    return { ...result, stage, syntheticOnly: false };
   }
 }
 function stageDto(row: any) {

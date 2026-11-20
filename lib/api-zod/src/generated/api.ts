@@ -8,9 +8,13 @@
 import * as zod from 'zod';
 
 
+export const GetRecoveryIntakeStatusResponse = zod.object({
+  "enabled": zod.boolean()
+})
+
+
 export const ConsentRecoveryIntakeBody = zod.object({
-  "consentAccepted": zod.literal(true),
-  "syntheticOnly": zod.literal(true)
+  "consentAccepted": zod.literal(true)
 })
 
 export const ConsentRecoveryIntakeResponse = zod.object({
@@ -20,13 +24,14 @@ export const ConsentRecoveryIntakeResponse = zod.object({
 })
 
 
+export const runRecoveryIntakeBodyStoryMax = 4000;
 
 
 
 export const RunRecoveryIntakeBody = zod.object({
-  "consentId": zod.string().min(1),
-  "sampleId": zod.enum(['maya', 'bike', 'worsening', 'work', 'emergency', 'crisis']),
-  "answered": zod.record(zod.string(), zod.unknown()).optional().describe('Structured tap answers only. No patient text is accepted.')
+  "consentId": zod.uuid(),
+  "story": zod.string().min(1).max(runRecoveryIntakeBodyStoryMax),
+  "answered": zod.record(zod.string(), zod.unknown()).optional().describe('Validated numeric and enum answers only; no account metadata.')
 })
 
 export const RunRecoveryIntakeResponse = zod.object({

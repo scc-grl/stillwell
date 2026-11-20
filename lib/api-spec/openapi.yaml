@@ -21,6 +21,8 @@ tags:
   - name: admin
     description: Stillwell team review tools
 paths:
+  /recovery/intake/status:
+    $ref: "./intake.yaml#/paths/~1recovery~1intake~1status"
   /recovery/intake/consent:
     $ref: "./intake.yaml#/paths/~1recovery~1intake~1consent"
   /recovery/intake:

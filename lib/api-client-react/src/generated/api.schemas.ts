@@ -811,7 +811,10 @@ export interface ClinicianVerificationResponse {
 
 export interface IntakeConsentInput {
   consentAccepted: true;
-  syntheticOnly: true;
+}
+
+export interface PatientIntakeStatus {
+  enabled: boolean;
 }
 
 export interface IntakeConsent {
@@ -820,28 +823,19 @@ export interface IntakeConsent {
   consentedAt: string;
 }
 
-export type PatientIntakeInputSampleId = typeof PatientIntakeInputSampleId[keyof typeof PatientIntakeInputSampleId];
-
-
-export const PatientIntakeInputSampleId = {
-  maya: 'maya',
-  bike: 'bike',
-  worsening: 'worsening',
-  work: 'work',
-  emergency: 'emergency',
-  crisis: 'crisis',
-} as const;
-
 /**
- * Structured tap answers only. No patient text is accepted.
+ * Validated numeric and enum answers only; no account metadata.
  */
 export type PatientIntakeInputAnswered = { [key: string]: unknown };
 
 export interface PatientIntakeInput {
-  /** @minLength 1 */
   consentId: string;
-  sampleId: PatientIntakeInputSampleId;
-  /** Structured tap answers only. No patient text is accepted. */
+  /**
+     * @minLength 1
+     * @maxLength 4000
+     */
+  story: string;
+  /** Validated numeric and enum answers only; no account metadata. */
   answered?: PatientIntakeInputAnswered;
 }
 

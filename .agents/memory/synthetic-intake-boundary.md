@@ -1,9 +1,9 @@
 ---
-name: Synthetic intake boundary
-description: Founder-approved testing limit while a TypeSafe BAA is absent.
+name: Account intake preview boundary
+description: Founder approved patient-written stories in preview, with a server switch and no account metadata.
 ---
-Signed-in AI intake must remain synthetic-only and unavailable in production until the founder explicitly approves enabling real patient data after vendor/privacy review.
+The founder has explicitly replaced the synthetic-only restriction for signed-in preview intake: patients may type or dictate their own story after server-recorded consent. TypeSafe may receive only story text and structured intake answers, never account profile fields or identifiers.
 
-**Why:** The founder stated that no TypeSafe BAA is in place and chose “Build synthetic-only preview” when offered the alternatives.
+**Why:** After the initial synthetic preview, the founder said to enable patient-written stories in preview, excluding name, email and account ID. No new BAA or compliance status was stated.
 
-**How to apply:** Do not accept editable patient stories or dictation into the signed-in AI preview. Use server-owned fictional scenarios and structured test answers. Do not infer that consent, a working API key, or a later publishing request authorizes lifting this boundary.
+**How to apply:** Preserve consent-first, basic server-side email/phone filtering (not full de-identification), no story logging/tracing, synthetic-only tests/evals, and a server-side kill switch. Production enablement, merge and publishing are not approved.

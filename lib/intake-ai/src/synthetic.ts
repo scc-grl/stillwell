@@ -1,4 +1,4 @@
-/** Only these fabricated stories may leave a signed-in account until a BAA is in place. */
+/** Fixed fabricated stories for synthetic tests and evaluations, never real eval data. */
 export const SYNTHETIC_INTAKE_SAMPLES = [
   { id: "maya", label: "Maya · day 3 after a match", story: "I took a head-to-head hit in a soccer match on Saturday. The team doctor checked me on the sideline and told me to rest. Since then I've had headaches most of the day, I'm wiped out by the afternoon, and screens really bother me. I'm not sleeping well, and I feel foggy in class. Walking to class is okay, but I haven't tried anything harder." },
   { id: "bike", label: "Two weeks after a bike fall", story: "I fell from my bike two weeks ago and bumped my head. I have a mild headache at the end of the day, but walking around feels okay." },
@@ -7,4 +7,4 @@ export const SYNTHETIC_INTAKE_SAMPLES = [
   { id: "emergency", label: "A story with a danger sign", story: "I hit my head at practice yesterday and have thrown up three times since. I feel very drowsy and my headache is getting worse." },
   { id: "crisis", label: "A story needing crisis support", story: "I bumped my head two weeks ago. I feel hopeless and I am thinking about killing myself." },
 ] as const;
-export const INTAKE_CONSENT_VERSION = "intake-consent-2026-11-09.1";
+export const INTAKE_CONSENT_VERSION = "intake-consent-2026-11-09.2";

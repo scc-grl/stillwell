@@ -7,6 +7,6 @@
  */
 
 /**
- * Structured tap answers only. No patient text is accepted.
+ * Validated numeric and enum answers only; no account metadata.
  */
 export type PatientIntakeInputAnswered = { [key: string]: unknown };

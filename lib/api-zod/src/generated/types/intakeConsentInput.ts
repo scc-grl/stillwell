@@ -8,5 +8,4 @@
 
 export interface IntakeConsentInput {
   consentAccepted: true;
-  syntheticOnly: true;
 }

@@ -1,23 +1,35 @@
-# Real-account intake: synthetic preview
+# Real-account intake: patient-written preview
 
-Implements the synthetic-preview scope approved for [issue #41](https://github.com/scc-grl/stillwell/issues/41).
+Implements the updated founder-approved preview scope for [issue #41](https://github.com/scc-grl/stillwell/issues/41), on PR #42. The original synthetic-only restriction has been replaced by patient-written stories in the signed-in preview. No merge or publishing is authorized.
 
 ## Privacy boundary
 
-No TypeSafe BAA is in place. The signed-in flow accepts only server-owned fabricated sample stories and validated structured test answers. Personal text and dictation are disabled. Unknown fields such as `note` are rejected before an AI call. This restriction is enforced by the server, not just the UI. New intake/stage routes are unavailable outside `development`/`test`; ordinary recovery routes remain available.
+Consent is recorded on our server before any story goes to TypeSafe. Patients can type or use browser/OS voice-to-text; Stillwell receives text, not audio. The server permits only story text and allowlisted numeric/enum intake answers. Account profile/name/email/phone/ID/date-of-birth fields are never copied to the AI request. The authenticated owner is used only locally to match consent and store the result.
 
-Existing public `/demo/intake` remains separate, unauthenticated, rate-limited and non-persistent. Its existing editable demo behavior is unchanged except for the explicitly requested stage-name and symptom-scale changes. Its warning against entering real health details remains important.
+Before sending, a basic server-side filter removes obvious email addresses and common phone-number formats. **This is not full de-identification.** Names, dates of birth, addresses and identifying context typed in the story can remain; the UI asks patients to avoid them. No BAA or compliance status is claimed.
+
+The private runner has no Braintrust dependency, spans or logging calls; SDK logging/instrumentation stays off. Raw story text is not stored, traced, put into URLs or browser storage, or included in logs. In-memory story state remains available while reviewing/retrying, and is discarded on leaving the flow. Exceptions are returned as fixed messages, never SDK bodies.
+
+Existing public `/demo/intake` remains separate, unauthenticated, rate-limited and non-persistent. This follow-up does not change its behavior, UI or tracing. Braintrust evals continue to use curated synthetic examples only; no account intake result is added to the dataset.
+
+### Server setting / emergency off switch
+
+`REAL_ACCOUNT_INTAKE_ENABLED=true` is set in the **development** environment only. Unset or `false` disables new consent and reading, including existing consent sessions; history stays readable in preview. Set the environment value and restart `artifacts/api-server: API Server` for it to take effect—no code change is needed. The gate is checked before the reader and again before saving a result.
+
+The guard also requires `NODE_ENV=development` or `test`: production remains blocked even if the setting is true. Do not enable production, merge or publish as part of this preview.
 
 ## Flow and storage
 
-- `/dashboard/intake`: patient-role gate, consent, fixed sample, reading, summary / structured fallback, starting-stage result or safety exit.
+- `/dashboard/intake`: patient-role gate, consent, typed/dictated story, reading, summary / structured fallback, starting-stage result or safety exit.
+- `GET /api/recovery/intake/status`: signed-in patient only, reports the server's enabled state, no account fields.
 - `POST /api/recovery/intake/consent`: records the authenticated owner's consent version and server time before reading.
-- `POST /api/recovery/intake`: checks ownership, current consent version and 24-hour lifetime; rejects personal text; invokes the same shared reader/rules/tracing allowlist as the demo. Maximum ten attempts per owner per hour.
+- `POST /api/recovery/intake`: checks ownership, current consent version and 24-hour lifetime, validates a nonblank story up to 4,000 characters and numeric/enum answers, filters contacts, then invokes the same shared reader/rules as the demo **without demo tracing**. Maximum ten attempts per owner per hour.
 - `GET /api/recovery/stages`: returns only the authenticated patient's stage history.
-- New tables: `recovery_intake_consents`, `recovery_intake_attempts`, `recovery_stages`.
+- Existing PR tables: `recovery_intake_consents`, `recovery_intake_attempts`, `recovery_stages`. This follow-up needs no schema change/migration.
 - Only `start_journal` creates a provisional stage. Safety exits / tap-confirmation create no stage. Stage rows retain reasons, rule IDs/version, source, synthetic marker and confirmation fields; duplicate retries within a consent session do not duplicate the same decision.
 - Stored status is `provisional` (the issue's data-model enum); the UI presents that as “Pending clinician review”. There is no separate stored `pending_review` enum.
-- Synthetic stages are labelled as sample results, not personal medical stages. No clinician receives synthetic alerts. The 24-hour review wording previews the proposed workflow, not a running review service.
+- New consent version `intake-consent-2026-11-09.2` and `synthetic_only=false` are required: a previous synthetic-session consent cannot authorize sending a personal story. New stages carry `syntheticOnly=false`; old synthetic rows remain marked and are excluded from the personal-stage card.
+- Clinician review is not a running delivery service yet; pending does not promise an actual response within 24 hours.
 - Delete-all removes stage history, consent and attempts; an in-flight AI result cannot recreate deleted stage history.
 - Clinician queue and alert delivery remain explicit placeholders for #35.
 
@@ -42,14 +54,22 @@ Braintrust eval normalizes historical expected symptom positions to 0/3/6/9. New
 
 ## Verification
 
-Workspace typecheck and all 232 automated tests passed during implementation. Tests cover consent-before-AI, cross-owner denial, expiry, synthetic input rejection, stage outcomes, rate limiting, retry idempotence, delete-all races, provider-rubric compatibility, scale conversion and migration idempotence/frozen-copy preservation.
+The updated workspace typecheck passes; the full suite has **240 passing tests, zero failures** (API 95, website 28, phone 25, intake library 25, journal library 50, scripts 8, other packages 9). This follow-up adds coverage for the actual TypeSafe request envelope (story/questions only, no account fields), contact filtering and preservation of injury dates, strict answer fields, the feature switch including in-flight shutdown, consent ownership/version and safety outcomes. Website checks also cover consent-before-editor mounting, dictation limits/cleanup and discarding state on account changes. All fixtures and eval inputs remain synthetic.
 
 The live Braintrust eval reached an empty dataset (zero rows); no accuracy scores are claimed:
 https://www.braintrust.dev/app/scc-grl/p/stillwell-intake/experiments/intake-rules-2026-11-09.1
 
-No publishing or production database changes were performed. Real-patient AI intake, voice/free-text entry, actual clinician alerts and queue delivery remain disabled/deferred.
+No publishing or production database changes were performed. Patient-written intake is enabled only in preview; actual clinician alerts and queue delivery remain deferred.
 
-### Signed-in browser pass
+### Patient-written preview browser pass
+
+Using a fabricated patient identity and fabricated narrative with fake contact details, verified enabled status, unchecked consent disabling Continue, no story/microphone controls before consent, consent POST 201, blank editable story after consent, successful story POST 200, Summary, explicit confirmation, and persisted provisional Stage 1 after dashboard reload. The basic-filter limitation was visible. A narrow dashboard had no horizontal overflow; test recovery data was deleted and the session signed out.
+
+The dashboard briefly received HTTP 401 responses after the flow; one reload restored the session and displayed the saved stage. This was not established as an application bug, and auth code was not changed in response. A distinct Reading frame was too brief to observe. The runtime browser recorder did not expose its captured body-key array correctly; the actual SDK request envelope is verified by the automated mock-client test instead.
+
+Physical microphone/browser dictation, the SpeechRecognition mock, and the symptom Change rerun were not exercised in this browser pass. Dictation lifecycle/limits and structured answer submission have code-level checks; no device-level speech recognition guarantee is claimed. The test sign-in account may remain because the approved test helper does not delete accounts.
+
+### Original synthetic-preview browser pass (historical)
 
 Verified consent disabled until checked, Not now returning without consent, fixed samples with personal text disabled, the real TypeSafe reading path, an 11-symptom Summary, explicit confirmation, provisional Stage 1 and reasons, and the persisted synthetic stage on the dashboard after reload. The work sample was used for the normal path; the conservative safety rules can send Maya's sample to the emergency outcome.
 

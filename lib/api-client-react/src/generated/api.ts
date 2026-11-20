@@ -72,6 +72,7 @@ import type {
   PatientClinicianConnectionList,
   PatientIntakeInput,
   PatientIntakeResult,
+  PatientIntakeStatus,
   PreviewCareInvite200,
   PreviewCareInviteDefault,
   PreviewCareRequest200,
@@ -128,6 +129,101 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getGetRecoveryIntakeStatusUrl = () => {
+
+
+
+
+  return `/api/recovery/intake/status`
+}
+
+export const getRecoveryIntakeStatus = async ( options?: Parameters<typeof customFetch>[1]): Promise<PatientIntakeStatus> => {
+
+  return customFetch<PatientIntakeStatus>(getGetRecoveryIntakeStatusUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRecoveryIntakeStatusQueryKey = () => {
+    return [
+    `/api/recovery/intake/status`
+    ] as const;
+    }
+
+
+export const getGetRecoveryIntakeStatusQueryOptions = <TData = Awaited<ReturnType<typeof getRecoveryIntakeStatus>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRecoveryIntakeStatus>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRecoveryIntakeStatusQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRecoveryIntakeStatus>>> = ({ signal }) => getRecoveryIntakeStatus({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRecoveryIntakeStatus>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetRecoveryIntakeStatusQueryResult = NonNullable<Awaited<ReturnType<typeof getRecoveryIntakeStatus>>>
+export type GetRecoveryIntakeStatusQueryError = ErrorType<unknown>
+
+
+export function useGetRecoveryIntakeStatus<TData = Awaited<ReturnType<typeof getRecoveryIntakeStatus>>, TError = ErrorType<unknown>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRecoveryIntakeStatus>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRecoveryIntakeStatus>>,
+          TError,
+          Awaited<ReturnType<typeof getRecoveryIntakeStatus>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRecoveryIntakeStatus<TData = Awaited<ReturnType<typeof getRecoveryIntakeStatus>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRecoveryIntakeStatus>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRecoveryIntakeStatus>>,
+          TError,
+          Awaited<ReturnType<typeof getRecoveryIntakeStatus>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetRecoveryIntakeStatus<TData = Awaited<ReturnType<typeof getRecoveryIntakeStatus>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRecoveryIntakeStatus>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetRecoveryIntakeStatus<TData = Awaited<ReturnType<typeof getRecoveryIntakeStatus>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getRecoveryIntakeStatus>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetRecoveryIntakeStatusQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
 
 export const getConsentRecoveryIntakeUrl = () => {
 

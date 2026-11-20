@@ -6,12 +6,14 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { PatientIntakeInputAnswered } from './patientIntakeInputAnswered';
-import type { PatientIntakeInputSampleId } from './patientIntakeInputSampleId';
 
 export interface PatientIntakeInput {
-  /** @minLength 1 */
   consentId: string;
-  sampleId: PatientIntakeInputSampleId;
-  /** Structured tap answers only. No patient text is accepted. */
+  /**
+     * @minLength 1
+     * @maxLength 4000
+     */
+  story: string;
+  /** Validated numeric and enum answers only; no account metadata. */
   answered?: PatientIntakeInputAnswered;
 }

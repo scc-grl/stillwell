@@ -1,23 +1,26 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useUser } from "@clerk/react";
 import { Link, useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, ArrowRight, Check, LockKeyhole, ShieldCheck } from "lucide-react";
 import {
+  getGetRecoveryIntakeStatusQueryKey,
   getGetRecoveryStagesQueryKey,
   useConsentRecoveryIntake,
+  useGetRecoveryIntakeStatus,
   useGetRecoveryStages,
   useRunRecoveryIntake,
 } from "@workspace/api-client-react";
-import type { PatientIntakeResult, RecoveryStage } from "@workspace/api-client-react";
-import { buildQuestions, INTAKE_CONSENT_VERSION, PLACEMENT_REASONS, STAGES, SYNTHETIC_INTAKE_SAMPLES } from "@workspace/intake-ai";
+import type { PatientIntakeResult } from "@workspace/api-client-react";
+import { buildQuestions, INTAKE_CONSENT_VERSION, PLACEMENT_REASONS, STAGES } from "@workspace/intake-ai";
 import type { Decision } from "@workspace/intake-ai";
 import { Button } from "@workspace/stillwell-design-system/components/ui/button";
 import { Card } from "@workspace/stillwell-design-system/components/ui/card";
 import { Checkbox } from "@workspace/stillwell-design-system/components/ui/checkbox";
-import { Textarea } from "@workspace/stillwell-design-system/components/ui/textarea";
 import { Brand } from "@/components/PublicSite";
 import { BoundaryNotice, StageIndicator } from "@/components/SiteComponents";
 import { CrisisScreen, EmergencyScreen, ReadingScreen } from "@/components/demo-intake/StoryScreens";
+import { IntakeStoryEditor } from "@/components/IntakeStoryEditor";
 
 const ratings = Array.from({ length: 11 }, (_, value) => value);
 const tapQuestionAnswers = [
@@ -25,56 +28,69 @@ const tapQuestionAnswers = [
   { label: "No", value: 0 },
   { label: "Not sure", value: 0.5 },
 ] as const;
-type IntakeView = "samples" | "reading" | "summary" | "tap-questions" | "stage" | "doctor";
+type IntakeView = "story" | "reading" | "summary" | "tap-questions" | "stage" | "doctor";
 type IntakeOutcome = { data: PatientIntakeResult; decision: Decision };
 
 function intakeOutcome(data: PatientIntakeResult): IntakeOutcome {
   return { data, decision: data.decision as Decision };
 }
 
-function storedStageName(stage: RecoveryStage | null | undefined) {
-  if (!stage || !stage.syntheticOnly) return null;
-  const stageNumber = Number(stage.stage);
-  return Number.isInteger(stageNumber) ? STAGES[stageNumber as keyof typeof STAGES] ?? null : null;
-}
-
-export default function SyntheticIntakePage() {
+export default function PatientIntakePage() {
+  const { user } = useUser();
+  const userId = user?.id ?? "";
+  const currentUser = useRef(userId);
+  currentUser.current = userId;
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
+  const statusQuery = useGetRecoveryIntakeStatus({
+    query: { enabled: Boolean(userId), queryKey: [...getGetRecoveryIntakeStatusQueryKey(), userId], retry: false, refetchInterval: 30000 },
+  });
+  const stagesQuery = useGetRecoveryStages({
+    query: { enabled: Boolean(userId), queryKey: [...getGetRecoveryStagesQueryKey(), userId], retry: false },
+  });
   const consentMutation = useConsentRecoveryIntake();
   const runMutation = useRunRecoveryIntake();
-  const stagesQuery = useGetRecoveryStages({
-    query: { enabled: Boolean(consentMutation.data), queryKey: getGetRecoveryStagesQueryKey() },
-  });
   const [agreed, setAgreed] = useState(false);
-  const [sampleId, setSampleId] = useState<(typeof SYNTHETIC_INTAKE_SAMPLES)[number]["id"]>("maya");
+  const [consent, setConsent] = useState<{ id: string } | null>(null);
+  const [story, setStory] = useState("");
   const [result, setResult] = useState<IntakeOutcome | null>(null);
   const [tapAnswers, setTapAnswers] = useState<Record<string, unknown>>({});
   const [actionError, setActionError] = useState("");
-  const [view, setView] = useState<IntakeView>("samples");
+  const [view, setView] = useState<IntakeView>("story");
   const [editingSymptom, setEditingSymptom] = useState<string | null>(null);
-  const consent = consentMutation.data;
-  const selectedSample = SYNTHETIC_INTAKE_SAMPLES.find((sample) => sample.id === sampleId) ?? SYNTHETIC_INTAKE_SAMPLES[0];
-  const tapQuestions = buildQuestions();
   const decision = result?.decision;
   const storedStage = result?.data.stage;
-  const stageNumber = storedStage && storedStage.syntheticOnly ? Number(storedStage.stage) : null;
-  const stageName = storedStageName(storedStage);
+  const numericStage = storedStage && !storedStage.syntheticOnly ? Number(storedStage.stage) : null;
+  const stageNumber = numericStage !== null && Number.isInteger(numericStage) && numericStage >= 1 && numericStage <= 6 ? numericStage : null;
+  const stageName = stageNumber ? STAGES[stageNumber as keyof typeof STAGES] ?? null : null;
+  const tapQuestions = buildQuestions();
+  useEffect(() => {
+    setStory(""); setConsent(null); setResult(null); setTapAnswers({});
+    setAgreed(false); setActionError(""); setView("story"); setEditingSymptom(null);
+  }, [userId]);
 
   function acceptConsent() {
-    if (!agreed || consentMutation.isPending) return;
+    if (!agreed || consentMutation.isPending || statusQuery.data?.enabled !== true) return;
+    const requestUser = userId;
     setActionError("");
-    consentMutation.mutate({ data: { consentAccepted: true, syntheticOnly: true } }, {
-      onError: () => setActionError("We couldn’t save your preview consent. Nothing has been sent for AI review. Please try again."),
+    consentMutation.mutate({ data: { consentAccepted: true } }, {
+      onSuccess: (savedConsent) => {
+        if (requestUser !== currentUser.current) return;
+        setConsent({ id: savedConsent.id });
+        setView("story");
+      },
+      onError: () => { if (requestUser === currentUser.current) setActionError("We couldn’t save your consent. Your story has not been sent. Please try again."); },
     });
   }
 
-  function readSample(answered: Record<string, unknown> = {}, returnTo: IntakeView = view) {
-    if (!consent || runMutation.isPending) return;
+  function readStory(answered: Record<string, unknown> = tapAnswers, returnTo: IntakeView = view) {
+    if (!consent || statusQuery.data?.enabled !== true || !story.trim() || runMutation.isPending) return;
+    const requestUser = userId;
     setActionError("");
     setView("reading");
-    runMutation.mutate({ data: { consentId: consent.id, sampleId, ...(Object.keys(answered).length ? { answered } : {}) } }, {
+    runMutation.mutate({ data: { consentId: consent.id, story: story.trim(), ...(Object.keys(answered).length ? { answered } : {}) } }, {
       onSuccess: (data) => {
+        if (requestUser !== currentUser.current) return;
         const next = intakeOutcome(data);
         setResult(next);
         setEditingSymptom(null);
@@ -84,8 +100,9 @@ export default function SyntheticIntakePage() {
         void queryClient.invalidateQueries({ queryKey: getGetRecoveryStagesQueryKey() });
       },
       onError: () => {
-        setView(returnTo === "reading" ? "samples" : returnTo);
-        setActionError("Stillwell couldn’t review this sample just now. Your selected sample and answers are still here; try again.");
+        if (requestUser !== currentUser.current) return;
+        setView(returnTo);
+        setActionError("Stillwell couldn’t review your story just now. Your story and answers are still here; please try again.");
       },
     });
   }
@@ -97,7 +114,7 @@ export default function SyntheticIntakePage() {
       [`symptom_${name}`]: { score: rating },
     };
     setTapAnswers(nextAnswers);
-    readSample(nextAnswers, "summary");
+    readStory(nextAnswers, "summary");
   }
 
   function clearRating(name: string) {
@@ -107,13 +124,11 @@ export default function SyntheticIntakePage() {
       [`symptom_${name}`]: { score: 0 },
     };
     setTapAnswers(nextAnswers);
-    readSample(nextAnswers, "summary");
+    readStory(nextAnswers, "summary");
   }
 
-  function backToSamples() {
-    setResult(null);
-    setTapAnswers({});
-    setView("samples");
+  function backToStory() {
+    setView("story");
     setEditingSymptom(null);
     setActionError("");
   }
@@ -136,18 +151,17 @@ export default function SyntheticIntakePage() {
   const unansweredQuestionCount = Object.keys(tapQuestions).filter((key) => !Object.hasOwn(tapAnswers, key)).length;
 
   if (decision?.outcome === "go_to_er") {
-    return <main className="stillwell synthetic-intake min-h-[100dvh] bg-background px-4 py-6 sm:px-8">
-      <div className="mx-auto max-w-4xl"><Brand journal/><div className="mt-8"><EmergencyScreen quotes={[selectedSample.story]}/></div>
-      </div>
+    return <main className="stillwell patient-intake min-h-[100dvh] bg-background px-4 py-6 sm:px-8">
+      <div className="mx-auto max-w-4xl"><Brand journal/><div className="mt-8"><EmergencyScreen quotes={[story]}/></div></div>
     </main>;
   }
   if (decision?.outcome === "crisis_support") {
-    return <main className="stillwell synthetic-intake min-h-[100dvh] bg-background px-4 py-6 sm:px-8">
+    return <main className="stillwell patient-intake min-h-[100dvh] bg-background px-4 py-6 sm:px-8">
       <div className="mx-auto max-w-4xl"><Brand journal/><div className="mt-8"><CrisisScreen onExit={() => setLocation("/dashboard")} exitLabel="Return to dashboard"/></div></div>
     </main>;
   }
 
-  return <main className="stillwell synthetic-intake min-h-[100dvh] bg-background pb-12">
+  return <main className="stillwell patient-intake min-h-[100dvh] bg-background pb-12">
     <header className="border-b border-border bg-background">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4 sm:px-8">
         <Brand journal/>
@@ -156,31 +170,51 @@ export default function SyntheticIntakePage() {
     </header>
     <div className="mx-auto max-w-3xl space-y-6 px-4 pt-7 sm:px-8 sm:pt-10">
       <header className="space-y-3">
-        <p className="eyebrow">Development preview · Synthetic samples only</p>
-        <h1 className="display text-4xl font-medium leading-tight sm:text-5xl">A sample recovery intake</h1>
-        <p className="max-w-2xl text-base leading-7 text-muted-foreground">
-          Until a Business Associate Agreement is in place, this signed-in preview accepts only fabricated samples from a fixed list. It cannot send personal notes or dictation.
-        </p>
+        <p className="eyebrow">Development preview · Patient intake</p>
+        <h1 className="display text-4xl font-medium leading-tight sm:text-5xl">A place for your story</h1>
+        <p className="max-w-2xl text-base leading-7 text-muted-foreground">Share what you choose after reviewing how your story and intake answers are used. You can keep using your journal whether or not intake is available.</p>
       </header>
 
-      {!consent && <Card className="space-y-5 p-5 sm:p-7" data-testid="card-intake-consent">
+      {statusQuery.isLoading && <Card aria-label="Checking intake availability" className="animate-pulse space-y-4 p-6" data-testid="card-intake-status-loading">
+        <div className="h-4 w-40 rounded bg-muted"/><div className="h-20 rounded-xl bg-muted"/><div className="h-11 w-40 rounded-full bg-muted"/>
+      </Card>}
+      {statusQuery.isError && <Card className="space-y-4 p-5 sm:p-7" role="alert" data-testid="card-intake-status-error">
+        <h2 className="display text-2xl font-medium">Intake availability could not be checked</h2>
+        <p className="text-sm leading-6 text-muted-foreground">Your story field remains unavailable until Stillwell can confirm intake is enabled. Your journal is still available.</p>
+        <div className="flex flex-wrap gap-3">
+          <Button variant="outline" className="min-h-11" onClick={() => void statusQuery.refetch()} data-testid="button-retry-intake-status">Try again</Button>
+          <Button variant="outline" className="min-h-11" asChild><Link href="/dashboard">Return to dashboard</Link></Button>
+        </div>
+      </Card>}
+      {!statusQuery.isLoading && !statusQuery.isError && statusQuery.data?.enabled === false && <Card className="space-y-4 p-5 sm:p-7" data-testid="card-intake-disabled">
+        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Development preview</p>
+        <h2 className="display text-2xl font-medium">Patient intake is not enabled right now</h2>
+        <p className="text-sm leading-6 text-muted-foreground">You can continue using your private journal. No consent or story is needed to return to it.</p>
+        <Button variant="outline" className="min-h-11 w-fit" asChild><Link href="/dashboard">Return to dashboard <ArrowRight aria-hidden="true"/></Link></Button>
+      </Card>}
+
+      {!consent && !statusQuery.isLoading && !statusQuery.isError && statusQuery.data?.enabled === true && <Card className="space-y-5 p-5 sm:p-7" data-testid="card-intake-consent">
         <div className="flex items-start gap-3">
           <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-secondary text-primary"><LockKeyhole aria-hidden="true" className="size-5"/></span>
           <div>
             <h2 className="display text-2xl font-medium">Before you continue</h2>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">Read what this preview does before you consent. Nothing is sent to AI until you agree and then choose to review a sample.</p>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">Your story and intake answers are sent to TypeSafe for reading. They are not saved or traced by Stillwell as raw story text; the intake result is saved privately to your account.</p>
           </div>
         </div>
         <ol className="grid gap-3 sm:grid-cols-3">
-          <li className="rounded-xl border border-border bg-background p-4"><span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">01 · AI reading</span><p className="mt-2 text-sm leading-6">AI reads only the fabricated story you select. No personal text is accepted.</p></li>
-          <li className="rounded-xl border border-border bg-background p-4"><span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">02 · Private saving</span><p className="mt-2 text-sm leading-6">The consent and synthetic result are saved privately to your account for this preview.</p></li>
-          <li className="rounded-xl border border-border bg-background p-4"><span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">03 · Sharing and deletion</span><p className="mt-2 text-sm leading-6">Only clinicians you have already authorized may see shared information. You can remove recovery data in account privacy controls.</p></li>
+          <li className="rounded-xl border border-border bg-background p-4"><span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">01 · What is sent</span><p className="mt-2 text-sm leading-6">TypeSafe reads the story and intake answers. Your account profile, name, email, and ID are not sent with the request.</p></li>
+          <li className="rounded-xl border border-border bg-background p-4"><span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">02 · What is saved</span><p className="mt-2 text-sm leading-6">Stillwell saves the intake result privately to your account. Stillwell does not save or trace the raw story.</p></li>
+          <li className="rounded-xl border border-border bg-background p-4"><span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">03 · Your choice</span><p className="mt-2 text-sm leading-6">You decide whether to continue. You can leave now and return to your journal without sending anything.</p></li>
         </ol>
-        <div className="flex items-start gap-3 rounded-xl border border-border p-4">
-          <Checkbox id="synthetic-intake-consent" checked={agreed} onCheckedChange={(checked) => setAgreed(checked === true)} data-testid="checkbox-intake-consent"/>
-          <label htmlFor="synthetic-intake-consent" className="min-h-11 cursor-pointer pt-2 text-sm font-semibold leading-6">I agree to this</label>
+        <div className="rounded-xl border border-border bg-background p-4">
+          <h3 className="text-sm font-semibold">Please leave out identifying details</h3>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">Avoid names and contact details. A basic email and phone filter is not full de-identification, so do not include information you do not want processed.</p>
         </div>
-        <p className="text-xs leading-5 text-muted-foreground">Consent version: {INTAKE_CONSENT_VERSION}. You can choose Not now and return to the dashboard without sending anything.</p>
+        <div className="flex items-start gap-3 rounded-xl border border-border p-4">
+          <Checkbox id="patient-intake-consent" checked={agreed} onCheckedChange={(checked) => setAgreed(checked === true)} data-testid="checkbox-intake-consent"/>
+          <label htmlFor="patient-intake-consent" className="min-h-11 cursor-pointer pt-2 text-sm font-semibold leading-6">I understand and agree to this use of my story and answers.</label>
+        </div>
+        <p className="text-xs leading-5 text-muted-foreground">Consent version: {INTAKE_CONSENT_VERSION}. This is not a promise of anonymity or medical care.</p>
         {actionError && <p role="alert" className="text-sm leading-6 text-destructive">{actionError}</p>}
         <Button className="min-h-11" disabled={!agreed || consentMutation.isPending} onClick={acceptConsent} data-testid="button-accept-intake-consent">
           {consentMutation.isPending ? "Saving consent…" : "Agree and continue"} <ArrowRight aria-hidden="true"/>
@@ -188,50 +222,16 @@ export default function SyntheticIntakePage() {
         {consentMutation.isError && <Button variant="outline" className="min-h-11" disabled={!agreed || consentMutation.isPending} onClick={acceptConsent}>Retry consent</Button>}
       </Card>}
 
-      {consent && view === "samples" && <Card className="space-y-5 p-5 sm:p-7" data-testid="card-synthetic-samples">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Consent recorded · Synthetic data only</p>
-          <h2 className="display mt-2 text-2xl font-medium">Choose a read-only sample</h2>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">The server accepts a sample identifier, never arbitrary text. Select a sample to preview it. Writing and dictation are disabled for this preview until a BAA is in place.</p>
-        </div>
-        <div className="grid gap-2 sm:grid-cols-2" role="group" aria-label="Synthetic intake samples">
-          {SYNTHETIC_INTAKE_SAMPLES.map((sample) => <Button
-            key={sample.id}
-            type="button"
-            variant={sampleId === sample.id ? "secondary" : "outline"}
-            aria-pressed={sampleId === sample.id}
-            className="min-h-11 justify-start whitespace-normal text-left"
-            onClick={() => { setSampleId(sample.id); setActionError(""); }}
-            data-testid={`button-sample-${sample.id}`}
-          >{sample.label}</Button>)}
-        </div>
-        <section aria-labelledby="sample-preview-title" className="space-y-3">
-          <h3 id="sample-preview-title" className="font-semibold">{selectedSample.label} · read-only</h3>
-          <p className="rounded-xl border border-border bg-background p-4 text-sm leading-6" data-testid="text-selected-sample">{selectedSample.story}</p>
-          <label htmlFor="disabled-personal-note" className="block text-sm font-semibold">Personal note · unavailable in this preview</label>
-          <Textarea id="disabled-personal-note" disabled aria-describedby="disabled-input-explanation" placeholder="Free typing is disabled until a BAA is in place." className="min-h-24 resize-none bg-muted text-muted-foreground" data-testid="textarea-personal-note-disabled"/>
-          <p id="disabled-input-explanation" className="text-sm leading-6 text-muted-foreground">Dictation is disabled too. Only one of the six fabricated samples above can be sent.</p>
-        </section>
-        {actionError && <p role="alert" className="text-sm leading-6 text-destructive" data-testid="alert-intake-error">{actionError}</p>}
-        {runMutation.isError && <Button variant="outline" className="min-h-11" disabled={runMutation.isPending} onClick={() => readSample()}>Retry sample review</Button>}
-        <Button className="min-h-11" disabled={runMutation.isPending} onClick={() => readSample()} data-testid="button-read-sample">
-          {runMutation.isPending ? "Reviewing sample…" : "Review this synthetic sample"} <ArrowRight aria-hidden="true"/>
-        </Button>
-        {stagesQuery.isError && <div className="rounded-xl border border-border p-4 text-sm leading-6" role="status">
-          <p>Stored stage history is temporarily unavailable; your intake result is still here.</p>
-          <Button variant="outline" className="mt-3 min-h-11" onClick={() => void stagesQuery.refetch()}>Retry stage history</Button>
-        </div>}
-      </Card>}
-
+      {consent && statusQuery.data?.enabled === true && view === "story" && <IntakeStoryEditor story={story} setStory={setStory} onSubmit={() => readStory(tapAnswers, "story")} pending={runMutation.isPending}/>}
       {consent && view === "reading" && <ReadingScreen/>}
 
       {consent && view === "tap-questions" && decision?.outcome === "use_tap_questions" && <Card className="space-y-5 p-5 sm:p-7" data-testid="card-structured-tap-fallback">
         <header className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Structured fallback · synthetic sample only</p>
-          <h2 className="display text-2xl font-medium">Answer the sample questions with taps</h2>
-          <p className="text-sm leading-6 text-muted-foreground">We couldn’t confirm every answer from the selected sample. No answers are assumed. Respond to each question below; these taps are sent as structured values only, then the server applies the shared intake rules again.</p>
-          <p className="rounded-lg border border-border bg-background p-3 text-sm leading-6"><strong>Selected sample:</strong> {selectedSample.label}. <span className="block mt-1">{selectedSample.story}</span></p>
-          <p className="text-sm font-semibold" role="status">{Object.keys(tapQuestions).length - unansweredQuestionCount} of {Object.keys(tapQuestions).length} questions answered</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Structured fallback</p>
+          <h2 className="display text-2xl font-medium">Let’s check what you shared</h2>
+          <p className="text-sm leading-6 text-muted-foreground">We couldn’t confirm every answer from your story. No answers are assumed. Respond to each question below; only your structured taps and story are sent for another review.</p>
+          <p className="rounded-lg border border-border bg-background p-3 text-sm leading-6"><strong>Your story:</strong> <span className="mt-1 block">{story}</span></p>
+          <p className="text-sm font-semibold" role="status">{Object.keys(tapAnswers).length} structured answers recorded</p>
         </header>
         <div className="space-y-3">
           {Object.entries(tapQuestions).map(([key, question]) => {
@@ -288,36 +288,39 @@ export default function SyntheticIntakePage() {
           })}
         </div>
         {actionError && <p role="alert" className="text-sm leading-6 text-destructive">{actionError}</p>}
-        {runMutation.isError && <Button variant="outline" className="min-h-11" disabled={runMutation.isPending} onClick={() => readSample(tapAnswers, "tap-questions")}>Retry structured review</Button>}
+        {runMutation.isError && <Button variant="outline" className="min-h-11" disabled={runMutation.isPending} onClick={() => readStory(tapAnswers, "tap-questions")}>Retry structured review</Button>}
         <div className="flex flex-wrap gap-3">
-          <Button className="min-h-11" disabled={unansweredQuestionCount > 0 || runMutation.isPending} onClick={() => readSample(tapAnswers, "tap-questions")} data-testid="button-submit-tap-answers">
+          <Button className="min-h-11" disabled={unansweredQuestionCount > 0 || runMutation.isPending} onClick={() => readStory(tapAnswers, "tap-questions")} data-testid="button-submit-tap-answers">
             {runMutation.isPending ? "Reviewing answers…" : "Review these answers"} <ArrowRight aria-hidden="true"/>
           </Button>
-          <Button variant="outline" className="min-h-11" onClick={backToSamples}>Choose another sample</Button>
+          <Button variant="outline" className="min-h-11" onClick={backToStory}>Back to my story</Button>
         </div>
       </Card>}
 
-      {consent && result && decision?.outcome === "start_journal" && view === "summary" && <div className="space-y-5" data-testid="synthetic-intake-summary">
+      {consent && result && decision?.outcome === "start_journal" && view === "summary" && <div className="space-y-5" data-testid="patient-intake-summary">
         <header className="space-y-2">
-          <p className="eyebrow">Review · Synthetic sample only</p>
+          <p className="eyebrow">Review</p>
           <h2 className="display text-3xl font-medium">Summary</h2>
-          <p className="text-sm leading-6 text-muted-foreground">Review what the server read before opening the starting-stage view. Change actions use structured taps and rerun the server; no free text is sent.</p>
+          <p className="text-sm leading-6 text-muted-foreground">Review what was read before viewing your development preview starting stage. This is not a confirmed medical stage.</p>
         </header>
-        <Card className="space-y-3 p-5 sm:p-7" data-testid="summary-synthetic-injury">
+        <Card className="space-y-3 p-5 sm:p-7" data-testid="summary-patient-injury">
           <div className="flex flex-wrap items-start justify-between gap-3">
-            <div><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Injury details · read-only synthetic sample</p><h3 className="display mt-2 text-xl font-medium">{selectedSample.label}</h3></div>
-            <Button variant="outline" className="min-h-11" onClick={backToSamples} data-testid="button-change-synthetic-sample">Change sample</Button>
+            <div><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Your story</p><h3 className="display mt-2 text-xl font-medium">Injury details</h3></div>
+            <Button variant="outline" className="min-h-11" onClick={backToStory} data-testid="button-edit-patient-story"><ArrowLeft aria-hidden="true"/>Edit story</Button>
           </div>
-          <p className="rounded-xl border border-border bg-background p-4 text-sm leading-6" data-testid="summary-sample-story">{selectedSample.story}</p>
-          <p className="text-sm leading-6 text-muted-foreground">This fixed sample story is the only injury narrative the server received. It cannot be edited or replaced with personal text.</p>
+          <p className="rounded-xl border border-border bg-background p-4 text-sm leading-6 whitespace-pre-wrap" data-testid="summary-patient-story">{story}</p>
         </Card>
 
         <Card className="space-y-4 p-5 sm:p-7">
-          <div><h3 className="display text-2xl font-medium">Symptoms</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">All 11 symptoms are shown. Anything not mentioned stays not recorded. Choose Change to edit a rating; each tap reruns the server rules.</p></div>
+          <div><h3 className="display text-2xl font-medium">Symptoms</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">Anything not mentioned stays not recorded. Choose Change to edit a rating; each tap reruns the intake rules.</p></div>
           <div className="space-y-3">
-            {decision.symptoms.map((symptom, index) => <section key={symptom.name} className="space-y-3 rounded-xl border border-border p-4" data-testid={`summary-symptom-${index + 1}`}>
+            {decision.symptoms.map((symptom, index) => {
+              const selectedMention = tapAnswers[`mentioned_${symptom.name}`] as { noul?: number } | undefined;
+              const selectedScore = tapAnswers[`symptom_${symptom.name}`] as { score?: number } | undefined;
+              const currentLevel = selectedMention?.noul === 0 ? null : selectedScore?.score ?? symptom.level;
+              return <section key={symptom.name} className="space-y-3 rounded-xl border border-border p-4" data-testid={`summary-symptom-${index + 1}`}>
               <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <div><h4 className="font-semibold">{symptom.label}</h4><p className="text-sm text-muted-foreground">{symptom.level === null ? "Not recorded" : `Recorded: ${symptom.level}/10`}</p></div>
+                <div><h4 className="font-semibold">{symptom.label}</h4><p className="text-sm text-muted-foreground">{currentLevel === null ? "Not recorded" : `Recorded: ${currentLevel}/10`}</p></div>
                 <Button
                   type="button"
                   variant="outline"
@@ -332,9 +335,9 @@ export default function SyntheticIntakePage() {
                   {ratings.map((rating) => <Button
                     key={rating}
                     type="button"
-                    variant={symptom.level === rating ? "secondary" : "outline"}
+                    variant={currentLevel === rating ? "secondary" : "outline"}
                     className="min-h-11 min-w-11 px-2"
-                    aria-pressed={symptom.level === rating}
+                    aria-pressed={currentLevel === rating}
                     disabled={runMutation.isPending}
                     onClick={() => updateRating(symptom.name, rating)}
                     data-testid={`button-rating-${symptom.name}-${rating}`}
@@ -343,44 +346,45 @@ export default function SyntheticIntakePage() {
                 <div className="flex justify-between text-xs text-muted-foreground"><span>0 None</span><span>5 Moderate</span><span>10 Worst</span></div>
                 <Button type="button" variant="ghost" className="min-h-11 px-3" disabled={runMutation.isPending} onClick={() => clearRating(symptom.name)} data-testid={`button-clear-rating-${symptom.name}`}>Leave this symptom not recorded</Button>
               </>}
-            </section>)}
+            </section>;
+            })}
           </div>
-          {runMutation.isPending && <p role="status" className="text-sm text-muted-foreground">Rerunning the sample with your structured tap answer…</p>}
+          {runMutation.isPending && <p role="status" className="text-sm text-muted-foreground">Rerunning your story with this structured answer…</p>}
           {actionError && <p role="alert" className="text-sm leading-6 text-destructive">{actionError}</p>}
-          {runMutation.isError && <Button variant="outline" className="min-h-11" disabled={runMutation.isPending} onClick={() => readSample(tapAnswers, "summary")}>Retry summary update</Button>}
+          {runMutation.isError && <Button variant="outline" className="min-h-11" disabled={runMutation.isPending} onClick={() => readStory(tapAnswers, "summary")}>Retry summary update</Button>}
         </Card>
         <div className="flex flex-wrap justify-end gap-3">
-          <Button variant="outline" className="min-h-11" onClick={backToSamples}>Choose another sample</Button>
+          <Button variant="outline" className="min-h-11" onClick={backToStory}>Back to my story</Button>
           <Button className="min-h-11" disabled={runMutation.isPending} onClick={() => setView("stage")} data-testid="button-summary-confirm">This looks right <ArrowRight aria-hidden="true"/></Button>
         </div>
       </div>}
 
-      {consent && result && decision?.outcome === "start_journal" && view === "stage" && <div className="space-y-5" data-testid="synthetic-intake-stage">
+      {consent && result && decision?.outcome === "start_journal" && view === "stage" && <div className="space-y-5" data-testid="patient-intake-stage">
         {stagesQuery.isError && <Card className="flex flex-wrap items-center justify-between gap-3 p-4" role="alert">
-          <p className="text-sm leading-6 text-muted-foreground">Stored stage history could not be refreshed. Your current synthetic intake result remains available.</p>
+          <p className="text-sm leading-6 text-muted-foreground">Your saved stage history could not be refreshed. This intake result remains available.</p>
           <Button variant="outline" className="min-h-11" onClick={() => void stagesQuery.refetch()}>Retry stage history</Button>
         </Card>}
         <Card className="space-y-4 border-primary/30 bg-secondary p-5 sm:p-7">
           <div className="flex items-start gap-3">
             <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-background text-primary"><ShieldCheck aria-hidden="true" className="size-5"/></span>
-            <div><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Synthetic sample result · not your medical stage</p>
+            <div><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Development preview · not confirmed medical stage</p>
               <h2 className="display mt-1 text-2xl font-medium">A provisional starting point</h2>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">This result was created from the selected fabricated sample and saved for this preview only.</p>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">This preview is not a diagnosis or treatment advice. It does not confirm a medical stage.</p>
             </div>
           </div>
-          {stageNumber && stageName && storedStage?.status === "provisional" ? <>
+          {stageNumber && stageName && storedStage?.status === "provisional" && !storedStage.syntheticOnly ? <>
             <StageIndicator stage={stageNumber}/>
-            <p className="text-sm font-semibold">Pending clinician review, within 24 hours</p>
+            <p className="text-sm font-semibold">Stage {stageNumber} · Pending clinician review</p>
             <p className="text-lg font-semibold">Stage {stageNumber} · {stageName}</p>
             <section className="space-y-3" aria-labelledby="why-stage-title">
-              <h3 id="why-stage-title" className="font-semibold">Why stage {stageNumber}</h3>
+              <h3 id="why-stage-title" className="font-semibold">Why this preview suggests stage {stageNumber}</h3>
               <ul className="space-y-2 text-sm leading-6 text-muted-foreground">
                 {decision.stage?.reasons.map((reason) => <li key={`${reason.rule}-${reason.text}`}>{PLACEMENT_REASONS[reason.rule] ?? reason.text}</li>)}
               </ul>
             </section>
           </> : <div className="space-y-3" role="alert">
-            <p className="text-sm leading-6 text-destructive">No provisional synthetic stage was returned.</p>
-            <Button variant="outline" className="min-h-11" disabled={runMutation.isPending} onClick={() => readSample(tapAnswers, "stage")}>Retry this sample</Button>
+            <p className="text-sm leading-6 text-destructive">No personal provisional stage was returned for this intake.</p>
+            <Button variant="outline" className="min-h-11" disabled={runMutation.isPending} onClick={() => readStory(tapAnswers, "stage")}>Retry this intake</Button>
           </div>}
         </Card>
 
@@ -391,14 +395,14 @@ export default function SyntheticIntakePage() {
               <span className={`flex size-9 shrink-0 items-center justify-center rounded-full ${current ? "bg-primary text-primary-foreground" : "border border-border text-muted-foreground"}`}>
                 {current ? <Check aria-label={`You start here, Stage ${stage}`} className="size-4"/> : stage}
               </span>
-              <div><p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Stage {stage}{current ? " · You start here" : ""}</p><h3 className="mt-1 font-semibold">{name}</h3></div>
+              <div><p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Stage {stage}{current ? " · Preview starting point" : ""}</p><h3 className="mt-1 font-semibold">{name}</h3></div>
             </Card>;
           })}
         </section>
 
         <Card className="space-y-3 p-5 sm:p-7">
           <h2 className="display text-2xl font-medium">What happens next</h2>
-          <p className="text-sm leading-6 text-muted-foreground">This synthetic preview stores a provisional result. It is not a diagnosis or treatment advice. A clinician review is expected within 24 hours; seek urgent help for emergency symptoms.</p>
+          <p className="text-sm leading-6 text-muted-foreground">Your result is saved privately to your account. It is a preview, not a diagnosis or treatment advice. Clinician review is not available yet; seek urgent help for emergency symptoms.</p>
           <div className="flex flex-wrap gap-3">
             <Button className="min-h-11" onClick={() => setLocation("/dashboard")} data-testid="button-intake-dashboard">Return to dashboard <ArrowRight aria-hidden="true"/></Button>
             <Button variant="outline" className="min-h-11" onClick={() => setView("summary")} data-testid="button-back-to-summary"><ArrowLeft aria-hidden="true"/>Back to summary</Button>
@@ -406,13 +410,14 @@ export default function SyntheticIntakePage() {
         </Card>
       </div>}
 
-      {consent && result && view === "doctor" && decision?.outcome === "find_doctor" && <Card className="space-y-4 border-notice-border bg-notice p-5 sm:p-7" role="status">
+      {consent && result && decision?.outcome === "find_doctor" && view === "doctor" && <Card className="space-y-4 border-notice-border bg-notice p-5 sm:p-7" role="status">
         <p className="eyebrow">No stage suggested</p><h2 className="display text-3xl font-medium">Please check in with a clinician first</h2>
         <p className="text-sm leading-6">{decision.stageNote ?? decision.headline}</p>
         <Button className="min-h-11" onClick={() => setLocation("/dashboard")}>Return to dashboard <ArrowRight aria-hidden="true"/></Button>
-        <Button variant="outline" className="min-h-11" onClick={backToSamples}>Choose another sample</Button>
+        <Button variant="outline" className="min-h-11" onClick={backToStory}>Back to my story</Button>
       </Card>}
 
+      {consent && actionError && view === "story" && <p role="alert" className="text-sm leading-6 text-destructive" data-testid="alert-intake-error">{actionError}</p>}
       <BoundaryNotice/>
     </div>
   </main>;

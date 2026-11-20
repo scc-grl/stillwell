@@ -1,4 +1,15 @@
 paths:
+  /recovery/intake/status:
+    get:
+      operationId: getRecoveryIntakeStatus
+      tags: [recovery]
+      responses:
+        "200":
+          description: Server-side availability of signed-in story intake.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PatientIntakeStatus"
   /recovery/intake/consent:
     post:
       operationId: consentRecoveryIntake
@@ -11,7 +22,7 @@ paths:
               $ref: "#/components/schemas/IntakeConsentInput"
       responses:
         "201":
-          description: Consent recorded before any AI call. Development synthetic preview only.
+          description: Consent recorded before any AI call. Signed-in preview only.
           content:
             application/json:
               schema:
@@ -28,7 +39,7 @@ paths:
               $ref: "#/components/schemas/PatientIntakeInput"
       responses:
         "200":
-          description: Synthetic intake decision and provisional stage, if appropriate.
+          description: Private intake decision and provisional stage, if appropriate.
           content:
             application/json:
               schema:
@@ -51,10 +62,14 @@ components:
     IntakeConsentInput:
       type: object
       additionalProperties: false
-      required: [consentAccepted, syntheticOnly]
+      required: [consentAccepted]
       properties:
         consentAccepted: { type: boolean, enum: [true] }
-        syntheticOnly: { type: boolean, enum: [true] }
+    PatientIntakeStatus:
+      type: object
+      required: [enabled]
+      properties:
+        enabled: { type: boolean }
     IntakeConsent:
       type: object
       required: [id, version, consentedAt]
@@ -65,16 +80,14 @@ components:
     PatientIntakeInput:
       type: object
       additionalProperties: false
-      required: [consentId, sampleId]
+      required: [consentId, story]
       properties:
-        consentId: { type: string, minLength: 1 }
-        sampleId:
-          type: string
-          enum: [maya, bike, worsening, work, emergency, crisis]
+        consentId: { type: string, format: uuid }
+        story: { type: string, minLength: 1, maxLength: 4000 }
         answered:
           type: object
           additionalProperties: true
-          description: Structured tap answers only. No patient text is accepted.
+          description: Validated numeric and enum answers only; no account metadata.
     PatientIntakeResult:
       type: object
       required: [decision, source, stage, syntheticOnly]
