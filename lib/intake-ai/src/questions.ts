@@ -3,7 +3,7 @@
 // Shapes match @typesafe-ai/sdk's Questions type; this file has no SDK import so it stays testable.
 import { checkInSymptoms } from "@workspace/recovery-journal";
 
-export const QUESTIONS_VERSION = "intake-questions-2026-10-29.1";
+export const QUESTIONS_VERSION = "intake-questions-2026-11-09.2";
 
 /** Separate safety questions; keyword checks run alongside these. */
 export const DANGER_SIGNS = {
@@ -37,7 +37,7 @@ export const INTAKE_SYMPTOMS = checkInSymptoms.map((item) => {
   return { name: item.name, label: SPOKEN_LABELS[item.name] ?? item.label };
 });
 
-export const SYMPTOM_LEVEL_LABELS = ["Not noticeable", "Less noticeable", "Noticeable", "More noticeable"] as const;
+export const SYMPTOM_LEVEL_LABELS = Array.from({ length: 11 }, (_, n) => n === 0 ? "0 None" : n === 5 ? "5 Moderate" : n === 10 ? "10 Worst" : String(n));
 
 
 const symptomPrompts: Record<string, string> = {
@@ -62,11 +62,20 @@ type Noul = { type: "noul"; instructions: string };
 type Choice = { type: "choice"; instructions: string; criteria: Record<string, string> };
 type Score = { type: "score"; instructions: string; criteria: readonly string[] };
 export type IntakeQuestion = Noul | Choice | Score;
+// TypeSafe supports at most TEN rubric items (provider positions 0–9).
+// Normalize provider positions linearly to the journal's 0–10 domain in reader.ts.
+// Form taps are already in the journal domain and must never be normalized again.
 export const SYMPTOM_SCORE_CRITERIA = [
-  "Not present or gone.",
-  "Noticeable but does not affect daily activities.",
-  "Limits some activities such as work, school, screens or exercise.",
-  "Prevents normal daily activities.",
+  "None: not present or gone.",
+  "Very slight symptoms.",
+  "Slight symptoms, daily activities unaffected.",
+  "Mild symptoms, daily activities mostly unaffected.",
+  "Mild to moderate: some daily activities affected.",
+  "Moderate: limits some work, school, screens or exercise.",
+  "Moderate to severe: noticeably limits several daily activities.",
+  "Severe: prevents most normal daily activities.",
+  "Very severe: prevents normal daily activities.",
+  "Worst: worst symptoms described; unable to do normal daily activities.",
 ] as const;
 export const INJURY_CAUSES = {
   sport: "Sport", fall: "Fall", vehicle_crash: "Vehicle crash", work: "Work",

@@ -8,6 +8,66 @@
 import * as zod from 'zod';
 
 
+export const GetRecoveryIntakeStatusResponse = zod.object({
+  "enabled": zod.boolean()
+})
+
+
+export const ConsentRecoveryIntakeBody = zod.object({
+  "consentAccepted": zod.literal(true)
+})
+
+export const ConsentRecoveryIntakeResponse = zod.object({
+  "id": zod.string(),
+  "version": zod.string(),
+  "consentedAt": zod.coerce.date()
+})
+
+
+export const runRecoveryIntakeBodyStoryMax = 4000;
+
+
+
+export const RunRecoveryIntakeBody = zod.object({
+  "consentId": zod.uuid(),
+  "story": zod.string().min(1).max(runRecoveryIntakeBodyStoryMax),
+  "answered": zod.record(zod.string(), zod.unknown()).optional().describe('Validated numeric and enum answers only; no account metadata.')
+})
+
+export const RunRecoveryIntakeResponse = zod.object({
+  "decision": zod.record(zod.string(), zod.unknown()),
+  "source": zod.string(),
+  "syntheticOnly": zod.boolean(),
+  "stage": zod.union([zod.object({
+  "id": zod.string(),
+  "stage": zod.enum(['1', '2', '3', '4', '5', '6', 'maintenance']),
+  "status": zod.enum(['provisional', 'confirmed', 'proposed']),
+  "source": zod.enum(['intake', 'weekly', 'clinician']),
+  "reasons": zod.array(zod.string()),
+  "ruleIds": zod.array(zod.string()),
+  "rulesVersion": zod.string(),
+  "confirmedBy": zod.string().nullish(),
+  "createdAt": zod.coerce.date(),
+  "syntheticOnly": zod.boolean()
+}),zod.null()])
+})
+
+
+export const GetRecoveryStagesResponseItem = zod.object({
+  "id": zod.string(),
+  "stage": zod.enum(['1', '2', '3', '4', '5', '6', 'maintenance']),
+  "status": zod.enum(['provisional', 'confirmed', 'proposed']),
+  "source": zod.enum(['intake', 'weekly', 'clinician']),
+  "reasons": zod.array(zod.string()),
+  "ruleIds": zod.array(zod.string()),
+  "rulesVersion": zod.string(),
+  "confirmedBy": zod.string().nullish(),
+  "createdAt": zod.coerce.date(),
+  "syntheticOnly": zod.boolean()
+})
+export const GetRecoveryStagesResponse = zod.array(GetRecoveryStagesResponseItem)
+
+
 /**
  * @summary Patient only. List own pending/expired invitations and active clinicians.
  */
@@ -888,13 +948,14 @@ export const GetSharedPatientJournalResponse = zod.object({
   "meditationNote": zod.string().optional(),
   "note": zod.string().optional(),
   "dailyCheckIn": zod.object({
+  "ratingScale": zod.enum(['ten_point_v1']).optional().describe('Absent on historical four-step entries; convert those ratings 0/1/2/3 to 0/3/6/9.'),
   "selectedSymptoms": zod.array(zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light', 'dizziness', 'nausea', 'vision', 'noise', 'neck'])).max(getSharedPatientJournalResponseLogsItemDailyCheckInSelectedSymptomsMax).optional(),
   "worseWithActivity": zod.union([zod.literal('yes'),zod.literal('no'),zod.literal('not_sure'),zod.literal(null)]).nullish(),
   "overallFeeling": zod.union([zod.literal('rough'),zod.literal('low'),zod.literal('okay'),zod.literal('good'),zod.literal('great'),zod.literal(null)]).nullable(),
   "symptoms": zod.array(zod.object({
   "name": zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light', 'dizziness', 'nausea', 'vision', 'noise', 'neck']),
   "status": zod.enum(['recorded', 'not_recorded']),
-  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3),zod.literal(null)]).nullable(),
+  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3),zod.literal(4),zod.literal(5),zod.literal(6),zod.literal(7),zod.literal(8),zod.literal(9),zod.literal(10),zod.literal(null)]).nullable(),
   "addedOn": zod.string().regex(getSharedPatientJournalResponseLogsItemDailyCheckInSymptomsItemAddedOnRegExp).optional().describe('Date this symptom first appeared in the patient\'s tracked list.')
 })).min(getSharedPatientJournalResponseLogsItemDailyCheckInSymptomsMin).max(getSharedPatientJournalResponseLogsItemDailyCheckInSymptomsMax),
   "summary": zod.string().max(getSharedPatientJournalResponseLogsItemDailyCheckInSummaryMax)
@@ -1022,13 +1083,14 @@ export const GetRecoveryResponse = zod.object({
   "meditationNote": zod.string().max(getRecoveryResponseLogsItemOneMeditationNoteMax),
   "note": zod.string().max(getRecoveryResponseLogsItemOneNoteMax),
   "dailyCheckIn": zod.object({
+  "ratingScale": zod.enum(['ten_point_v1']).optional().describe('Absent on historical four-step entries; convert those ratings 0/1/2/3 to 0/3/6/9.'),
   "selectedSymptoms": zod.array(zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light', 'dizziness', 'nausea', 'vision', 'noise', 'neck'])).max(getRecoveryResponseLogsItemOneDailyCheckInSelectedSymptomsMax).optional(),
   "worseWithActivity": zod.union([zod.literal('yes'),zod.literal('no'),zod.literal('not_sure'),zod.literal(null)]).nullish(),
   "overallFeeling": zod.union([zod.literal('rough'),zod.literal('low'),zod.literal('okay'),zod.literal('good'),zod.literal('great'),zod.literal(null)]).nullable(),
   "symptoms": zod.array(zod.object({
   "name": zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light', 'dizziness', 'nausea', 'vision', 'noise', 'neck']),
   "status": zod.enum(['recorded', 'not_recorded']),
-  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3),zod.literal(null)]).nullable(),
+  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3),zod.literal(4),zod.literal(5),zod.literal(6),zod.literal(7),zod.literal(8),zod.literal(9),zod.literal(10),zod.literal(null)]).nullable(),
   "addedOn": zod.string().regex(getRecoveryResponseLogsItemOneDailyCheckInSymptomsItemAddedOnRegExp).optional().describe('Date this symptom first appeared in the patient\'s tracked list.')
 })).min(getRecoveryResponseLogsItemOneDailyCheckInSymptomsMin).max(getRecoveryResponseLogsItemOneDailyCheckInSymptomsMax),
   "summary": zod.string().max(getRecoveryResponseLogsItemOneDailyCheckInSummaryMax)
@@ -1119,13 +1181,14 @@ export const StartRecoveryBody = zod.object({
   "meditationNote": zod.string().max(startRecoveryBodyFirstLogMeditationNoteMax),
   "note": zod.string().max(startRecoveryBodyFirstLogNoteMax),
   "dailyCheckIn": zod.object({
+  "ratingScale": zod.enum(['ten_point_v1']).optional().describe('Absent on historical four-step entries; convert those ratings 0/1/2/3 to 0/3/6/9.'),
   "selectedSymptoms": zod.array(zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light', 'dizziness', 'nausea', 'vision', 'noise', 'neck'])).max(startRecoveryBodyFirstLogDailyCheckInSelectedSymptomsMax).optional(),
   "worseWithActivity": zod.union([zod.literal('yes'),zod.literal('no'),zod.literal('not_sure'),zod.literal(null)]).nullish(),
   "overallFeeling": zod.union([zod.literal('rough'),zod.literal('low'),zod.literal('okay'),zod.literal('good'),zod.literal('great'),zod.literal(null)]).nullable(),
   "symptoms": zod.array(zod.object({
   "name": zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light', 'dizziness', 'nausea', 'vision', 'noise', 'neck']),
   "status": zod.enum(['recorded', 'not_recorded']),
-  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3),zod.literal(null)]).nullable(),
+  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3),zod.literal(4),zod.literal(5),zod.literal(6),zod.literal(7),zod.literal(8),zod.literal(9),zod.literal(10),zod.literal(null)]).nullable(),
   "addedOn": zod.string().regex(startRecoveryBodyFirstLogDailyCheckInSymptomsItemAddedOnRegExp).optional().describe('Date this symptom first appeared in the patient\'s tracked list.')
 })).min(startRecoveryBodyFirstLogDailyCheckInSymptomsMin).max(startRecoveryBodyFirstLogDailyCheckInSymptomsMax),
   "summary": zod.string().max(startRecoveryBodyFirstLogDailyCheckInSummaryMax)
@@ -1206,13 +1269,14 @@ export const StartRecoveryResponse = zod.object({
   "meditationNote": zod.string().max(startRecoveryResponseLogsItemOneMeditationNoteMax),
   "note": zod.string().max(startRecoveryResponseLogsItemOneNoteMax),
   "dailyCheckIn": zod.object({
+  "ratingScale": zod.enum(['ten_point_v1']).optional().describe('Absent on historical four-step entries; convert those ratings 0/1/2/3 to 0/3/6/9.'),
   "selectedSymptoms": zod.array(zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light', 'dizziness', 'nausea', 'vision', 'noise', 'neck'])).max(startRecoveryResponseLogsItemOneDailyCheckInSelectedSymptomsMax).optional(),
   "worseWithActivity": zod.union([zod.literal('yes'),zod.literal('no'),zod.literal('not_sure'),zod.literal(null)]).nullish(),
   "overallFeeling": zod.union([zod.literal('rough'),zod.literal('low'),zod.literal('okay'),zod.literal('good'),zod.literal('great'),zod.literal(null)]).nullable(),
   "symptoms": zod.array(zod.object({
   "name": zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light', 'dizziness', 'nausea', 'vision', 'noise', 'neck']),
   "status": zod.enum(['recorded', 'not_recorded']),
-  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3),zod.literal(null)]).nullable(),
+  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3),zod.literal(4),zod.literal(5),zod.literal(6),zod.literal(7),zod.literal(8),zod.literal(9),zod.literal(10),zod.literal(null)]).nullable(),
   "addedOn": zod.string().regex(startRecoveryResponseLogsItemOneDailyCheckInSymptomsItemAddedOnRegExp).optional().describe('Date this symptom first appeared in the patient\'s tracked list.')
 })).min(startRecoveryResponseLogsItemOneDailyCheckInSymptomsMin).max(startRecoveryResponseLogsItemOneDailyCheckInSymptomsMax),
   "summary": zod.string().max(startRecoveryResponseLogsItemOneDailyCheckInSummaryMax)
@@ -1318,13 +1382,14 @@ export const SaveRecoveryLogBody = zod.object({
   "meditationNote": zod.string().max(saveRecoveryLogBodyOneMeditationNoteMax),
   "note": zod.string().max(saveRecoveryLogBodyOneNoteMax),
   "dailyCheckIn": zod.object({
+  "ratingScale": zod.enum(['ten_point_v1']).optional().describe('Absent on historical four-step entries; convert those ratings 0/1/2/3 to 0/3/6/9.'),
   "selectedSymptoms": zod.array(zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light', 'dizziness', 'nausea', 'vision', 'noise', 'neck'])).max(saveRecoveryLogBodyOneDailyCheckInSelectedSymptomsMax).optional(),
   "worseWithActivity": zod.union([zod.literal('yes'),zod.literal('no'),zod.literal('not_sure'),zod.literal(null)]).nullish(),
   "overallFeeling": zod.union([zod.literal('rough'),zod.literal('low'),zod.literal('okay'),zod.literal('good'),zod.literal('great'),zod.literal(null)]).nullable(),
   "symptoms": zod.array(zod.object({
   "name": zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light', 'dizziness', 'nausea', 'vision', 'noise', 'neck']),
   "status": zod.enum(['recorded', 'not_recorded']),
-  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3),zod.literal(null)]).nullable(),
+  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3),zod.literal(4),zod.literal(5),zod.literal(6),zod.literal(7),zod.literal(8),zod.literal(9),zod.literal(10),zod.literal(null)]).nullable(),
   "addedOn": zod.string().regex(saveRecoveryLogBodyOneDailyCheckInSymptomsItemAddedOnRegExp).optional().describe('Date this symptom first appeared in the patient\'s tracked list.')
 })).min(saveRecoveryLogBodyOneDailyCheckInSymptomsMin).max(saveRecoveryLogBodyOneDailyCheckInSymptomsMax),
   "summary": zod.string().max(saveRecoveryLogBodyOneDailyCheckInSummaryMax)
@@ -1392,13 +1457,14 @@ export const SaveRecoveryLogResponse = zod.object({
   "meditationNote": zod.string().max(saveRecoveryLogResponseOneMeditationNoteMax),
   "note": zod.string().max(saveRecoveryLogResponseOneNoteMax),
   "dailyCheckIn": zod.object({
+  "ratingScale": zod.enum(['ten_point_v1']).optional().describe('Absent on historical four-step entries; convert those ratings 0/1/2/3 to 0/3/6/9.'),
   "selectedSymptoms": zod.array(zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light', 'dizziness', 'nausea', 'vision', 'noise', 'neck'])).max(saveRecoveryLogResponseOneDailyCheckInSelectedSymptomsMax).optional(),
   "worseWithActivity": zod.union([zod.literal('yes'),zod.literal('no'),zod.literal('not_sure'),zod.literal(null)]).nullish(),
   "overallFeeling": zod.union([zod.literal('rough'),zod.literal('low'),zod.literal('okay'),zod.literal('good'),zod.literal('great'),zod.literal(null)]).nullable(),
   "symptoms": zod.array(zod.object({
   "name": zod.enum(['headache', 'fatigue', 'fog', 'sleep', 'mood', 'light', 'dizziness', 'nausea', 'vision', 'noise', 'neck']),
   "status": zod.enum(['recorded', 'not_recorded']),
-  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3),zod.literal(null)]).nullable(),
+  "rating": zod.union([zod.literal(0),zod.literal(1),zod.literal(2),zod.literal(3),zod.literal(4),zod.literal(5),zod.literal(6),zod.literal(7),zod.literal(8),zod.literal(9),zod.literal(10),zod.literal(null)]).nullable(),
   "addedOn": zod.string().regex(saveRecoveryLogResponseOneDailyCheckInSymptomsItemAddedOnRegExp).optional().describe('Date this symptom first appeared in the patient\'s tracked list.')
 })).min(saveRecoveryLogResponseOneDailyCheckInSymptomsMin).max(saveRecoveryLogResponseOneDailyCheckInSymptomsMax),
   "summary": zod.string().max(saveRecoveryLogResponseOneDailyCheckInSummaryMax)

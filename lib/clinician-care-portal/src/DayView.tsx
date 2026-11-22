@@ -63,7 +63,7 @@ export function DayView({ data, date }: { data: FullJournal; date: string }) {
           <section aria-labelledby="day-symptoms" className="space-y-3">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <h2 id="day-symptoms" className="font-serif text-2xl font-medium text-foreground">Symptoms</h2>
-              <p className="text-xs text-muted-foreground">0 not noticeable · 10 most noticeable</p>
+              <p className="text-xs text-muted-foreground">0 None · 5 Moderate · 10 Worst</p>
             </div>
             <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
               {careSymptoms.map((symptom) => {

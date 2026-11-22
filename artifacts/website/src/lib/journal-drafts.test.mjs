@@ -30,7 +30,9 @@ test("an unfinished draft stays on its original date after midnight and a later 
   assert.equal(writeJournalDraft("patient-a", draft, storage), true);
   for (const today of ["2026-10-29", "2026-11-02"]) {
     assert.deepEqual(journalHistoryDates([], readJournalDraftDates("patient-a", storage), today), ["2026-10-28"]);
-    assert.deepEqual(readJournalDraft("patient-a", "2026-10-28", storage), draft);
+    const restored = readJournalDraft("patient-a", "2026-10-28", storage);
+    assert.equal(restored.dailyCheckIn.ratingScale, "ten_point_v1");
+    assert.equal(restored.dailyCheckIn.symptoms[0].rating, null);
     assert.equal(readJournalDraft("patient-a", today, storage), null);
   }
   assert.equal(storage.length, 1);
@@ -56,4 +58,20 @@ test("empty drafts don't become entries; a recorded zero is preserved", () => {
   writeJournalDraft("patient-a", draft, storage);
   assert.deepEqual(readJournalDraftDates("patient-a", storage), ["2026-10-28"]);
   assert.equal(readJournalDraft("patient-a", draft.date, storage).sleep.wakings, 0);
+});
+
+test("historical 0-3 draft ratings migrate to ten_point_v1 values without filling missing symptoms", () => {
+  const storage = memoryStorage();
+  const draft = partialDraft("2026-10-28");
+  draft.dailyCheckIn.symptoms = [
+    { name: "headache", status: "recorded", rating: 0 },
+    { name: "fatigue", status: "recorded", rating: 1 },
+    { name: "fog", status: "recorded", rating: 2 },
+    { name: "sleep", status: "recorded", rating: 3 },
+    { name: "mood", status: "not_recorded", rating: null },
+  ];
+  writeJournalDraft("patient-a", draft, storage);
+  const restored = readJournalDraft("patient-a", draft.date, storage);
+  assert.equal(restored.dailyCheckIn.ratingScale, "ten_point_v1");
+  assert.deepEqual(restored.dailyCheckIn.symptoms.map((answer) => answer.rating), [0, 3, 6, 9, null]);
 });

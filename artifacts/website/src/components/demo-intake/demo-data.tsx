@@ -27,12 +27,9 @@ export const STORY_SAMPLES = [
 export const CARE_BOUNDARY =
   "Stillwell is not a diagnosis tool. It can't diagnose or treat a concussion; please see a medical provider for that. Not for a new injury or an emergency. If symptoms are worsening, contact a clinician. Severe or urgent symptoms need emergency care now.";
 
-export const FOUR_LEVELS = [
-  "Not noticeable",
-  "Less noticeable",
-  "Noticeable",
-  "More noticeable",
-] as const;
+export const TEN_LEVELS = Array.from({ length: 11 }, (_, value) =>
+  value === 0 ? "0 None" : value === 5 ? "5 Moderate" : value === 10 ? "10 Worst" : String(value),
+);
 
 export const STAGES = Object.values(INTAKE_STAGES);
 

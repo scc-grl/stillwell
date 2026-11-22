@@ -33,7 +33,7 @@ const base = {
   date: "2026-10-20", symptoms: [], dietStatus: "done", dietNote: "Food",
   exerciseStatus: "not_done", exerciseNote: "Movement", meditationStatus: "not_planned",
   meditationMinutes: 0, meditationNote: "", note: "Pacing",
-  dailyCheckIn: { overallFeeling: "okay", symptoms: [
+  dailyCheckIn: { ratingScale: "ten_point_v1", overallFeeling: "okay", symptoms: [
     "headache", "fatigue", "fog", "sleep", "mood", "light",
   ].map(name => ({ name, status: "not_recorded", rating: null })), summary: "Check-in" },
 };
@@ -145,7 +145,7 @@ test("editing and removing only sleep preserves the rest of the day", async () =
   assert.deepEqual(edited.sleep, { quality: "great", note: "Updated" });
   const removed = await save({ ...base, section: "sleep", sleep: null });
   assert.equal(removed.sleep, null);
-  assert.deepEqual(removed.dailyCheckIn, base.dailyCheckIn);
+  assert.deepEqual(removed.dailyCheckIn, { ...base.dailyCheckIn, symptoms: checkInSymptoms.map(({ name }) => ({ name, status: "not_recorded", rating: null })) });
   assert.equal(removed.dietNote, "Food");
 });
 test("legacy clients omitting sleep preserve it; deleting a day removes it", async () => {
@@ -277,6 +277,6 @@ test("invalid activity responses and out-of-scale new ratings are rejected", () 
     assert.equal(SaveRecoveryLogBody.safeParse({ ...base, dailyCheckIn: { ...base.dailyCheckIn, worseWithActivity } }).success, false);
   }
   assert.equal(SaveRecoveryLogBody.safeParse({ ...base, dailyCheckIn: {
-    ...base.dailyCheckIn, symptoms: [...base.dailyCheckIn.symptoms, { name: "nausea", status: "recorded", rating: 4 }],
+    ...base.dailyCheckIn, symptoms: [...base.dailyCheckIn.symptoms, { name: "nausea", status: "recorded", rating: 11 }],
   } }).success, false);
 });

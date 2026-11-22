@@ -49,7 +49,7 @@ export function normalizeCareEntry(value: unknown): ClinicalEntry | null {
       }
     }
   }
-  // dailyCheckIn ratings are ordinal 0–3. Do not reinterpret those as 0–10.
+  // Frozen snapshots retain original bytes. Convert historical ratings only for display.
   const checkIn = record(data.dailyCheckIn);
   const checkInRatings: ClinicalEntry["checkInRatings"] = {};
   for (const item of checkInSymptoms) {
@@ -59,11 +59,14 @@ export function normalizeCareEntry(value: unknown): ClinicalEntry | null {
     // Never infer them from old legacy entries.
     if (!defaultSymptoms.includes(item.name) && !answer) scores[item.legacyName] = null;
     if (answer) {
-      const rating = finite(answer.rating, 3);
+      const old = checkIn.ratingScale !== "ten_point_v1";
+      const rawRating = finite(answer.rating, old ? 3 : 10);
+      const rating = rawRating === null ? null : old ? [0, 3, 6, 9][rawRating] : rawRating;
       if (answer.status !== "recorded" || rating === null || !Number.isInteger(rating)) {
         scores[item.legacyName] = null;
         checkInRatings[item.legacyName] = "Not recorded";
       } else {
+        scores[item.legacyName] = rating;
         checkInRatings[item.legacyName] = ratingChoices.find(choice => choice.value === rating)!.label;
       }
     }

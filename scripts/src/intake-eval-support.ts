@@ -22,7 +22,13 @@ export function normalizeExpected(raw: unknown): Expected {
     const raw = symptoms[name];
     const value = raw && typeof raw === "object" ? (raw as Record<string, unknown>).level : raw;
     if (value === null || value === "not recorded" || value === "not_recorded") result.symptoms[name] = null;
-    else if (typeof value === "number" && value >= 0 && value <= 3) result.symptoms[name] = value;
+    else if (typeof value === "number" && value >= 0 && value <= 10) {
+      // Existing golden rows predate ten-point scoring. An explicit version
+      // distinguishes a new score of 1/2/3 from an old four-step position.
+      if (r.ratingScale === "ten_point_v1") result.symptoms[name] = value;
+      else if (Number.isInteger(value) && value <= 3) result.symptoms[name] = [0, 3, 6, 9][value];
+      else throw new TypeError("Ten-point expected ratings need ratingScale: ten_point_v1");
+    }
   }
   return result;
 }

@@ -1,18 +1,25 @@
 import { DANGER_SIGNS, INTAKE_SYMPTOMS, SYMPTOM_LEVEL_LABELS, type DangerSign } from "./questions.ts";
 import type { IntakeRead } from "./reader.ts";
 
-export const RULES_VERSION = "intake-rules-2026-10-29.2";
+export const RULES_VERSION = "intake-rules-2026-11-09.1";
 /** Every decision threshold, versioned together. Positions remain fractional for the composite. */
 export const THRESHOLDS = {
   version: RULES_VERSION, danger: 0.2, selfHarm: 0.2, safetyConfidence: 0.5,
   confirm: 0.6, mentioned: 0.5, yes: 0.7, no: 0.3, gettingWorse: 0.7,
-  countedLevel: 1, severeMax: 2.5, severeTotal: 9, moderateMax: 1.5,
+  countedLevel: 3, severeMax: 7.5, severeTotal: 27, moderateMax: 4.5,
   countedSymptoms: 4, recentHours: 48, prolongedHours: 28 * 24, timingConfidence: 0.8,
 } as const;
 export const STAGES = {
-  1: "Symptom-limited daily life", 2: "Light to moderate activity", 3: "Individual exercise fuller days",
-  4: "Heavy non-contact training", 5: "Full-contact practice", 6: "Return to sport",
+  1: "Rest and settle", 2: "Everyday activity", 3: "Light exercise",
+  4: "Building back", 5: "Full days", 6: "Back to life",
 } as const;
+/** Versioned placement explanation copy, shared by demo, persistence and real-account UI. */
+export const PLACEMENT_REASONS: Record<string, string> = {
+  P1: "Your starting stage reflects the everyday tasks and activity you said you can manage.",
+  P2: "The symptoms you reported suggest starting with rest and easy daily life.",
+  P3: "Your symptom levels or the number you reported suggest staying within everyday activity for now.",
+  P4: "Your injury was less than 48 hours ago, so the suggested starting point is rest and easy daily life.",
+};
 export const STAGE_GATES = {
   2: "Progress with activity that does not clearly worsen symptoms.",
   3: "Progress when light to moderate activity is tolerated.",
@@ -95,13 +102,13 @@ export function decide(read: IntakeRead): Decision {
   }
   const placement: Reason[] = [{ rule: "P1", text: `Activity tolerance starting stage ${n}` }];
   if (composite.max >= THRESHOLDS.severeMax || composite.total >= THRESHOLDS.severeTotal) {
-    n = 1; placement.push({ rule: "P2", text: "Severity cap: maximum at least 2.5 or total at least 9" });
+    n = 1; placement.push({ rule: "P2", text: PLACEMENT_REASONS.P2 });
   }
   if (composite.max >= THRESHOLDS.moderateMax || composite.count >= THRESHOLDS.countedSymptoms) {
-    n = Math.min(n, 2) as 1 | 2; placement.push({ rule: "P3", text: "At most Stage 2: maximum at least 1.5 or at least four symptoms" });
+    n = Math.min(n, 2) as 1 | 2; placement.push({ rule: "P3", text: PLACEMENT_REASONS.P3 });
   }
   if (composite.hoursSinceInjury !== null ? composite.hoursSinceInjury < THRESHOLDS.recentHours : composite.injuryTimingWindow === "under_48_hours") {
-    n = 1; placement.push({ rule: "P4", text: "Under 48 hours since injury" });
+    n = 1; placement.push({ rule: "P4", text: PLACEMENT_REASONS.P4 });
   }
   const next = (n + 1) as 2 | 3 | 4;
   return finish({ ...base, reasons: [{ rule: "S1", text: "No urgent or confirmation rule fired" }], clinicianPrompts,

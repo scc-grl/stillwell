@@ -28,6 +28,8 @@ export function intakeLogicTrace(read: IntakeRead, decision: Decision) {
 function safeAnswer(a: StructuredAnswer | undefined) {
   if (!a) return null;
   if ("probability" in a) return { probability: a.probability, confidence: a.confidence, confidenceSource: a.confidenceSource };
-  if ("score" in a) return { scorePosition: a.score, confidence: a.confidence, probabilities: a.probabilities };
+  if ("score" in a) return { scorePosition: a.providerPosition ?? a.score, journalScore: a.score,
+    scoreDomain: a.providerPosition === undefined ? "journal_0_10" : "provider_0_9",
+    confidence: a.confidence, probabilities: a.probabilities };
   return { choice: a.choice, confidence: a.confidence, probabilities: a.probabilities };
 }

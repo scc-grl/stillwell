@@ -5,7 +5,7 @@ export function fakeAnswers(overrides: Overrides = {}, questions = buildQuestion
   for (const [key, q] of Object.entries(questions)) {
     const o = overrides[key];
     if (q.type === "noul") answers[key] = { type: "noul", noul: typeof o === "number" ? o : o?.noul ?? 0.02, ...(typeof o === "object" && o.confidence !== undefined ? { confidence: o.confidence } : {}) };
-    else if (q.type === "score") answers[key] = { type: "score", score: typeof o === "number" ? o : o?.score ?? 0, confidence: typeof o === "object" ? o.confidence ?? 0.95 : 0.95, probabilities: {} };
+    else if (q.type === "score") answers[key] = { type: "score", score: (typeof o === "number" ? o : o?.score ?? 0) * (q.criteria.length - 1) / 10, confidence: typeof o === "object" ? o.confidence ?? 0.95 : 0.95, probabilities: {} };
     else {
       const choice = typeof o === "object" ? o.choice ?? "not_mentioned" : "not_mentioned";
       answers[key] = { type: "choice", choice: key === "injury_cause" && choice === "not_mentioned" ? "other" : choice, confidence: typeof o === "object" ? o.confidence ?? 0.95 : 0.95, probabilities: {} };

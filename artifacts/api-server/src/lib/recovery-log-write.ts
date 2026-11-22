@@ -1,4 +1,5 @@
 import type { RecoveryLogSaveInput } from "@workspace/api-zod";
+import { dailyCheckInFromLog } from "@workspace/recovery-journal";
 
 const activityFields = [
   "dietStatus", "dietNote", "exerciseStatus", "exerciseNote",
@@ -8,6 +9,8 @@ const activityFields = [
 /** The patch is applied atomically to the latest row, not a client's stale snapshot. */
 export function recoveryLogWrite(input: RecoveryLogSaveInput) {
   const { section, ...initial } = input;
+  // Older clients/drafts carry unversioned 0–3 values; newer entries are explicit.
+  if (initial.dailyCheckIn) initial.dailyCheckIn = dailyCheckInFromLog(initial);
   const patch: Record<string, unknown> = {};
   const fields = section === "check_in"
     ? ["symptoms", "dailyCheckIn"] as const

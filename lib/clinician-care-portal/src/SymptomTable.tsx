@@ -92,7 +92,7 @@ export function SymptomTable({ entries, former, latestColumn, trendColumn }: {
   return (
     <div className="min-w-0 space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-xs text-muted-foreground" id="symptom-scale">0 not noticeable · 10 most noticeable</p>
+        <p className="text-xs text-muted-foreground" id="symptom-scale">0 None · 5 Moderate · 10 Worst</p>
         {hasData ? (
           <Button variant="outline" aria-pressed={combined} onClick={() => setCombined((value) => !value)} data-testid="button-toggle-combined">
             Show as one combined chart

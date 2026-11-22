@@ -22,3 +22,4 @@ export * from "./newsletter";
 export * from "./account";
 export * from "./partners";
 export * from "./care-team";
+export * from "./recovery-stages";

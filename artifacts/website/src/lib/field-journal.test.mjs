@@ -52,7 +52,7 @@ test("scale stays controlled when cleared and uses shared rating definitions and
   assert.match(components, /value=\{value === null \? "" : String\(value\)\}/);
   assert.match(components, /<ToggleGroup/);
   assert.match(components, /ratingChoices\.find/);
-  assert.match(css, /height:\s*3\.5rem/);
+  assert.match(css, /height:\s*3rem/);
   assert.match(css, /noticeability-option\[data-state="on"\]/);
 });
 test("stage and nondismissible boundary components carry accessible state and notice tokens", () => {

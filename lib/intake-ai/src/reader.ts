@@ -7,7 +7,7 @@ export const DEFAULT_TIMEOUT_MS = 10000;
 export type ChoiceAnswer = { choice: string; confidence: number; probabilities: Record<string, number> };
 export type NoulAnswer = { probability: number; confidence: number; confidenceSource: "reported" | "binary_probability" };
 export type SymptomAnswer = { mentioned: NoulAnswer; score: number; confidence: number; probabilities: Record<string, number> };
-export type StructuredAnswer = NoulAnswer | ChoiceAnswer | { score: number; confidence: number; probabilities: Record<string, number> };
+export type StructuredAnswer = NoulAnswer | ChoiceAnswer | { score: number; providerPosition?: number; confidence: number; probabilities: Record<string, number> };
 export type IntakeScores = {
   danger: Record<DangerSign, number>;
   dangerConfidence: Record<DangerSign, number>;
@@ -41,7 +41,7 @@ function unit(value: unknown): number {
   if (typeof value !== "number" || !Number.isFinite(value) || value < 0 || value > 1) throw new TypeError("Invalid probability");
   return value;
 }
-export function normalizeAnswer(question: IntakeQuestion, raw: unknown): StructuredAnswer {
+export function normalizeAnswer(question: IntakeQuestion, raw: unknown, fromProvider = false): StructuredAnswer {
   const a = raw as Record<string, unknown> | undefined;
   if (!a) throw new TypeError("Missing answer");
   if (question.type === "noul") {
@@ -52,15 +52,17 @@ export function normalizeAnswer(question: IntakeQuestion, raw: unknown): Structu
   }
   const confidence = unit(a.confidence);
   const probabilities: Record<string, number> = {};
-  const allowed = question.type === "choice" ? Object.keys(question.criteria) : ["0", "1", "2", "3"];
+  const allowed = question.type === "choice" ? Object.keys(question.criteria) : question.criteria.map((_, index) => String(index));
   const rawProbabilities = a.probabilities as Record<string, unknown> | undefined;
   for (const key of allowed) if (rawProbabilities?.[key] !== undefined) probabilities[key] = unit(rawProbabilities[key]);
   if (question.type === "choice") {
     if (typeof a.choice !== "string" || !Object.hasOwn(question.criteria, a.choice)) throw new TypeError("Invalid choice");
     return { choice: a.choice, confidence, probabilities };
   }
-  if (typeof a.score !== "number" || !Number.isFinite(a.score) || a.score < 0 || a.score > 3) throw new TypeError("Invalid score");
-  return { score: a.score, confidence, probabilities };
+  const max = fromProvider ? question.criteria.length - 1 : 10;
+  if (typeof a.score !== "number" || !Number.isFinite(a.score) || a.score < 0 || a.score > max) throw new TypeError("Invalid score");
+  return { score: fromProvider ? a.score * 10 / max : a.score,
+    ...(fromProvider ? { providerPosition: a.score } : {}), confidence, probabilities };
 }
 export function mapAnswers(answers: Record<string, StructuredAnswer>): IntakeScores {
   const n = (key: string) => answers[key] as NoulAnswer;
@@ -100,7 +102,7 @@ export async function readIntake(note: string, opts: IntakeOptions): Promise<Int
       { state: { intake_note: note }, questions, ...(opts.model ? { model: opts.model } : {}) },
       { timeout: opts.timeoutMs ?? DEFAULT_TIMEOUT_MS, retry: { maxRetries: 0 } },
     ) : { model: "form-only", answers: {} };
-    for (const [key, question] of Object.entries(questions)) answers[key] = normalizeAnswer(question, response.answers[key]);
+    for (const [key, question] of Object.entries(questions)) answers[key] = normalizeAnswer(question, response.answers[key], true);
     return { ...base, source: "typesafe", model: response.model, scores: mapAnswers({ ...answers, ...formAnswers }),
       answers, error: null, latencyMs: Date.now() - started };
   } catch (error) {

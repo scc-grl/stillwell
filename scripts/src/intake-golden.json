@@ -1,5 +1,6 @@
 {
-  "_about": "SYNTHETIC intake notes only. Labels follow the intake spec rules and still need clinician sign-off. Expected stage is null when no stage should be given. Grow to 50 with pm-agent and engineer-agent.",
+  "_about": "SYNTHETIC intake notes only. Labels still need clinician sign-off. Current scoring uses 0–10 (ten_point_v1); historical Braintrust expected symptom positions are converted by normalizeExpected. D2/D3 are clinician prompts, not find_doctor outcomes. Local file is reference-only; eval uses the Braintrust dataset.",
+  "ratingScale": "ten_point_v1",
   "cases": [
     { "id": "maya-header-2wk", "note": "I'm Maya and I play soccer for my college team. Two weeks ago I went up for a header and collided with another player. The team doctor checked me that night. Now I get headaches by mid-afternoon, I feel foggy in lectures, and I'm more tired than usual. Screens bother me a little. Walking to class is fine, but when I tried a spin class the headache came back.", "expected": { "outcome": "find_doctor", "stage": 2, "danger": false, "selfHarm": false } },
     { "id": "vomit-double-vision", "note": "I hit my head at practice yesterday and I've thrown up three times since. When I look at my phone I'm seeing double.", "expected": { "outcome": "go_to_er", "stage": null, "danger": true, "selfHarm": false } },

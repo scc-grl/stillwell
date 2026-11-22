@@ -3,7 +3,7 @@ import { ArrowRight, Check, LockKeyhole, Plus, PencilLine } from "lucide-react";
 import { Button } from "@workspace/stillwell-design-system/components/ui/button";
 import { Card } from "@workspace/stillwell-design-system/components/ui/card";
 import { Input } from "@workspace/stillwell-design-system/components/ui/input";
-import { FOUR_LEVELS, STAGES, type AnswerField, type Symptom } from "./demo-data";
+import { TEN_LEVELS, STAGES, type AnswerField, type Symptom } from "./demo-data";
 import { CareBoundary } from "./StoryScreens";
 import { STAGE_GATES } from "@workspace/intake-ai";
 import { NoticeabilityScale, StageIndicator } from "@/components/SiteComponents";
@@ -75,7 +75,7 @@ export function SummaryScreen({
         <Card className="p-5 sm:p-7" data-testid="summary-symptoms-card">
           <div className="mb-5">
             <h2 className="display text-2xl font-medium">Symptoms</h2>
-            <p className="mt-2 text-sm text-muted-foreground">A four-step scale. The words are shown alongside each level.</p>
+            <p className="mt-2 text-sm text-muted-foreground">A 0–10 scale: 0 None, 5 Moderate, 10 Worst. Leave a symptom unrecorded if it was not mentioned.</p>
           </div>
           <div className="space-y-4">
             {symptoms.map((symptom, index) => {
@@ -128,8 +128,8 @@ export function SummaryScreen({
                         }} data-testid={`button-save-symptom-${index + 1}`}>Done</Button>
                     </div>
                   )}
-                  <div className="mt-4 flex flex-wrap gap-2" aria-label={`${symptom.label}: ${present ? FOUR_LEVELS[symptom.level ?? 0] : "Not recorded"}`}>
-                    {FOUR_LEVELS.map((level, levelIndex) => (
+                  <div className="mt-4 flex flex-wrap gap-2" aria-label={`${symptom.label}: ${present ? TEN_LEVELS[symptom.level ?? 0] : "Not recorded"}`}>
+                    {TEN_LEVELS.map((level, levelIndex) => (
                       <span key={level} className={`rounded-full px-3 py-1.5 text-xs ${symptom.level === levelIndex ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`} data-testid={`level-label-${index + 1}-${levelIndex + 1}`}>
                         {level}
                       </span>
