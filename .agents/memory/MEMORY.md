@@ -12,6 +12,7 @@
 - [Shared native control types](shared-native-control-types.md) — portable imperative handles avoid incompatible native View ref types across workspace peer instances.
 - [Care-link privacy on static hosting](care-link-static-privacy.md) — injected analytics can run before React; API-only headers do not protect static link documents.
 - [Workspace validation memory](workspace-validation-memory.md) — run full workspace validation serially to avoid memory exhaustion interrupting previews.
+- [Database environment verification](database-environment-verification.md) — verify dev/prod targets with explicit read-only queries, not the shell environment flag.
 - [Clerk test cleanup](clerk-test-cleanup.md) — database fixture cleanup does not guarantee synthetic Clerk account removal.
 - [Care-team email delivery](care-team-email-delivery.md) — use the connected Resend integration; real invites still originate in authenticated patient flows.
 - [Workspace package resolution](workspace-package-resolution.md) — shared runtime exports must work in Node tests and Expo; filtered pnpm updates can leave sibling links stale.

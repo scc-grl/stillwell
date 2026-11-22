@@ -238,6 +238,12 @@ function Journal({ entries, recoveryQuery, cacheKey }: { entries: MvpEntry[]; re
     initializedDate.current = hasRecoveryData ? nextDate : null;
     editRevision.current += 1;
   }
+  function editEntry(entry: MvpEntry) {
+    load(entry, entry.date);
+    setMode("tap");
+    document.getElementById("journal-date")?.scrollIntoView({ block: "center" });
+    document.getElementById("journal-date")?.focus();
+  }
 
   function applyTranscriptRatings(transcript: string) {
     const parsed = parseExplicitSpokenScores(transcript);
@@ -348,7 +354,7 @@ function Journal({ entries, recoveryQuery, cacheKey }: { entries: MvpEntry[]; re
       {alert && <p role="alert" className="rounded-xl border border-notice-border bg-notice p-4 text-base leading-7 text-notice-foreground">{alert}</p>}
       {feedback && !review && <p role="status" className="text-base">{feedback}</p>}
     </Card>
-    <section className="space-y-3"><h2 className="display text-3xl">Recorded days</h2>{recoveryQuery.isLoading ? <div className="h-24 animate-pulse rounded-xl bg-muted"/> : entries.length === 0 ? <Card className="p-5 text-base leading-7 text-muted-foreground">Your saved check-ins will appear here. There is no need to make up missed days.</Card> : <div className="grid gap-3 sm:grid-cols-2">{[...entries].sort((a,b)=>b.date.localeCompare(a.date)).map(entry => <Card key={entry.date} className="space-y-3 p-4"><div className="flex items-center justify-between gap-3"><h3 className="font-semibold">{new Date(`${entry.date}T12:00:00`).toLocaleDateString()}</h3><Button variant="outline" className="min-h-12" onClick={() => load(entry, entry.date)}><PencilLine/>Edit</Button></div><p className="text-base text-muted-foreground">{Object.entries(names).map(([key,label]) => `${label}: ${entry.scores[key as keyof MvpScores] ?? "—"}`).join(" · ")}</p>{entry.flagged && <p className="text-base text-notice-foreground">Review note for this entry</p>}</Card>)}</div>}</section>
+    <section className="space-y-3"><h2 className="display text-3xl">Recorded days</h2>{recoveryQuery.isLoading ? <div className="h-24 animate-pulse rounded-xl bg-muted"/> : entries.length === 0 ? <Card className="p-5 text-base leading-7 text-muted-foreground">Your saved check-ins will appear here. There is no need to make up missed days.</Card> : <div className="grid gap-3 sm:grid-cols-2">{[...entries].sort((a,b)=>b.date.localeCompare(a.date)).map(entry => <Card key={entry.date} className="space-y-3 p-4"><div className="flex items-center justify-between gap-3"><h3 className="font-semibold">{new Date(`${entry.date}T12:00:00`).toLocaleDateString()}</h3><Button variant="outline" className="min-h-12" onClick={() => editEntry(entry)}><PencilLine/>Edit</Button></div><p className="text-base text-muted-foreground">{Object.entries(names).map(([key,label]) => `${label}: ${entry.scores[key as keyof MvpScores] ?? "—"}`).join(" · ")}</p>{entry.flagged && <p className="text-base text-notice-foreground">Review note for this entry</p>}</Card>)}</div>}</section>
   </>;
 }
 

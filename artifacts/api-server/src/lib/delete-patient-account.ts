@@ -1,9 +1,13 @@
 import { patientWrite, type SqlPool } from "./recovery-lock";
+import { deletedAccountKey } from "./account-deletion-key";
 
 export class LegacyCopyOwnershipError extends Error {}
 /** Two durable phases. A provider failure leaves an explicit, retryable deletion marker. */
 export async function deletePatientAccount(pool: SqlPool, owner: string, emails: string[], deleteSignIn: (id: string) => Promise<unknown>, accountCreatedAt = 0) {
+  let completed = false;
   await patientWrite(pool, owner, async tx => {
+    const { rows: done } = await tx.query("SELECT owner_id FROM recovery_account_deletions WHERE owner_id=$1", [deletedAccountKey(owner)]);
+    if (done.length) { completed = true; return; }
     // Older disconnects deliberately discarded the owner. Never guess from names or
     // delete another patient's copy. An audited mapping is needed for these records.
     const { rows: unknownCopies } = await tx.query(`SELECT id FROM care_team_links l WHERE status='former'
@@ -30,6 +34,8 @@ export async function deletePatientAccount(pool: SqlPool, owner: string, emails:
     await tx.query("DELETE FROM account_roles WHERE user_id=$1 AND account_type='patient'", [owner]);
   });
   // Only after all database work committed. Never log Clerk exceptions or their bodies.
+  if (completed) return;
   await deleteSignIn(owner);
-  await pool.query("DELETE FROM recovery_account_deletions WHERE owner_id=$1", [owner]);
+  // Briefly valid old JWTs must not recreate erased records. Retain no actual user ID.
+  await pool.query("UPDATE recovery_account_deletions SET owner_id=$2 WHERE owner_id=$1", [owner, deletedAccountKey(owner)]);
 }

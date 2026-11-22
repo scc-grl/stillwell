@@ -30,7 +30,7 @@ const disclosures = [
   },
   {
     title: "Deleting your account",
-    body: "Account deletion is separate from deleting recovery data. It removes your account and all recovery records, doctor copies, doctor notes, and access. Doctor accounts remain. If deletion needs a retry, account controls stay available while recovery areas may temporarily be unavailable.",
+    body: "Account deletion is separate from deleting recovery data. It removes your account and all recovery records, doctor copies, doctor notes, and access. Doctor accounts remain. If deletion needs a retry, account controls stay available while recovery areas may temporarily be unavailable. After completion, only an irreversible security hash is kept to prevent an old sign-in token from recreating deleted records; it contains no name, email, account ID or journal data.",
   },
 ] as const;
 

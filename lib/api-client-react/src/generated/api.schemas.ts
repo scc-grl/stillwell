@@ -1004,6 +1004,11 @@ export interface PatientIntakeInput {
 
 export type PatientIntakeResultDecision = { [key: string]: unknown };
 
+/**
+ * Structured numeric/choice answers only; never the story or account fields.
+ */
+export type PatientIntakeResultAnswers = { [key: string]: unknown };
+
 export type RecoveryStageStage = typeof RecoveryStageStage[keyof typeof RecoveryStageStage];
 
 
@@ -1051,6 +1056,8 @@ export interface RecoveryStage {
 
 export interface PatientIntakeResult {
   decision: PatientIntakeResultDecision;
+  /** Structured numeric/choice answers only; never the story or account fields. */
+  answers?: PatientIntakeResultAnswers;
   source: string;
   syntheticOnly: boolean;
   stage: RecoveryStage | null;

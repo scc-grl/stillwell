@@ -10,6 +10,7 @@ import { careIdentity } from "../lib/care-team-runtime";
 import { allowedRequestOrigin } from "../lib/request-origin";
 import { getClerkProxyHost } from "../middlewares/clerkProxyMiddleware";
 import { explainWeeklyNotes } from "../lib/private-weekly-reason";
+import { deletedAccountKey } from "../lib/account-deletion-key";
 
 export const webMvpService = new WebMvpService(pool, undefined, explainWeeklyNotes);
 export const patientMvpRouter = Router();
@@ -30,6 +31,8 @@ patientMvpRouter.put("/mvp/journal/:date", async (req, res) => {
 patientMvpRouter.delete("/account", async (req, res) => {
   if (!DeletePatientAccountBody.safeParse(req.body).success) { res.status(400).json({ error: "Type DELETE to confirm permanent account deletion." }); return; }
   try {
+    const { rows: completed } = await pool.query("SELECT owner_id FROM recovery_account_deletions WHERE owner_id=$1", [deletedAccountKey(owner(req))]);
+    if (completed.length) { res.status(204).end(); return; }
     const identity = await careIdentity(owner(req));
     const account = await clerkClient.users.getUser(identity.id);
     await deletePatientAccount(pool, identity.id, identity.emails.map(e => e.address.toLowerCase()), async id => {

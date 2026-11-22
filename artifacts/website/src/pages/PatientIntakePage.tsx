@@ -12,7 +12,7 @@ import {
   useRunRecoveryIntake,
 } from "@workspace/api-client-react";
 import type { PatientIntakeResult } from "@workspace/api-client-react";
-import { buildQuestions, INTAKE_CONSENT_VERSION, PLACEMENT_REASONS, STAGES } from "@workspace/intake-ai";
+import { buildQuestions, INTAKE_CONSENT_VERSION, PLACEMENT_REASONS, STAGES, THRESHOLDS } from "@workspace/intake-ai";
 import type { Decision } from "@workspace/intake-ai";
 import { Button } from "@workspace/stillwell-design-system/components/ui/button";
 import { Card } from "@workspace/stillwell-design-system/components/ui/card";
@@ -317,10 +317,14 @@ export default function PatientIntakePage() {
           <div><h3 className="display text-2xl font-medium">Your answers</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">Choose Change to edit any structured answer. Changes are reviewed together when you continue.</p></div>
           <div className="space-y-3">
             {Object.entries(tapQuestions).map(([key, question], index) => {
-              const chosen = tapAnswers[key] as { noul?: number; choice?: string; score?: number } | undefined;
               const inferredName = key.startsWith("symptom_") ? key.slice("symptom_".length) : "";
               const inferredSymptom = decision.symptoms.find(symptom => symptom.name === inferredName);
-              const displayValue = chosen?.score !== undefined ? `${chosen.score}/10`
+              const model = result?.data.answers?.[key] as { probability?: number; choice?: string; score?: number } | undefined;
+              const chosen = (tapAnswers[key] ?? (model && (!inferredName || inferredSymptom?.level != null) ? { ...model, noul: model.probability === undefined ? undefined
+                : model.probability >= THRESHOLDS.yes ? 1 : model.probability <= THRESHOLDS.no ? 0 : 0.5 } : undefined)) as
+                { noul?: number; choice?: string; score?: number } | undefined;
+              const skipped = inferredName && (tapAnswers[`mentioned_${inferredName}`] as { noul?: number } | undefined)?.noul === 0;
+              const displayValue = skipped ? "Not recorded" : chosen?.score !== undefined ? `${chosen.score}/10`
                 : inferredSymptom?.level !== null && inferredSymptom?.level !== undefined ? `${inferredSymptom.level}/10`
                 : chosen?.choice ? chosen.choice.replaceAll("_", " ")
                   : chosen?.noul === 1 ? "Yes" : chosen?.noul === 0 ? "No" : chosen?.noul === 0.5 ? "Not sure" : "Not recorded";

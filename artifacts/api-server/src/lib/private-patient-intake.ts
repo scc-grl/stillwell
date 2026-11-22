@@ -19,5 +19,8 @@ export async function runPrivatePatientIntake(story: string, answered: NonNullab
   const result = await runIntake(stripContactDetails(story), {
     client: reader, answered, timeoutMs: Number(process.env.TYPESAFE_TIMEOUT_MS ?? 10000),
   });
-  return { decision: result.decision, source: result.read.source };
+  // Structured numbers/choices only, so summary can show what the reader actually
+  // found. Do not return the raw story, questions' state or account metadata.
+  return { decision: result.decision, source: result.read.source,
+    answers: { ...result.read.answers, ...result.read.formAnswers } };
 }

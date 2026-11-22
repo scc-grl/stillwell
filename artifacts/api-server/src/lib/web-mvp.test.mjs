@@ -74,6 +74,11 @@ test("doctor active and frozen projections never expose any patient-written note
   const active = await service.doctor("doctor", id);
   assert.equal(JSON.stringify(active).includes("Synthetic private words"), false);
   assert.deepEqual(Object.keys(active.days[0]).sort(), ["date", "flagged", "jumpSymptoms", "planScore", "scores"]);
+  const projected = doctorJournalEntry({ symptoms: [], dailyCheckIn: { symptoms: { headache: 3, note: "PRIVATE", fog: "PRIVATE" } } });
+  assert.doesNotMatch(JSON.stringify(projected), /PRIVATE/);
+  assert.deepEqual(projected.dailyCheckIn.symptoms, [
+    { name: "headache", rating: 3, status: "recorded" }, { name: "fog", rating: null, status: "not_recorded" },
+  ]);
   await patientWrite(pool, "patient", tx => freezeLink(tx, id, clock));
   await service.save("patient", "2026-11-20", { ...entries(), scores: scores(9) });
   const former = await service.doctor("doctor", id);
@@ -115,9 +120,10 @@ test("full deletion removes former snapshots and doctor-written stage notes, but
   let deleted;
   await deletePatientAccount(pool, "patient", ["patient@example.test"], async id => { deleted = id; });
   assert.equal(deleted, "patient");
-  for (const table of ["recovery_logs", "recovery_profiles", "recovery_stages", "care_team_snapshots", "care_team_links", "recovery_account_deletions", "recovery_stage_emails"]) {
+  for (const table of ["recovery_logs", "recovery_profiles", "recovery_stages", "care_team_snapshots", "care_team_links", "recovery_stage_emails"]) {
     assert.equal((await pool.query(`SELECT * FROM ${table}`)).rowCount, 0, table);
   }
+  assert.equal((await pool.query("SELECT * FROM recovery_account_deletions WHERE owner_id='patient'")).rowCount, 0);
   assert.equal((await pool.query("SELECT * FROM account_roles WHERE user_id='doctor'")).rowCount, 1);
 });
 test("Clerk failure is retryable and blocks new records; provider is called only after database deletion", async () => {
@@ -129,7 +135,12 @@ test("Clerk failure is retryable and blocks new records; provider is called only
   assert.equal((await pool.query("SELECT * FROM recovery_account_deletions")).rowCount, 1);
   await assert.rejects(service.save("patient", "2026-11-20", entries()), e => e.status === 409);
   await deletePatientAccount(pool, "patient", [], async () => {});
-  assert.equal((await pool.query("SELECT * FROM recovery_account_deletions")).rowCount, 0);
+  const { rows: tombstones } = await pool.query("SELECT owner_id FROM recovery_account_deletions");
+  assert.equal(tombstones.length, 1);
+  assert.match(tombstones[0].owner_id, /^deleted:[a-f0-9]{64}$/);
+  assert.notEqual(tombstones[0].owner_id, "patient");
+  await assert.rejects(service.save("patient", "2026-11-20", entries()), e => e.status === 409);
+  await deletePatientAccount(pool, "patient", [], async () => assert.fail("Already completed; do not call provider again"));
 });
 test("unattributable legacy copies stop erasure without guessing; newer accounts are not their owners", async () => {
   await service.save("patient", "2026-11-19", entries());

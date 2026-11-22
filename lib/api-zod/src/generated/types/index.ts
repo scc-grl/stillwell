@@ -109,6 +109,7 @@ export * from './patientClinicianConnectionStatus';
 export * from './patientIntakeInput';
 export * from './patientIntakeInputAnswered';
 export * from './patientIntakeResult';
+export * from './patientIntakeResultAnswers';
 export * from './patientIntakeResultDecision';
 export * from './patientIntakeStatus';
 export * from './peopleSupportedRange';

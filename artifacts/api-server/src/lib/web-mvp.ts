@@ -1,6 +1,7 @@
 import { scanKeywords } from "@workspace/intake-ai";
 import { dailyCheckInFromLog, makeEmptyDailyCheckIn } from "@workspace/recovery-journal";
 import { patientWrite, transaction, type SqlPool, type SqlClient } from "./recovery-lock";
+import { deletionKeys } from "./account-deletion-key";
 import { decideWeekly, emptyScores, localDay, mondayOf, MVP_SYMPTOMS, offsetDay, WEEKLY_RULES, type Scores } from "./weekly-rules";
 
 export class MvpError extends Error {
@@ -140,7 +141,7 @@ export class WebMvpService {
     try { new Intl.DateTimeFormat("en-US", { timeZone: timezone }); return timezone as string; } catch { return "UTC"; }
   }
   async assertNotDeleting(tx: SqlClient, owner: string) {
-    const { rows } = await tx.query("SELECT owner_id FROM recovery_account_deletions WHERE owner_id=$1", [owner]);
+    const { rows } = await tx.query("SELECT owner_id FROM recovery_account_deletions WHERE owner_id=ANY($1::text[])", [deletionKeys(owner)]);
     if (rows.length) throw new MvpError(409, "Account deletion is waiting to finish. Retry Delete account.");
   }
   async weekly(owner: string) {

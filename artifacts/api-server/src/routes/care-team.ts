@@ -1,4 +1,5 @@
 import { Router, type Request, type Response } from "express";
+import { deletionKeys } from "../lib/account-deletion-key";
 import { getAuth } from "@clerk/express";
 import { CreateClinicianCareRequestBody, CreatePatientCareInviteBody, RespondToCareRequestBody, GetCarePatientJournalQueryParams } from "@workspace/api-zod";
 import { careIdentity, careTeamService } from "../lib/care-team-runtime";
@@ -54,7 +55,7 @@ function endpoint(handler: Handler, status = 200) {
         throw new CareTeamError("cross_origin", "Cross-origin access is not permitted.", 403);
       const userId = getAuth(req).userId;
       if (!userId) throw new CareTeamError("sign_in_required", "Please sign in to continue.", 401);
-      const { rows: deleting } = await pool.query("SELECT owner_id FROM recovery_account_deletions WHERE owner_id=$1", [userId]);
+      const { rows: deleting } = await pool.query("SELECT owner_id FROM recovery_account_deletions WHERE owner_id=ANY($1::text[])", [deletionKeys(userId)]);
       if (deleting.length) throw new CareTeamError("account_deletion_pending", "Account deletion is waiting to finish. Retry Delete account.", 409);
       const result = await handler(req, await careIdentity(userId));
       if (status === 204) res.sendStatus(204);

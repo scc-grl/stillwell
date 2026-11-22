@@ -28,9 +28,11 @@ Implements issue #44 using the issue's screen table. The linked design canvas wa
 
 ## Deletion and deployment review
 
-Schema additions use the existing Drizzle schema tool: `pnpm --filter @workspace/db run push` against the intended database before serving this code. No existing table is dropped. Development schema was applied; production was not changed.
+Schema additions use the existing Drizzle schema tool: `pnpm --filter @workspace/db run push` in development. No existing table is dropped. Development schema was applied; production was not changed. For Replit-managed production, use the normal Publish schema-diff review when the founder later approves publishing; do not run a production migration script.
 
 Full account deletion is retryable across database/Clerk boundaries. It does not pretend these separate systems form one atomic transaction. A provider failure is explicit, retains a retry marker and blocks recovery writes.
+
+After Clerk deletion, the marker's actual owner ID is replaced with a non-reversible hash. This minimal security tombstone prevents a briefly valid old JWT from recreating erased records; it stores no account identifier, contact details or journal content.
 
 One pre-MVP former link in the development database has no retained owner or surviving accepted-invite reference. Old code intentionally erased that owner. It is unsafe to infer ownership from names. For accounts that could predate an unattributable copy, deletion stops **before removing anything** until an audited mapping is supplied. New accounts created after such a copy are unaffected. No unknown copy was deleted or reassigned.
 

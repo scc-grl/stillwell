@@ -229,6 +229,7 @@ export const RunRecoveryIntakeBody = zod.object({
 
 export const RunRecoveryIntakeResponse = zod.object({
   "decision": zod.record(zod.string(), zod.unknown()),
+  "answers": zod.record(zod.string(), zod.unknown()).optional().describe('Structured numeric/choice answers only; never the story or account fields.'),
   "source": zod.string(),
   "syntheticOnly": zod.boolean(),
   "stage": zod.union([zod.object({

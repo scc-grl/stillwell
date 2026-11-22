@@ -1,7 +1,8 @@
 import { Router, type IRouter, type Request } from "express";
 import { allowedRequestOrigin } from "../lib/request-origin";
 import { getAuth } from "@clerk/express";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { deletionKeys } from "../lib/account-deletion-key";
 import { accountRoles, db, recoveryLogs, recoveryProfiles, recoveryAccountDeletions } from "@workspace/db";
 import {
   DeleteRecoveryLogParams,
@@ -67,7 +68,7 @@ router.use("/recovery", (req, res, next) => {
         return;
       }
       if (!(req.method === "DELETE" && req.path === "/account")) {
-        const [deleting] = await db.select().from(recoveryAccountDeletions).where(eq(recoveryAccountDeletions.ownerId, userId));
+        const [deleting] = await db.select().from(recoveryAccountDeletions).where(inArray(recoveryAccountDeletions.ownerId, deletionKeys(userId)));
         if (deleting) { res.status(409).json({ error: "Account deletion is waiting to finish. Retry Delete account." }); return; }
       }
       next();
