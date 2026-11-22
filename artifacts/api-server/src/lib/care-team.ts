@@ -1,4 +1,5 @@
 import { createHash, randomBytes } from "node:crypto";
+import { doctorJournalEntry, doctorProfile } from "./doctor-privacy";
 import { freezeLink, lockPatient, patientWrite, transaction, type SqlClient, type SqlPool } from "./recovery-lock";
 import type { CareEmail } from "./care-team-email";
 import { CARE_TEAM_FULL, careTeamErrorMessage, dailyLimitMessage, inviteFieldError, ownEmailMessage, resendAvailableMessage, sendFailedMessage } from "@workspace/recovery-journal/care-team-copy";
@@ -369,8 +370,8 @@ export class CareTeamService {
       return { linkId: link.id, status: link.status, firstName: link.patient_first_name, lastName: link.patient_last_name,
         connectedAt: link.connected_at, disconnectedAt: link.disconnected_at, lastUpdated, revision,
         supportApproach: profileSummary.supportApproach ?? profileSummary.supportMode ?? null,
-        focusAreas: profileSummary.focusAreas ?? profileSummary.priorities ?? [], profileSummary,
-        entries, page, pageSize: 20, total, hasMore: page * 20 < total };
+        focusAreas: profileSummary.focusAreas ?? profileSummary.priorities ?? [], profileSummary: doctorProfile(profileSummary),
+        entries: entries.map(doctorJournalEntry), page, pageSize: 20, total, hasMore: page * 20 < total };
     });
   }
   async removeFormer(user: Identity, id: string) {
@@ -389,6 +390,9 @@ export class CareTeamService {
       // Delete inbound requests addressed to any verified account email as well.
       await tx.query("DELETE FROM care_team_invites WHERE direction=$1 AND status='pending' AND invitee_email=ANY($2::text[])", [CLINICIAN_REQUEST, user.emails.filter(e => e.verified).map(e => normalized(e.address))]);
       await tx.query("DELETE FROM recovery_stages WHERE owner_id=$1", [user.id]);
+      await tx.query("DELETE FROM recovery_stage_emails WHERE owner_id=$1", [user.id]);
+      await tx.query("DELETE FROM recovery_weekly_checks WHERE owner_id=$1", [user.id]);
+      await tx.query("DELETE FROM recovery_intake_baselines WHERE owner_id=$1", [user.id]);
       await tx.query("DELETE FROM recovery_intake_consents WHERE owner_id=$1", [user.id]);
       await tx.query("DELETE FROM recovery_intake_attempts WHERE owner_id=$1", [user.id]);
       await tx.query("DELETE FROM recovery_profiles WHERE owner_id=$1", [user.id]);

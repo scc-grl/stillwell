@@ -1,74 +1,57 @@
-import { useLocation } from "wouter";
-import { useState } from "react";
 import { useUser } from "@clerk/react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useDeleteRecovery, getGetRecoveryQueryKey } from "@workspace/api-client-react";
-import { Check, ShieldCheck, Trash2 } from "lucide-react";
-import { clearDraft } from "@/lib/recovery";
 import { useClerk } from "@clerk/react";
+import { Link } from "wouter";
+import { Button } from "@workspace/stillwell-design-system/components/ui/button";
 import { Card } from "@workspace/stillwell-design-system/components/ui/card";
-import { JOURNAL_SHARING_COPY } from "@/components/CareTeamSharingFeature";
+import { clearDraft } from "@/lib/recovery";
 
-// FOUNDER LEGAL REVIEW: all care-team disclosures below need review before release.
-const careTeamDisclosures = [
-  ["What is shared", "Sharing covers your whole journal: daily symptom ratings, routines, notes, routine focus areas and past entries. Clinicians also see your name as it appears on your account and your support approach. A connected clinician can read your journal, but cannot edit it. Your password and sign-in methods are not shared. Entries you delete disappear from what connected clinicians see while you're sharing. Deleting an entry cannot change a frozen copy a former clinician already holds."],
-  ["Who can read it", "Only clinicians you invite, or whose requests you accept, get care-team access. You can share with up to 5 clinicians. Stillwell does not verify clinicians; only share with someone you know. This patient-controlled access is separate from the service-operator and hosting access described above."],
-  ["Your consent", "Tapping Send invite is your consent to share your journal, read-only, with that clinician once they accept. For a clinician's request, tapping Share my journal is your consent. Stillwell records the consent version and time. Opening a request, creating an account or choosing Not now does not grant access."],
-  ["Stopping sharing", "Stopping sharing ends access to new entries and updates right away. The clinician keeps a frozen, read-only copy of your journal and focus areas as they were when sharing stopped. Later edits and deleted days do not change that copy. It stays until the clinician removes it from their patient list, which permanently deletes their copy."],
-  ["Deleting all recovery data", "Deleting all recovery data removes your recovery profile, daily entries, active sharing and pending invitations associated with your journal. It also cancels pending incoming clinician requests sent to your verified account email addresses. Before active sharing ends, each connected clinician receives a frozen copy of what was shared up to that point. Clinicians you share with now, and any you've stopped sharing with, keep a read-only copy of what you shared up to now. These copies remain until the clinician deletes them. Your Stillwell sign-in account remains."],
-  ["Invitation and request emails", "Invite emails use first names only, not the patient's last name, and contain no symptom ratings, journal entries, routine logs or notes. A clinician's request email includes the name the clinician entered on their account (Stillwell doesn't verify it), so you know who is asking. The recipient's email address is used for delivery. These emails include a private, expiring link; do not forward it. When email delivery is unavailable, Stillwell identifies that no email was sent."],
-];
+// FOUNDER LEGAL REVIEW REQUIRED: verify processing, sharing, retention and erasure disclosures before launch.
+const disclosures = [
+  {
+    title: "Your journal is private",
+    body: "Your daily symptom scores, recovery-plan score, and optional written or dictated notes are saved to your account. Notes are private and are never shown to an invited doctor. Browser dictation is used only to create a note; it does not infer symptom scores.",
+  },
+  {
+    title: "Intake uses your consent",
+    body: "Before you agree, your story and answers stay in the intake page. After consent, the story and answers are sent to the configured intake-reading service without your account name, email, or ID. Stillwell saves the structured intake result to your account, not the raw story. Avoid identifying details in the story.",
+  },
+  {
+    title: "Optional weekly note reading",
+    body: "You can separately opt in to send one private journal note for a later weekly explanation. TypeSafe reads only that note after basic email/phone removal; account metadata is excluded. Saving the journal entry itself makes no AI call. The note remains private in your account, raw note text is not traced for weekly processing, and this is not full de-identification. It never determines your numeric stage. An invited doctor may see the numeric stage/result, but never the note.",
+  },
+  {
+    title: "Doctor access is optional",
+    body: "When you invite a doctor and they accept, they can see your symptom scores, recovery-plan scores, current stage, stage reasons, and stage history. They may change your stage and record a review note. They cannot see your written or dictated journal notes. Invite only someone you know and trust; Stillwell does not verify clinician credentials.",
+  },
+  {
+    title: "Deleting recovery data",
+    body: "Delete all recovery data to remove your Stillwell recovery record and end active access. Doctors who previously received your shared information may keep a frozen copy of that information. Your Stillwell sign-in account remains, and these former copies are not erased by this action.",
+  },
+  {
+    title: "Deleting your account",
+    body: "Account deletion is separate from deleting recovery data. It removes your account and all recovery records, doctor copies, doctor notes, and access. Doctor accounts remain. If deletion needs a retry, account controls stay available while recovery areas may temporarily be unavailable. After completion, only an irreversible security hash is kept to prevent an old sign-in token from recreating deleted records; it contains no name, email, account ID or journal data.",
+  },
+] as const;
 
 export default function PrivacyPage() {
-  const { isSignedIn, user } = useUser();
+  const { isSignedIn } = useUser();
   const { signOut } = useClerk();
   const queryClient = useQueryClient();
-  const [, setLocation] = useLocation();
-  const deletion = useDeleteRecovery();
-  const [feedback, setFeedback] = useState("");
-  const remove = () => {
-    if (!window.confirm("This permanently removes your recovery profile and every daily entry. Your Stillwell sign-in account will remain. Clinicians you share with now, and any you've stopped sharing with, keep a read-only copy of what you shared up to now. They won't see anything new.")) return;
-    deletion.mutate(undefined, {
-      onSuccess: () => {
-        queryClient.setQueryData([...getGetRecoveryQueryKey(), user?.id ?? ""], { profile: null, logs: [] });
-        try {
-          const prefix = `stillwell.journal-draft:${encodeURIComponent(user?.id ?? "")}:`;
-          Object.keys(localStorage).filter((key) => key.startsWith(prefix)).forEach((key) => localStorage.removeItem(key));
-        } catch { /* No private journal data is logged if local storage is unavailable. */ }
-        clearDraft(); setFeedback("Your Stillwell recovery data has been deleted. You can begin again whenever you choose.");
-      },
-      onError: () => setFeedback("We could not delete your data just now. Your existing journal is unchanged. Please try again."),
-    });
-  };
-  const logout = async () => { clearDraft(); queryClient.clear(); await signOut({ redirectUrl: import.meta.env.BASE_URL || "/" }); setLocation("/"); };
-  return <main id="main" className="min-h-[55vh] bg-[#f5f4ed] px-5 py-6 sm:px-8">
-    <div className="mx-auto max-w-3xl pb-16 pt-12"><p className="eyebrow">Privacy, plainly</p><h1 className="display mt-3 text-[clamp(2.6rem,7vw,4.5rem)] leading-none text-[#29463b]">Your notes belong to you.</h1><p className="mt-6 max-w-2xl text-base leading-8 text-[#69776c]">A recovery journal is personal. Stillwell asks for explicit consent before creating your journal and keeps your choices under your control.</p>
-      <section className="mt-10 grid gap-px overflow-hidden rounded-[26px] border border-[#dce3d8] bg-[#dce3d8] sm:grid-cols-2">
-        {[
-          ["01", "Consent before saving", "Your quiz answers remain in the page until you explicitly accept. Only then is the setup temporarily held in this browser tab for up to 30 minutes during account creation. It is sent to the recovery service only after you are signed in."],
-          ["02", "Account-restricted storage", "Your preferences, daily reflections, optional symptom ratings, and notes are stored in the hosted database. Your journal is private unless you choose to share its full history read-only with a clinician you know. Stillwell does not verify clinicians. Service operators and hosting providers may have access as part of operating, securing, or supporting the service. Stillwell does not claim HIPAA compliance or end-to-end encryption."],
-          ["03", "Access is yours", "Your private dashboard shows your routine and history. You can edit an entry, replace a day’s entry, or remove individual days. You choose who can read your journal and can stop sharing at any time. When access ends, the clinician keeps a frozen copy of what was shared at that moment, but sees nothing new."],
-          ["04", "Delete when you choose", "Delete one day or remove all Stillwell recovery data from your account. Deleting all data first ends active sharing and creates frozen copies for those clinicians. Later patient edits or deletions do not change a former clinician’s frozen copy; it remains until that clinician removes it. Your sign-in account is not deleted."],
-          ["05", "Newsletter subscriptions", "The newsletter service stores only the submitted email address and signup timestamp. Repeated email addresses are deduplicated. You can remove an address using the unsubscribe page. Newsletter emails are not sent to analytics or request logs; Stillwell does not send newsletter messages yet."],
-        ].map(([n, title, body]) => <article key={n} className="bg-[#fbfaf5] p-6 sm:p-7"><span className="display text-2xl text-[#91a18e]">{n}</span><h2 className="mt-4 text-sm font-semibold text-[#385343]">{title}</h2><p className="mt-2 text-xs leading-6 text-[#758075]">{body}</p></article>)}
-      </section>
-      {/* FOUNDER LEGAL REVIEW: sharing summary, scope, consent, retention, deletion and email disclosures. */}
-      <section aria-labelledby="care-team-privacy" className="mt-8 space-y-5">
-        <h2 id="care-team-privacy" className="font-serif text-3xl font-medium text-foreground">Sharing with your care team</h2>
-        <p className="text-sm leading-7 text-muted-foreground">{JOURNAL_SHARING_COPY}</p>
-        <div className="grid gap-4 sm:grid-cols-2">
-          {careTeamDisclosures.map(([title, body]) => (
-            <Card key={title} className="space-y-3 p-6 shadow-none">
-              <h3 className="text-sm font-semibold text-foreground">{title}</h3>
-              <p className="text-sm leading-7 text-muted-foreground">{body}</p>
-            </Card>
-          ))}
-        </div>
-      </section>
-      <div className="mt-8 rounded-[24px] border border-[#e6d8c9] bg-[#f4eee5] p-5 sm:p-6"><div className="flex gap-3"><ShieldCheck size={19} className="mt-0.5 shrink-0 text-[#9a7258]"/><div><h2 className="text-sm font-semibold text-[#66503f]">A clear boundary</h2><p className="mt-2 text-xs leading-6 text-[#786d60]">Stillwell provides educational reflection and user-chosen routine tracking. It is not a diagnosis, treatment plan, or emergency service. If symptoms worsen, seek clinical help; for severe or urgent symptoms, seek emergency care.</p></div></div></div>
-      {feedback && <p data-testid="status-privacy-feedback" role="status" className="mt-5 rounded-xl bg-[#eaf0e7] p-4 text-sm text-[#466450]">{feedback}</p>}
-      {isSignedIn && <div className="mt-8 flex flex-col gap-3 border-t border-[#dce3d8] pt-6 sm:flex-row"><button data-testid="button-delete-recovery-data" type="button" onClick={remove} disabled={deletion.isPending} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[#d9b7a9] px-5 text-sm font-semibold text-[#9b5549] disabled:opacity-50">{deletion.isPending ? "Deleting…" : <><Trash2 size={15}/>Delete all recovery data</>}</button><button data-testid="button-sign-out" type="button" onClick={logout} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[#dce3d8] px-5 text-sm font-semibold text-[#597063]"><Check size={15}/>Sign out</button></div>}
-      <p className="mt-8 text-[11px] leading-5 text-[#8a8e82]">Stillwell does not represent this journal as HIPAA compliant or end-to-end encrypted. Records are account-restricted in a hosted database; operator and hosting access may exist. Use the account controls above to access and delete recovery information.</p>
+  async function logout() {
+    clearDraft();
+    queryClient.clear();
+    try { sessionStorage.clear(); } catch {}
+    await signOut({ redirectUrl: import.meta.env.BASE_URL || "/" });
+  }
+  return <main id="main" className="mx-auto min-h-[60dvh] max-w-5xl space-y-7 px-4 py-10 sm:px-8 sm:py-14">
+    <header className="space-y-3"><p className="eyebrow">Privacy, plainly</p><h1 className="display text-4xl leading-tight sm:text-5xl">Your notes belong to you.</h1><p className="max-w-3xl text-base leading-7 text-muted-foreground">Stillwell is a private concussion recovery notebook. This page describes the current product behavior and is marked for legal review before launch.</p></header>
+    <div className="grid gap-4 md:grid-cols-2">{disclosures.map(({ title, body }) => <Card key={title} className="space-y-3 p-5 sm:p-6"><h2 className="display text-2xl">{title}</h2><p className="text-base leading-7 text-muted-foreground">{body}</p></Card>)}</div>
+    <Card className="space-y-3 border-notice-border bg-notice p-5 sm:p-6"><h2 className="font-semibold text-notice-foreground">A clear boundary</h2><p className="text-base leading-7 text-notice-foreground">Stillwell provides general educational information, not a diagnosis, treatment plan, medical clearance, or emergency service. Follow guidance from your clinician. Seek urgent medical care for emergency symptoms.</p><p className="text-base leading-7 text-notice-foreground">Stillwell does not claim HIPAA compliance or end-to-end encryption. Hosted service operators may access information as needed to operate, secure, and support the service.</p></Card>
+    <div className="flex flex-wrap gap-3 border-t border-border pt-5">
+      {isSignedIn && <><Button asChild className="min-h-12"><Link href="/dashboard/account">Manage account and data</Link></Button><Button variant="outline" className="min-h-12" onClick={() => void logout()}>Sign out</Button></>}
+      <Button asChild variant="outline" className="min-h-12"><Link href="/">Return home</Link></Button>
     </div>
+    <p className="text-base leading-7 text-muted-foreground">FOUNDER LEGAL REVIEW REQUIRED before launch: confirm service-provider terms, data retention, doctor access, and distinct recovery-data versus full-account deletion behavior.</p>
   </main>;
 }

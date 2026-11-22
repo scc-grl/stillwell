@@ -1,8 +1,9 @@
 import { Router, type IRouter, type Request } from "express";
 import { allowedRequestOrigin } from "../lib/request-origin";
 import { clerkClient, getAuth } from "@clerk/express";
-import { eq } from "drizzle-orm";
-import { accountRoles, db, type AccountType } from "@workspace/db";
+import { eq, inArray, sql } from "drizzle-orm";
+import { deletionKeys } from "../lib/account-deletion-key";
+import { accountRoles, db, recoveryAccountDeletions, type AccountType } from "@workspace/db";
 import {
   CompleteAccountRegistrationBody,
   CompleteAccountRegistrationResponse,
@@ -71,6 +72,11 @@ router.post("/account/complete-registration", async (req, res): Promise<void> =>
     return;
   }
   const parsed = CompleteAccountRegistrationBody.safeParse(req.body);
+  const [deleting] = await db.select().from(recoveryAccountDeletions).where(inArray(recoveryAccountDeletions.ownerId, deletionKeys(userId)));
+  if (deleting) {
+    res.status(409).json({ error: "Account deletion is waiting to finish. Retry Delete account." });
+    return;
+  }
   if (!parsed.success) {
     res.status(400).json({ error: "The account registration could not be verified." });
     return;
@@ -103,11 +109,15 @@ router.post("/account/complete-registration", async (req, res): Promise<void> =>
     return;
   }
 
-  const [createdRole] = await db.insert(accountRoles).values({
-    userId,
-    accountType: intent.accountType,
-    registrationIntentId: intent.intentId,
-  }).onConflictDoNothing().returning({ accountType: accountRoles.accountType });
+  const createdRole = await db.transaction(async tx => {
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtextextended(${`patient:${userId}`}, 0))`);
+    const [blocked] = await tx.select().from(recoveryAccountDeletions).where(inArray(recoveryAccountDeletions.ownerId, deletionKeys(userId)));
+    if (blocked) return null;
+    const [role] = await tx.insert(accountRoles).values({
+      userId, accountType: intent.accountType, registrationIntentId: intent.intentId,
+    }).onConflictDoNothing().returning({ accountType: accountRoles.accountType });
+    return role;
+  });
 
   if (createdRole) {
     res.json(CompleteAccountRegistrationResponse.parse({ accountType: createdRole.accountType }));

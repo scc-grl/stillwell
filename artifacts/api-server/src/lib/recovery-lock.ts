@@ -37,10 +37,11 @@ export async function freezeLink(tx: SqlClient, linkId: string, now: Date) {
   if (!link) return;
   const { rows: [profile] } = await tx.query("SELECT preferences FROM recovery_profiles WHERE owner_id=$1", [link.patient_id]);
   const { rows: entries } = await tx.query("SELECT data, date::text AS date, updated_at FROM recovery_logs WHERE owner_id=$1 ORDER BY date DESC", [link.patient_id]);
+  const { rows: stages } = await tx.query("SELECT * FROM recovery_stages WHERE owner_id=$1 AND synthetic_only=false ORDER BY created_at DESC,id DESC", [link.patient_id]);
   await tx.query(
     "INSERT INTO care_team_snapshots(link_id,profile_summary,entries,captured_at) VALUES($1,$2::jsonb,$3::jsonb,$4)",
-    [linkId, JSON.stringify(profile?.preferences ?? {}), JSON.stringify(entries.map(e => ({ ...e.data, date: e.date, updatedAt: new Date(e.updated_at).toISOString() }))), now],
+    [linkId, JSON.stringify({ ...profile?.preferences, _mvpStages: stages }), JSON.stringify(entries.map(e => ({ ...e.data, date: e.date, updatedAt: new Date(e.updated_at).toISOString() }))), now],
   );
   // Forget the live patient relationship. Reconnecting always creates a new link.
-  await tx.query("UPDATE care_team_links SET status='former',patient_id=NULL,patient_email='',disconnected_at=$2 WHERE id=$1", [linkId, now]);
+  await tx.query("UPDATE care_team_links SET status='former',retained_owner_id=patient_id,patient_id=NULL,patient_email='',disconnected_at=$2 WHERE id=$1", [linkId, now]);
 }

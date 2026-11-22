@@ -21,6 +21,16 @@ tags:
   - name: admin
     description: Stillwell team review tools
 paths:
+  /recovery/mvp:
+    $ref: "./mvp.yaml#/paths/~1recovery~1mvp"
+  /recovery/mvp/journal/{date}:
+    $ref: "./mvp.yaml#/paths/~1recovery~1mvp~1journal~1{date}"
+  /recovery/account:
+    $ref: "./mvp.yaml#/paths/~1recovery~1account"
+  /clinician/mvp/patients/{id}:
+    $ref: "./mvp.yaml#/paths/~1clinician~1mvp~1patients~1{id}"
+  /clinician/mvp/patients/{id}/stage:
+    $ref: "./mvp.yaml#/paths/~1clinician~1mvp~1patients~1{id}~1stage"
   /recovery/intake/status:
     $ref: "./intake.yaml#/paths/~1recovery~1intake~1status"
   /recovery/intake/consent:

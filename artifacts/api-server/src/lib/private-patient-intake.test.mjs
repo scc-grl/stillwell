@@ -26,6 +26,9 @@ test("actual TypeSafe request contains only filtered story and fixed questions, 
   assert.equal(JSON.stringify(requests[0]).includes("fake@example.test"), false);
   assert.equal(Object.hasOwn(result, "read"), false); // No diagnostic/raw reader payload.
   assert.equal(JSON.stringify(result).includes("Synthetic:"), false);
+  assert.equal(result.answers.symptom_headache.score, 3);
+  assert.ok(result.answers.injury_timing.choice);
+  assert.equal(typeof result.answers.activity_daily_tasks?.probability, "number");
 });
 test("real-account runner has no Braintrust/span or log call; demo runner remains separate", () => {
   const source = readFileSync(entry, "utf8");

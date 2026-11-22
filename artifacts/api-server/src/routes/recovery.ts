@@ -1,8 +1,9 @@
 import { Router, type IRouter, type Request } from "express";
 import { allowedRequestOrigin } from "../lib/request-origin";
 import { getAuth } from "@clerk/express";
-import { and, desc, eq, sql } from "drizzle-orm";
-import { accountRoles, db, recoveryLogs, recoveryProfiles } from "@workspace/db";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { deletionKeys } from "../lib/account-deletion-key";
+import { accountRoles, db, recoveryLogs, recoveryProfiles, recoveryAccountDeletions } from "@workspace/db";
 import {
   DeleteRecoveryLogParams,
   GetRecoveryResponse,
@@ -17,6 +18,7 @@ import { recoveryLogWrite } from "../lib/recovery-log-write";
 import { careIdentity, careTeamService } from "../lib/care-team-runtime";
 import { patientIntakeRouter } from "./patient-intake";
 import { dailyCheckInFromLog } from "@workspace/recovery-journal";
+import { patientMvpRouter } from "./web-mvp";
 
 const router: IRouter = Router();
 const CONSENT_VERSION = "2026-10-08";
@@ -60,10 +62,14 @@ router.use("/recovery", (req, res, next) => {
   void db.select({ accountType: accountRoles.accountType })
     .from(accountRoles)
     .where(eq(accountRoles.userId, userId))
-    .then(([role]) => {
+    .then(async ([role]) => {
       if (role?.accountType === "clinician") {
         res.status(403).json({ error: "Clinician accounts cannot access patient recovery data." });
         return;
+      }
+      if (!(req.method === "DELETE" && req.path === "/account")) {
+        const [deleting] = await db.select().from(recoveryAccountDeletions).where(inArray(recoveryAccountDeletions.ownerId, deletionKeys(userId)));
+        if (deleting) { res.status(409).json({ error: "Account deletion is waiting to finish. Retry Delete account." }); return; }
       }
       next();
     })
@@ -71,6 +77,7 @@ router.use("/recovery", (req, res, next) => {
 });
 
 router.use("/recovery", patientIntakeRouter);
+router.use("/recovery", patientMvpRouter);
 
 router.get("/recovery", async (req, res): Promise<void> => {
   res.json(await stateFor(owner(req)));

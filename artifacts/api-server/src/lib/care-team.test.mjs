@@ -38,7 +38,7 @@ const advance = minutes => { clock = new Date(clock.getTime() + minutes * 60000)
 before(async () => {
   await admin.query(`CREATE SCHEMA ${schema}`);
   pool = new Pool({ connectionString: process.env.DATABASE_URL, options: `-c search_path=${schema},public` });
-  for (const table of ["recovery_profiles", "recovery_logs", "care_team_links", "care_team_invites", "care_team_snapshots", "care_team_email_sends", "recovery_stages", "recovery_intake_consents", "recovery_intake_attempts"])
+  for (const table of ["recovery_profiles", "recovery_logs", "care_team_links", "care_team_invites", "care_team_snapshots", "care_team_email_sends", "recovery_stages", "recovery_intake_consents", "recovery_intake_attempts", "recovery_stage_emails", "recovery_weekly_checks", "recovery_intake_baselines"])
     await pool.query(`CREATE TABLE ${schema}.${table} (LIKE public.${table} INCLUDING ALL)`);
   await pool.query(`ALTER TABLE ${schema}.recovery_logs ADD FOREIGN KEY(owner_id) REFERENCES ${schema}.recovery_profiles(owner_id) ON DELETE CASCADE`);
   await pool.query(`ALTER TABLE ${schema}.care_team_snapshots ADD FOREIGN KEY(link_id) REFERENCES ${schema}.care_team_links(id) ON DELETE CASCADE`);
@@ -308,7 +308,8 @@ test("a former snapshot is unchanged by patient edits, day deletion and delete-a
   await service.deleteRecovery(patient);
   assert.deepEqual(await service.readPatient(clinician,first.linkId),frozen);
   const secondFrozen=await service.readPatient(clinician,second.linkId);
-  assert.equal(secondFrozen.status,"former");assert.equal(secondFrozen.entries[0].note,"New connection history");
+  assert.equal(secondFrozen.status,"former");assert.equal(secondFrozen.entries[0].note,"");
+  assert.equal((await pool.query("SELECT entries FROM care_team_snapshots WHERE link_id=$1",[second.linkId])).rows[0].entries[0].note,"New connection history");
   assert.equal((await pool.query("SELECT * FROM recovery_logs")).rows.length,0);
   assert.equal((await pool.query("SELECT * FROM recovery_profiles")).rows.length,0);
   assert.equal((await service.listTeam(patient)).activeClinicians.length,0);
@@ -322,15 +323,16 @@ test("sleep is shared read-only and frozen across edits, deleted days and delete
   const sleep = { bedtime: "23:00", wakeTime: "07:30", quality: "good", wakings: 1, nap: "none", note: "Original night" };
   await log("2026-10-20", "Original day", sleep);
   const first = await connect();
-  assert.deepEqual((await service.readPatient(clinician, first.linkId)).entries[0].sleep, sleep);
+  assert.deepEqual((await service.readPatient(clinician, first.linkId)).entries[0].sleep, { ...sleep, note: "" });
   await service.removeClinician(patient, first.linkId);
   await log("2026-10-20", "Edited day", { ...sleep, note: "Edited night", quality: "poor" });
-  assert.deepEqual((await service.readPatient(clinician, first.linkId)).entries[0].sleep, sleep);
+  assert.deepEqual((await service.readPatient(clinician, first.linkId)).entries[0].sleep, { ...sleep, note: "" });
   const second = await connect(other);
   await service.deleteRecovery(patient);
-  assert.deepEqual((await service.readPatient(clinician, first.linkId)).entries[0].sleep, sleep);
+  assert.deepEqual((await service.readPatient(clinician, first.linkId)).entries[0].sleep, { ...sleep, note: "" });
   const frozenAtDelete = (await service.readPatient(other, second.linkId)).entries[0].sleep;
-  assert.equal(frozenAtDelete.note, "Edited night");
+  assert.equal(frozenAtDelete.note, "");
+  assert.equal((await pool.query("SELECT entries FROM care_team_snapshots WHERE link_id=$1",[second.linkId])).rows[0].entries[0].sleep.note,"Edited night");
   assert.equal(frozenAtDelete.quality, "poor");
   assert.equal((await pool.query("SELECT * FROM recovery_logs WHERE owner_id=$1", [patient.id])).rows.length, 0);
   await service.removeFormer(clinician, first.linkId);
@@ -419,7 +421,7 @@ test("email diagnostics retain only a safe provider error code", () => {
 test("email templates use required copy, escape user values, and omit journal content and patient last names",async()=>{
   await invite();const a=renderCareEmail(deliveries[0]);
   assert.equal(a.subject,`${patient.firstName} invited you to view their Stillwell journal`);
-  assert.match(a.text,/Read-only: you can't change anything/);assert.match(a.text,/Nothing is shared unless you accept/);
+  assert.match(a.text,/can't edit journal entries or read private notes/);assert.match(a.text,/Nothing is shared unless you accept/);
   assert.ok(!a.text.includes(patient.lastName));assert.ok(!a.text.includes("Original note"));
   const b=renderCareEmail({...deliveries[0],direction:CLINICIAN_REQUEST,clinicianName:"<Dr. Example>"});
   assert.match(b.html,/&lt;Dr\. Example&gt;/);assert.match(b.text,/You decide\. Nothing is shared unless you agree/);
@@ -437,9 +439,9 @@ test("both plain-text email templates exactly preserve the approved subjects and
   assert.equal(invitation.subject, "Jordan invited you to view their Stillwell journal");
   assert.equal(invitation.text, [
     "Jordan invited you to view their recovery journal",
-    "Hi Alex, Jordan uses Stillwell, a private recovery journal, and would like you to be able to read it.",
+    "Hi Alex, Jordan uses Stillwell, a private recovery journal, and would like you to review their symptom scores and recovery stage. Their written and dictated notes stay private.",
     "Accept invite: https://stillwell.example/invite/EXAMPLE",
-    "Read-only: you can't change anything, and Jordan can remove access at any time. Accept by signing in with this email address. The invite expires on November 4, 2026.",
+    "You can read symptom scores, the current stage, its reason and stage history. You can change the stage with a note, but can't edit journal entries or read private notes. Jordan can remove access at any time. Accept by signing in with this email address. The invite expires on November 4, 2026.",
     "Didn't expect this? You can ignore this email. Nothing is shared unless you accept.",
     "Stillwell is an educational recovery journal. It does not diagnose or replace clinical care. You're receiving this because a Stillwell user entered your email address.",
   ].join("\n\n"));

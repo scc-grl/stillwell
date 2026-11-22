@@ -93,6 +93,10 @@ components:
       required: [decision, source, stage, syntheticOnly]
       properties:
         decision: { type: object, additionalProperties: true }
+        answers:
+          type: object
+          additionalProperties: true
+          description: Structured numeric/choice answers only; never the story or account fields.
         source: { type: string }
         syntheticOnly: { type: boolean }
         stage:

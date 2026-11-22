@@ -5,11 +5,14 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { PatientIntakeResultAnswers } from './patientIntakeResultAnswers';
 import type { PatientIntakeResultDecision } from './patientIntakeResultDecision';
 import type { RecoveryStage } from './recoveryStage';
 
 export interface PatientIntakeResult {
   decision: PatientIntakeResultDecision;
+  /** Structured numeric/choice answers only; never the story or account fields. */
+  answers?: PatientIntakeResultAnswers;
   source: string;
   syntheticOnly: boolean;
   stage: RecoveryStage | null;

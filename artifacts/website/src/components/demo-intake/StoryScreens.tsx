@@ -105,7 +105,7 @@ export function StoryScreen({
                 key={sample.label}
                 type="button"
                 variant={selectedSample === sample.label ? "secondary" : "outline"}
-                className={`min-h-11 whitespace-normal text-left ${selectedSample === sample.label ? "border-2 border-primary bg-background" : ""}`}
+                className={`min-h-12 whitespace-normal text-left ${selectedSample === sample.label ? "border-2 border-primary bg-background" : ""}`}
                 aria-pressed={selectedSample === sample.label}
                 onClick={() => {
                   setSelectedSample(sample.label);
@@ -137,7 +137,7 @@ export function StoryScreen({
             <Button
               type="button"
               variant={listening ? "secondary" : "outline"}
-              className="min-h-11 shrink-0"
+              className="min-h-12 shrink-0"
               aria-pressed={listening}
               onClick={toggleTalk}
               data-testid="button-toggle-dictation"
@@ -179,7 +179,7 @@ export function StoryScreen({
           <p className="text-sm leading-6 text-muted-foreground">Anything you leave out, you can add when you check your answers.</p>
         </Card>
         <div className="flex justify-end">
-          <Button type="button" className="min-h-11" onClick={onSave} disabled={!story.trim() || pending} data-testid="button-save-response">{pending ? "Reading…" : "Save response"}</Button>
+          <Button type="button" className="min-h-12" onClick={onSave} disabled={!story.trim() || pending} data-testid="button-save-response">{pending ? "Reading…" : "Save response"}</Button>
         </div>
       </Card>
       <CareBoundary />
@@ -249,7 +249,7 @@ export function CrisisScreen({ onExit, exitLabel = "Exit demo" }: { onExit: () =
         <h1 className="display text-4xl font-medium leading-tight sm:text-5xl">Please reach out now.</h1>
         <p className="text-lg leading-7">If you may hurt yourself or feel unsafe, call or text <strong>988</strong> in the U.S. or Canada for immediate crisis support. If you are in immediate danger, call your local emergency number or go to an emergency department.</p>
         <p className="text-sm leading-6 text-muted-foreground">If you can, tell someone you trust and ask them to stay with you. Stillwell has stopped this intake; your safety comes first.</p>
-        <Button type="button" variant="outline" className="min-h-11 w-fit" onClick={onExit}>{exitLabel}</Button>
+        <Button type="button" variant="outline" className="min-h-12 w-fit" onClick={onExit}>{exitLabel}</Button>
       </Card>
       <CareBoundary />
     </>
@@ -282,7 +282,7 @@ export function TapQuestionsScreen({
         <fieldset className="space-y-3">
           <legend className="font-semibold">Are you having a severe or urgent symptom right now, such as repeated vomiting, a seizure, double vision, or a worsening severe headache?</legend>
           <div className="flex flex-wrap gap-2">
-            {["Yes", "No", "Not sure"].map((answer) => <Button key={answer} type="button" variant={danger === answer ? "secondary" : "outline"} className="min-h-11" aria-pressed={danger === answer} onClick={() => {
+            {["Yes", "No", "Not sure"].map((answer) => <Button key={answer} type="button" variant={danger === answer ? "secondary" : "outline"} className="min-h-12" aria-pressed={danger === answer} onClick={() => {
               setDanger(answer);
               if (answer === "Yes") onSafety("go_to_er");
             }}>{answer}</Button>)}
@@ -291,7 +291,7 @@ export function TapQuestionsScreen({
         <fieldset className="space-y-3">
           <legend className="font-semibold">Are you having thoughts of hurting yourself or not wanting to be here?</legend>
           <div className="flex flex-wrap gap-2">
-            {["Yes", "No", "Not sure"].map((answer) => <Button key={answer} type="button" variant={crisis === answer ? "secondary" : "outline"} className="min-h-11" aria-pressed={crisis === answer} onClick={() => {
+            {["Yes", "No", "Not sure"].map((answer) => <Button key={answer} type="button" variant={crisis === answer ? "secondary" : "outline"} className="min-h-12" aria-pressed={crisis === answer} onClick={() => {
               setCrisis(answer);
               if (answer === "Yes") onSafety("crisis_support");
             }}>{answer}</Button>)}
@@ -299,8 +299,8 @@ export function TapQuestionsScreen({
         </fieldset>
         <p className="text-sm leading-6 text-muted-foreground">Stillwell couldn't read this just now, so no answers have been inferred. You can still review the story and add details yourself.</p>
         <div className="flex flex-wrap justify-between gap-3">
-          <Button type="button" variant="outline" className="min-h-11" onClick={onRetry} disabled={retrying}>{retrying ? "Trying again…" : "Try again"}</Button>
-          <Button type="button" className="min-h-11" onClick={onContinue} disabled={danger === null || crisis === null}>Review my story</Button>
+          <Button type="button" variant="outline" className="min-h-12" onClick={onRetry} disabled={retrying}>{retrying ? "Trying again…" : "Try again"}</Button>
+          <Button type="button" className="min-h-12" onClick={onContinue} disabled={danger === null || crisis === null}>Review my story</Button>
         </div>
       </Card>
       <CareBoundary />

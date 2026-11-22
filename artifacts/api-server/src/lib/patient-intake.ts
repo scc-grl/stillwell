@@ -59,6 +59,9 @@ export class PatientIntakeService {
         await tx.query("SELECT pg_advisory_xact_lock(hashtextextended($1,0))", [`patient:${ownerId}`]);
         const { rows: stillConsented } = await tx.query("SELECT id FROM recovery_intake_consents WHERE id=$1 AND owner_id=$2", [consent.id, ownerId]);
         if (!stillConsented.length) throw new IntakeError(409, "This intake was removed. Start again with consent.");
+        await tx.query(`INSERT INTO recovery_profiles(owner_id,preferences,consent_version)
+          VALUES($1,'{"supportMode":"self_guided","priorities":[]}', $2) ON CONFLICT(owner_id) DO NOTHING`,
+        [ownerId, INTAKE_CONSENT_VERSION]);
         const key = createHash("sha256").update(JSON.stringify(candidate)).digest("hex");
         const { rows } = await tx.query(
           `INSERT INTO recovery_stages(owner_id,stage,status,source,reasons,rule_ids,rules_version,synthetic_only,intake_consent_id,decision_key)
@@ -66,6 +69,18 @@ export class PatientIntakeService {
            ON CONFLICT (intake_consent_id,decision_key) DO NOTHING RETURNING *`,
           [ownerId, candidate.stage, JSON.stringify(candidate.reasons), JSON.stringify(candidate.ruleIds), candidate.rulesVersion, consent.id, key]);
         const row = rows[0] ?? (await tx.query("SELECT * FROM recovery_stages WHERE intake_consent_id=$1 AND decision_key=$2 AND owner_id=$3", [consent.id, key, ownerId])).rows[0];
+        // Numeric baseline only; neither the story nor model quotes are stored.
+        const scores = Object.fromEntries(["headache", "fog", "light", "sleep"].map(name =>
+          [name, result.decision.symptoms.find(s => s.name === name)?.level ?? null]));
+        await tx.query(`INSERT INTO recovery_intake_baselines(owner_id,scores) VALUES($1,$2)
+          ON CONFLICT(owner_id) DO UPDATE SET scores=$2`, [ownerId, JSON.stringify(scores)]);
+        if (rows.length) {
+          const { rows: [previous] } = await tx.query("SELECT stage FROM recovery_stages WHERE owner_id=$1 AND id<>$2 AND synthetic_only=false ORDER BY created_at DESC,id DESC LIMIT 1", [ownerId, row.id]);
+          if (previous?.stage !== row.stage) {
+            await tx.query(`INSERT INTO recovery_stage_emails(owner_id,clinician_id,stage_id)
+              SELECT $1,clinician_id,$2 FROM care_team_links WHERE patient_id=$1 AND status='active'`, [ownerId, row.id]);
+          }
+        }
         return stageDto(row);
       });
     }

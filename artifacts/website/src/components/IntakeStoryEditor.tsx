@@ -136,7 +136,7 @@ export function IntakeStoryEditor({
         {canTalk && <Button
           type="button"
           variant={listening ? "secondary" : "outline"}
-          className="min-h-11 shrink-0"
+          className="min-h-12 shrink-0"
           aria-pressed={listening}
           onClick={toggleTalk}
           data-testid="button-toggle-intake-dictation"
@@ -178,7 +178,7 @@ export function IntakeStoryEditor({
         <p className="text-sm leading-6 text-muted-foreground">Anything you leave out can be added when you check your answers.</p>
       </Card>
       <div className="flex justify-end">
-        <Button type="button" className="min-h-11" onClick={submit} disabled={!story.trim() || pending || listening} data-testid="button-review-patient-story">{pending ? "Reading…" : "Review my story"}</Button>
+        <Button type="button" className="min-h-12" onClick={submit} disabled={!story.trim() || pending || listening} data-testid="button-review-patient-story">{pending ? "Reading…" : "Review my story"}</Button>
       </div>
     </Card>
   </>;

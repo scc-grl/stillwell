@@ -177,8 +177,8 @@ export function EmailVerification({
       {emailError ? <p id="verify-email-error" className="text-sm text-destructive">{emailError}</p> : null}
       <ErrorLine>{error}</ErrorLine>
       <div className="flex flex-col gap-3 sm:flex-row">
-        <Button type="submit" disabled={busy} data-testid="button-send-code">{busy ? waitLabel ?? "Sending…" : "Send code"}</Button>
-        {onCancel ? <Button type="button" variant={variant === "request" ? "secondary" : "ghost"} disabled={busy} onClick={onCancel} data-testid="button-cancel-verify">Cancel</Button> : null}
+        <Button type="submit" className="min-h-12" disabled={busy} data-testid="button-send-code">{busy ? waitLabel ?? "Sending…" : "Send code"}</Button>
+        {onCancel ? <Button type="button" variant={variant === "request" ? "secondary" : "ghost"} className="min-h-12" disabled={busy} onClick={onCancel} data-testid="button-cancel-verify">Cancel</Button> : null}
       </div>
     </form>;
   }
@@ -202,13 +202,13 @@ export function EmailVerification({
       className="min-h-12 text-lg tracking-widest" data-testid="input-verify-code" />
     <ErrorLine>{error}</ErrorLine>
     <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-      <Button type="submit" disabled={busy} data-testid="button-confirm-code">
+      <Button type="submit" className="min-h-12" disabled={busy} data-testid="button-confirm-code">
         {busy ? waitLabel ?? "Checking…" : variant === "invite" ? "Confirm and accept" : "Verify email"}
       </Button>
-      <Button type="button" variant="outline" disabled={busy || cooldown > 0} onClick={() => void sendCode(sentTo)} data-testid="button-resend-code">
+      <Button type="button" variant="outline" className="min-h-12" disabled={busy || cooldown > 0} onClick={() => void sendCode(sentTo)} data-testid="button-resend-code">
         {cooldown > 0 && variant === "invite" ? `Send a new code (${cooldown}s)` : "Send a new code"}
       </Button>
-      {onCancel ? <Button type="button" variant={variant === "request" ? "secondary" : "ghost"} disabled={busy} onClick={onCancel} data-testid="button-cancel-verify">Cancel</Button> : null}
+      {onCancel ? <Button type="button" variant={variant === "request" ? "secondary" : "ghost"} className="min-h-12" disabled={busy} onClick={onCancel} data-testid="button-cancel-verify">Cancel</Button> : null}
     </div>
   </form>;
 }

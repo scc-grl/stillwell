@@ -29,6 +29,8 @@ EMAIL_FROM = "invite@stillwell-care.com"
 
 [userenv.development]
 REAL_ACCOUNT_INTAKE_ENABLED = "true"
+CARE_TEAM_WEBSITE_URL = "https://57fd2e2e-94d3-4b79-8b6c-7d791e7ad439-00-26bpsqb6lo6c7.janeway.replit.dev"
 
 [userenv.production]
 REAL_ACCOUNT_INTAKE_ENABLED = "true"
+CARE_TEAM_WEBSITE_URL = "https://stillwell-care.com"
