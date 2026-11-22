@@ -170,7 +170,7 @@ export default function PatientIntakePage() {
     </header>
     <div className="mx-auto max-w-3xl space-y-6 px-4 pt-7 sm:px-8 sm:pt-10">
       <header className="space-y-3">
-        <p className="eyebrow">Development preview · Patient intake</p>
+        <p className="eyebrow">Patient intake</p>
         <h1 className="display text-4xl font-medium leading-tight sm:text-5xl">A place for your story</h1>
         <p className="max-w-2xl text-base leading-7 text-muted-foreground">Share what you choose after reviewing how your story and intake answers are used. You can keep using your journal whether or not intake is available.</p>
       </header>
@@ -187,7 +187,7 @@ export default function PatientIntakePage() {
         </div>
       </Card>}
       {!statusQuery.isLoading && !statusQuery.isError && statusQuery.data?.enabled === false && <Card className="space-y-4 p-5 sm:p-7" data-testid="card-intake-disabled">
-        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Development preview</p>
+        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Patient intake</p>
         <h2 className="display text-2xl font-medium">Patient intake is not enabled right now</h2>
         <p className="text-sm leading-6 text-muted-foreground">You can continue using your private journal. No consent or story is needed to return to it.</p>
         <Button variant="outline" className="min-h-11 w-fit" asChild><Link href="/dashboard">Return to dashboard <ArrowRight aria-hidden="true"/></Link></Button>
@@ -301,7 +301,7 @@ export default function PatientIntakePage() {
         <header className="space-y-2">
           <p className="eyebrow">Review</p>
           <h2 className="display text-3xl font-medium">Summary</h2>
-          <p className="text-sm leading-6 text-muted-foreground">Review what was read before viewing your development preview starting stage. This is not a confirmed medical stage.</p>
+          <p className="text-sm leading-6 text-muted-foreground">Review what was read before viewing your provisional starting stage. This is not a confirmed medical stage.</p>
         </header>
         <Card className="space-y-3 p-5 sm:p-7" data-testid="summary-patient-injury">
           <div className="flex flex-wrap items-start justify-between gap-3">
@@ -367,9 +367,9 @@ export default function PatientIntakePage() {
         <Card className="space-y-4 border-primary/30 bg-secondary p-5 sm:p-7">
           <div className="flex items-start gap-3">
             <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-background text-primary"><ShieldCheck aria-hidden="true" className="size-5"/></span>
-            <div><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Development preview · not confirmed medical stage</p>
+            <div><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Provisional · not a confirmed medical stage</p>
               <h2 className="display mt-1 text-2xl font-medium">A provisional starting point</h2>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">This preview is not a diagnosis or treatment advice. It does not confirm a medical stage.</p>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">This suggested stage is not a diagnosis or treatment advice. It does not confirm a medical stage.</p>
             </div>
           </div>
           {stageNumber && stageName && storedStage?.status === "provisional" && !storedStage.syntheticOnly ? <>
@@ -377,7 +377,7 @@ export default function PatientIntakePage() {
             <p className="text-sm font-semibold">Stage {stageNumber} · Pending clinician review</p>
             <p className="text-lg font-semibold">Stage {stageNumber} · {stageName}</p>
             <section className="space-y-3" aria-labelledby="why-stage-title">
-              <h3 id="why-stage-title" className="font-semibold">Why this preview suggests stage {stageNumber}</h3>
+              <h3 id="why-stage-title" className="font-semibold">Why stage {stageNumber} was suggested</h3>
               <ul className="space-y-2 text-sm leading-6 text-muted-foreground">
                 {decision.stage?.reasons.map((reason) => <li key={`${reason.rule}-${reason.text}`}>{PLACEMENT_REASONS[reason.rule] ?? reason.text}</li>)}
               </ul>
@@ -395,14 +395,14 @@ export default function PatientIntakePage() {
               <span className={`flex size-9 shrink-0 items-center justify-center rounded-full ${current ? "bg-primary text-primary-foreground" : "border border-border text-muted-foreground"}`}>
                 {current ? <Check aria-label={`You start here, Stage ${stage}`} className="size-4"/> : stage}
               </span>
-              <div><p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Stage {stage}{current ? " · Preview starting point" : ""}</p><h3 className="mt-1 font-semibold">{name}</h3></div>
+              <div><p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Stage {stage}{current ? " · You start here" : ""}</p><h3 className="mt-1 font-semibold">{name}</h3></div>
             </Card>;
           })}
         </section>
 
         <Card className="space-y-3 p-5 sm:p-7">
           <h2 className="display text-2xl font-medium">What happens next</h2>
-          <p className="text-sm leading-6 text-muted-foreground">Your result is saved privately to your account. It is a preview, not a diagnosis or treatment advice. Clinician review is not available yet; seek urgent help for emergency symptoms.</p>
+          <p className="text-sm leading-6 text-muted-foreground">Your result is saved privately to your account. It is provisional, not a diagnosis or treatment advice. Clinician review is not available yet; seek urgent help for emergency symptoms.</p>
           <div className="flex flex-wrap gap-3">
             <Button className="min-h-11" onClick={() => setLocation("/dashboard")} data-testid="button-intake-dashboard">Return to dashboard <ArrowRight aria-hidden="true"/></Button>
             <Button variant="outline" className="min-h-11" onClick={() => setView("summary")} data-testid="button-back-to-summary"><ArrowLeft aria-hidden="true"/>Back to summary</Button>

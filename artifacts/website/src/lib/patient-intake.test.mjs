@@ -80,10 +80,18 @@ test("emergency screen receives the local story and adds no warning buttons", ()
   assert.match(warning, /EmergencyScreen quotes=\{\[story\]\}/);
 });
 
-test("dashboard personal preview excludes synthetic history and provides Start intake", () => {
+test("dashboard personal stage excludes synthetic history and provides Start intake", () => {
   assert.match(dashboard, /stage\.syntheticOnly/);
   assert.match(dashboard, /\.filter\(\(stage\) => !stage\.syntheticOnly\)/);
   assert.match(dashboard, /Stage \$\{previewStageNumber\} · Pending clinician review/);
   assert.match(dashboard, /Older synthetic sample history is excluded from your personal stages/);
   assert.match(dashboard, /data-testid="button-start-intake">Start intake/);
+});
+test("production dashboard intake follows server status, not a development build flag", () => {
+  assert.doesNotMatch(dashboard, /import\.meta\.env\.DEV/);
+  assert.match(dashboard, /useGetRecoveryIntakeStatus/);
+  assert.match(dashboard, /intakeStatusQuery\.data\?\.enabled === true && <Button/);
+  assert.match(dashboard, /intakeStatusQuery\.data\?\.enabled === true \|\| previewStage \|\| syntheticStagesQuery\.isError/);
+  assert.doesNotMatch(page, /Development preview/);
+  assert.match(page, /not a confirmed medical stage/);
 });

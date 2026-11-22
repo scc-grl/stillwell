@@ -4,8 +4,10 @@ import { useClerk, useUser } from "@clerk/react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   getGetRecoveryStagesQueryKey,
+  getGetRecoveryIntakeStatusQueryKey,
   getGetRecoveryQueryKey,
   useGetRecoveryStages,
+  useGetRecoveryIntakeStatus,
   useGetRecovery,
   useSaveRecoveryLog,
   useStartRecovery,
@@ -125,8 +127,11 @@ export default function DashboardPage() {
   const userId = user?.id ?? "";
   const recoveryKey = useMemo(() => [...getGetRecoveryQueryKey(), userId], [userId]);
   const recoveryQuery = useGetRecovery({ query: { enabled: Boolean(userId), queryKey: recoveryKey, retry: false } });
+  const intakeStatusQuery = useGetRecoveryIntakeStatus({
+    query: { enabled: Boolean(userId), queryKey: [...getGetRecoveryIntakeStatusQueryKey(), userId], refetchInterval: 30_000, retry: false },
+  });
   const syntheticStagesQuery = useGetRecoveryStages({
-    query: { enabled: import.meta.env.DEV && Boolean(userId), queryKey: [...getGetRecoveryStagesQueryKey(), userId], retry: false },
+    query: { enabled: Boolean(userId), queryKey: [...getGetRecoveryStagesQueryKey(), userId], retry: false },
   });
   const startRecovery = useStartRecovery();
   const updateProfile = useUpdateRecoveryProfile();
@@ -269,15 +274,15 @@ export default function DashboardPage() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm opacity-80">{formatDate(today)}</p>
             <div className="flex flex-wrap gap-2">
-              {import.meta.env.DEV && <Button variant="outline" className="min-h-11" onClick={() => setLocation("/dashboard/intake")} data-testid="button-open-patient-intake">Start intake <ArrowRight /></Button>}
+              {intakeStatusQuery.data?.enabled === true && <Button variant="outline" className="min-h-11" onClick={() => setLocation("/dashboard/intake")} data-testid="button-open-patient-intake">Start intake <ArrowRight /></Button>}
               {profile && <Button variant="secondary" onClick={() => setLocation("/dashboard/journal")} data-testid="button-open-journal">Today’s check-in <ArrowRight /></Button>}
             </div>
           </div>
         </div>
         {profile && !recoveryQuery.isLoading && !recoveryQuery.isError && <PatientProgressChart logs={logs} today={today} />}
       </section>}
-      {section === "dashboard" && import.meta.env.DEV && <Card className="space-y-3 border-accent/60 p-5" data-testid="card-patient-intake-stage-preview">
-        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Development preview · patient intake</p>
+      {section === "dashboard" && (intakeStatusQuery.data?.enabled === true || previewStage || syntheticStagesQuery.isError) && <Card className="space-y-3 border-accent/60 p-5" data-testid="card-patient-intake-stage-preview">
+        <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Patient intake</p>
         <h2 className="display text-2xl font-medium">Your latest intake stage</h2>
         {syntheticStagesQuery.isLoading && <div aria-label="Loading your intake stage" className="space-y-2" role="status"><div className="h-4 w-40 rounded bg-muted"/><div className="h-10 rounded-lg bg-muted"/></div>}
         {syntheticStagesQuery.isError && <div className="space-y-3" role="alert">
@@ -285,13 +290,13 @@ export default function DashboardPage() {
           <Button variant="outline" className="min-h-11" onClick={() => void syntheticStagesQuery.refetch()} data-testid="button-retry-patient-intake-stage">Try again</Button>
         </div>}
         {!syntheticStagesQuery.isLoading && !syntheticStagesQuery.isError && previewStage && <div className="rounded-xl border border-border bg-background p-4">
-          <p className="text-sm font-semibold">PREVIEW · NOT A CONFIRMED MEDICAL STAGE</p>
+          <p className="text-sm font-semibold">NOT A CONFIRMED MEDICAL STAGE</p>
           <p className="mt-2 text-base font-semibold">{previewStageName ? `Stage ${previewStageNumber} · ${previewStageName}` : "An intake stage is saved"}</p>
-          <p className="mt-1 text-sm leading-6 text-muted-foreground">{previewStage.status === "provisional" ? previewStageNumber ? `Stage ${previewStageNumber} · Pending clinician review` : "Pending clinician review" : "This intake stage is a preview and is not medically confirmed."}</p>
+          <p className="mt-1 text-sm leading-6 text-muted-foreground">{previewStage.status === "provisional" ? previewStageNumber ? `Stage ${previewStageNumber} · Pending clinician review` : "Pending clinician review" : "This intake stage is not medically confirmed."}</p>
           <p className="mt-2 text-xs leading-5 text-muted-foreground">Older synthetic sample history is excluded from your personal stages.</p>
         </div>}
-        {!syntheticStagesQuery.isLoading && !syntheticStagesQuery.isError && !previewStage && <p className="text-sm leading-6 text-muted-foreground">No patient intake stage has been saved yet. Synthetic preview history is kept separate from this view.</p>}
-        <Button variant="outline" className="min-h-11 w-fit" onClick={() => setLocation("/dashboard/intake")} data-testid="button-start-intake">Start intake <ArrowRight /></Button>
+        {!syntheticStagesQuery.isLoading && !syntheticStagesQuery.isError && !previewStage && <p className="text-sm leading-6 text-muted-foreground">No patient intake stage has been saved yet.</p>}
+        {intakeStatusQuery.data?.enabled === true && <Button variant="outline" className="min-h-11 w-fit" onClick={() => setLocation("/dashboard/intake")} data-testid="button-start-intake">Start intake <ArrowRight /></Button>}
       </Card>}
       {section === "account" && <section>
         <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Your settings</p>

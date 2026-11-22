@@ -1,11 +1,8 @@
 import { buildQuestions, normalizeAnswer, MAX_NOTE_CHARS, type Decision, type IntakeOptions } from "@workspace/intake-ai";
 
-/** Preview only, regardless of the feature setting. */
-export function patientIntakePreviewAllowed(nodeEnv: string | undefined) {
-  return nodeEnv === "development" || nodeEnv === "test";
-}
+/** Fail closed in every supported environment unless explicitly enabled. */
 export function realTextIntakeAllowed(nodeEnv: string | undefined, setting: string | undefined) {
-  return patientIntakePreviewAllowed(nodeEnv) && setting === "true";
+  return (nodeEnv === "development" || nodeEnv === "test" || nodeEnv === "production") && setting === "true";
 }
 /**
  * Basic contact-detail filter, NOT full de-identification: names, dates of birth,

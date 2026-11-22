@@ -1,6 +1,6 @@
-# Real-account intake: patient-written preview
+# Real-account intake: patient-written stories and production switch
 
-Implements the updated founder-approved preview scope for [issue #41](https://github.com/scc-grl/stillwell/issues/41), on PR #42. The original synthetic-only restriction has been replaced by patient-written stories in the signed-in preview. No merge or publishing is authorized.
+Implements [issue #41](https://github.com/scc-grl/stillwell/issues/41), merged in PR #42. The founder has additionally approved patient-written stories in production, behind the same server-side setting. This follow-up opens a separate PR for review; it does not merge or publish.
 
 ## Privacy boundary
 
@@ -14,9 +14,11 @@ Existing public `/demo/intake` remains separate, unauthenticated, rate-limited a
 
 ### Server setting / emergency off switch
 
-`REAL_ACCOUNT_INTAKE_ENABLED=true` is set in the **development** environment only. Unset or `false` disables new consent and reading, including existing consent sessions; history stays readable in preview. Set the environment value and restart `artifacts/api-server: API Server` for it to take effect—no code change is needed. The gate is checked before the reader and again before saving a result.
+`REAL_ACCOUNT_INTAKE_ENABLED=true` is configured separately for **development and production**. Production configuration is prepared for the founder's next publish, not applied by publishing in this task. Only the exact string `"true"` enables new consent and reading. Unset, `false`, empty strings and every other value disable them, including existing consent sessions. Stage history remains readable when off.
 
-The guard also requires `NODE_ENV=development` or `test`: production remains blocked even if the setting is true. Do not enable production, merge or publish as part of this preview.
+The setting works in `development`, `test` and `production`; unknown/unset `NODE_ENV` fails closed. In preview, restart `artifacts/api-server: API Server` after changing the setting. For production, change the value in Publishing environment settings and republish for the new runtime to receive it; no source change is needed. The gate is checked before the reader and again before saving a result. A request already sent to TypeSafe cannot be recalled.
+
+The dashboard uses authenticated server status, not a development build flag, to show Start intake. It preserves existing stage history while intake is off. Production wording says provisional, not development preview; diagnosis disclaimers and the unavailable clinician-review notice remain.
 
 ## Flow and storage
 
@@ -54,12 +56,14 @@ Braintrust eval normalizes historical expected symptom positions to 0/3/6/9. New
 
 ## Verification
 
-The updated workspace typecheck passes; the full suite has **240 passing tests, zero failures** (API 95, website 28, phone 25, intake library 25, journal library 50, scripts 8, other packages 9). This follow-up adds coverage for the actual TypeSafe request envelope (story/questions only, no account fields), contact filtering and preservation of injury dates, strict answer fields, the feature switch including in-flight shutdown, consent ownership/version and safety outcomes. Website checks also cover consent-before-editor mounting, dictation limits/cleanup and discarding state on account changes. All fixtures and eval inputs remain synthetic.
+The production-switch follow-up passes workspace typecheck and the full suite: **243 passing tests, zero failures** (API 97, website 29, phone 25, intake library 25, journal library 50, scripts 8, other packages 9). New coverage checks exact `"true"` semantics across environments, removal of the old production route denial, the default service under `NODE_ENV=production` (consent, filtering, switching off existing sessions and retaining history), and dashboard controls following server status rather than development build flags.
+
+Existing coverage still verifies the actual TypeSafe request envelope (story/questions only, no account fields), contact filtering and preservation of injury dates, strict answer fields, in-flight shutdown, consent ownership/version, safety outcomes, dictation limits/cleanup and discarding UI state on account changes. All fixtures and eval inputs remain synthetic.
 
 The live Braintrust eval reached an empty dataset (zero rows); no accuracy scores are claimed:
 https://www.braintrust.dev/app/scc-grl/p/stillwell-intake/experiments/intake-rules-2026-11-09.1
 
-No publishing or production database changes were performed. Patient-written intake is enabled only in preview; actual clinician alerts and queue delivery remain deferred.
+API and website workflows started successfully; health returned 200 and an unsigned intake-status request returned 401. No publishing or production database changes were performed. The production setting is configured for the next founder-approved publish; the live signed-in flow has not been exercised in this follow-up. Actual clinician alerts and queue delivery remain deferred.
 
 ### Patient-written preview browser pass
 

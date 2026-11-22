@@ -110,6 +110,42 @@ test("turning the switch off during reading prevents saving the in-flight result
   await assert.rejects(s.execute("patient-a", { consentId: consent.id, story }), error => error.status === 403);
   assert.deepEqual(await s.history("patient-a"), []);
 });
+test("production default service follows its setting, requires consent and retains history while off", async (t) => {
+  const originalEnv = process.env.NODE_ENV;
+  const originalSetting = process.env.REAL_ACCOUNT_INTAKE_ENABLED;
+  t.after(() => {
+    if (originalEnv === undefined) delete process.env.NODE_ENV; else process.env.NODE_ENV = originalEnv;
+    if (originalSetting === undefined) delete process.env.REAL_ACCOUNT_INTAKE_ENABLED; else process.env.REAL_ACCOUNT_INTAKE_ENABLED = originalSetting;
+  });
+  process.env.NODE_ENV = "production";
+  process.env.REAL_ACCOUNT_INTAKE_ENABLED = "true";
+  let reads = 0;
+  const production = new PatientIntakeService(pool, async (note, answered) => {
+    reads++;
+    assert.equal(note.includes("fake@example.test"), false);
+    assert.equal(note.includes("415-555-0123"), false);
+    assert.deepEqual(answered, {});
+    return { decision, source: "typesafe" };
+  });
+  await assert.rejects(production.execute("patient-a", { consentId: randomUUID(), story }), error => error.status === 403);
+  assert.equal(reads, 0);
+  const consent = await production.consent("patient-a");
+  const result = await production.execute("patient-a", { consentId: consent.id, story });
+  assert.equal(result.stage.status, "provisional");
+  assert.equal(result.stage.syntheticOnly, false);
+  for (const setting of ["false", "", "TRUE"]) {
+    process.env.REAL_ACCOUNT_INTAKE_ENABLED = setting;
+    await assert.rejects(production.consent("patient-a"), error => error.status === 403);
+    await assert.rejects(production.execute("patient-a", { consentId: consent.id, story }), error => error.status === 403);
+  }
+  delete process.env.REAL_ACCOUNT_INTAKE_ENABLED;
+  await assert.rejects(production.execute("patient-a", { consentId: consent.id, story }), error => error.status === 403);
+  assert.equal(reads, 1);
+  assert.equal((await production.history("patient-a")).length, 1);
+  process.env.REAL_ACCOUNT_INTAKE_ENABLED = "true";
+  await production.execute("patient-a", { consentId: consent.id, story });
+  assert.equal(reads, 2);
+});
 test("database rating migration is idempotent, preserves skipped values, routines, sleep and frozen copies", async () => {
   const data = { dailyCheckIn: { symptoms: [0, 1, 2, 3, null].map((rating, i) => ({
     name: ["headache", "fatigue", "fog", "sleep", "mood"][i],

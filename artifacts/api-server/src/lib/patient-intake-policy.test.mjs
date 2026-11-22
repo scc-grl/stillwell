@@ -1,15 +1,25 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { readFileSync } from "node:fs";
 import { realTextIntakeAllowed, patientIntakeInput, stripContactDetails, provisionalStageFor } from "./patient-intake-policy.ts";
 import { runIntake, buildQuestions, STAGES } from "../../../../lib/intake-ai/src/index.ts";
 import { fakeClient, calm } from "../../../../lib/intake-ai/test/fake-client.ts";
 const consentId = "00000000-0000-4000-8000-000000000001";
-test("real text fails closed unless enabled in preview; production stays blocked", () => {
-  assert.equal(realTextIntakeAllowed("development", "true"), true);
-  assert.equal(realTextIntakeAllowed("test", "true"), true);
-  for (const value of [undefined, "", "false", "TRUE", "1"]) assert.equal(realTextIntakeAllowed("development", value), false);
-  assert.equal(realTextIntakeAllowed("production", "true"), false);
+test("real text follows the exact true setting in production, development and test", () => {
+  for (const env of ["development", "test", "production"]) {
+    assert.equal(realTextIntakeAllowed(env, "true"), true);
+    for (const value of [undefined, "", "false", "TRUE", "True", "1", " true ", "0"]) {
+      assert.equal(realTextIntakeAllowed(env, value), false);
+    }
+  }
   assert.equal(realTextIntakeAllowed(undefined, "true"), false);
+  assert.equal(realTextIntakeAllowed("unknown", "true"), false);
+});
+test("intake routes retain private caching without a preview-only production denial", () => {
+  const routes = readFileSync(new URL("../routes/patient-intake.ts", import.meta.url), "utf8");
+  assert.match(routes, /res\.setHeader\("Cache-Control", "private, no-store"\)/);
+  assert.doesNotMatch(routes, /patientIntakePreviewAllowed|available in preview only/);
+  assert.match(routes, /realTextIntakeAllowed\(process\.env\.NODE_ENV, process\.env\.REAL_ACCOUNT_INTAKE_ENABLED\)/);
 });
 test("account fields, old samples, blank/oversized stories and missing consent are rejected", () => {
   for (const body of [
