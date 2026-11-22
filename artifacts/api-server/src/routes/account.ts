@@ -2,7 +2,7 @@ import { Router, type IRouter, type Request } from "express";
 import { allowedRequestOrigin } from "../lib/request-origin";
 import { clerkClient, getAuth } from "@clerk/express";
 import { eq } from "drizzle-orm";
-import { accountRoles, db, type AccountType } from "@workspace/db";
+import { accountRoles, db, recoveryAccountDeletions, type AccountType } from "@workspace/db";
 import {
   CompleteAccountRegistrationBody,
   CompleteAccountRegistrationResponse,
@@ -71,6 +71,11 @@ router.post("/account/complete-registration", async (req, res): Promise<void> =>
     return;
   }
   const parsed = CompleteAccountRegistrationBody.safeParse(req.body);
+  const [deleting] = await db.select().from(recoveryAccountDeletions).where(eq(recoveryAccountDeletions.ownerId, userId));
+  if (deleting) {
+    res.status(409).json({ error: "Account deletion is waiting to finish. Retry Delete account." });
+    return;
+  }
   if (!parsed.success) {
     res.status(400).json({ error: "The account registration could not be verified." });
     return;

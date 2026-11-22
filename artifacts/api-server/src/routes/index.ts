@@ -6,12 +6,14 @@ import accountRouter from "./account";
 import partnersRouter from "./partners";
 import careTeamRouter from "./care-team";
 import demoIntakeRouter from "./demo-intake";
+import { doctorMvpRouter } from "./web-mvp";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
 router.use(accountRouter);
 router.use(recoveryRouter);
+router.use(doctorMvpRouter);
 router.use(careTeamRouter);
 router.use(newsletterRouter);
 router.use(demoIntakeRouter);

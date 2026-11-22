@@ -18,7 +18,7 @@ import { Button } from "@workspace/stillwell-design-system/components/ui/button"
 import { Card } from "@workspace/stillwell-design-system/components/ui/card";
 import { Checkbox } from "@workspace/stillwell-design-system/components/ui/checkbox";
 import { Brand } from "@/components/PublicSite";
-import { BoundaryNotice, StageIndicator } from "@/components/SiteComponents";
+import { BoundaryNotice } from "@/components/SiteComponents";
 import { CrisisScreen, EmergencyScreen, ReadingScreen } from "@/components/demo-intake/StoryScreens";
 import { IntakeStoryEditor } from "@/components/IntakeStoryEditor";
 
@@ -58,6 +58,7 @@ export default function PatientIntakePage() {
   const [actionError, setActionError] = useState("");
   const [view, setView] = useState<IntakeView>("story");
   const [editingSymptom, setEditingSymptom] = useState<string | null>(null);
+  const [summaryAnswersChanged, setSummaryAnswersChanged] = useState(false);
   const decision = result?.decision;
   const storedStage = result?.data.stage;
   const numericStage = storedStage && !storedStage.syntheticOnly ? Number(storedStage.stage) : null;
@@ -66,7 +67,7 @@ export default function PatientIntakePage() {
   const tapQuestions = buildQuestions();
   useEffect(() => {
     setStory(""); setConsent(null); setResult(null); setTapAnswers({});
-    setAgreed(false); setActionError(""); setView("story"); setEditingSymptom(null);
+    setAgreed(false); setActionError(""); setView("story"); setEditingSymptom(null); setSummaryAnswersChanged(false);
   }, [userId]);
 
   function acceptConsent() {
@@ -94,6 +95,7 @@ export default function PatientIntakePage() {
         const next = intakeOutcome(data);
         setResult(next);
         setEditingSymptom(null);
+        setSummaryAnswersChanged(false);
         setView(next.decision.outcome === "start_journal" ? "summary"
           : next.decision.outcome === "use_tap_questions" ? "tap-questions"
             : next.decision.outcome === "find_doctor" ? "doctor" : returnTo);
@@ -165,7 +167,7 @@ export default function PatientIntakePage() {
     <header className="border-b border-border bg-background">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4 sm:px-8">
         <Brand journal/>
-        <Button asChild variant="outline" className="min-h-11"><Link href="/dashboard">Not now · Dashboard</Link></Button>
+        <Button asChild variant="outline" className="min-h-12"><Link href="/dashboard">Not now · Dashboard</Link></Button>
       </div>
     </header>
     <div className="mx-auto max-w-3xl space-y-6 px-4 pt-7 sm:px-8 sm:pt-10">
@@ -182,15 +184,15 @@ export default function PatientIntakePage() {
         <h2 className="display text-2xl font-medium">Intake availability could not be checked</h2>
         <p className="text-sm leading-6 text-muted-foreground">Your story field remains unavailable until Stillwell can confirm intake is enabled. Your journal is still available.</p>
         <div className="flex flex-wrap gap-3">
-          <Button variant="outline" className="min-h-11" onClick={() => void statusQuery.refetch()} data-testid="button-retry-intake-status">Try again</Button>
-          <Button variant="outline" className="min-h-11" asChild><Link href="/dashboard">Return to dashboard</Link></Button>
+          <Button variant="outline" className="min-h-12" onClick={() => void statusQuery.refetch()} data-testid="button-retry-intake-status">Try again</Button>
+          <Button variant="outline" className="min-h-12" asChild><Link href="/dashboard">Return to dashboard</Link></Button>
         </div>
       </Card>}
       {!statusQuery.isLoading && !statusQuery.isError && statusQuery.data?.enabled === false && <Card className="space-y-4 p-5 sm:p-7" data-testid="card-intake-disabled">
         <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Patient intake</p>
         <h2 className="display text-2xl font-medium">Patient intake is not enabled right now</h2>
         <p className="text-sm leading-6 text-muted-foreground">You can continue using your private journal. No consent or story is needed to return to it.</p>
-        <Button variant="outline" className="min-h-11 w-fit" asChild><Link href="/dashboard">Return to dashboard <ArrowRight aria-hidden="true"/></Link></Button>
+        <Button variant="outline" className="min-h-12 w-fit" asChild><Link href="/dashboard">Return to dashboard <ArrowRight aria-hidden="true"/></Link></Button>
       </Card>}
 
       {!consent && !statusQuery.isLoading && !statusQuery.isError && statusQuery.data?.enabled === true && <Card className="space-y-5 p-5 sm:p-7" data-testid="card-intake-consent">
@@ -203,7 +205,7 @@ export default function PatientIntakePage() {
         </div>
         <ol className="grid gap-3 sm:grid-cols-3">
           <li className="rounded-xl border border-border bg-background p-4"><span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">01 · What is sent</span><p className="mt-2 text-sm leading-6">TypeSafe reads the story and intake answers. Your account profile, name, email, and ID are not sent with the request.</p></li>
-          <li className="rounded-xl border border-border bg-background p-4"><span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">02 · What is saved</span><p className="mt-2 text-sm leading-6">Stillwell saves the intake result privately to your account. Stillwell does not save or trace the raw story.</p></li>
+          <li className="rounded-xl border border-border bg-background p-4"><span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">02 · What is saved</span><p className="mt-2 text-sm leading-6">Stillwell saves the intake result privately to your account, not the raw story. Your numeric stage/result may be shared with a doctor you invite and who accepts; your raw story is never shared.</p></li>
           <li className="rounded-xl border border-border bg-background p-4"><span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">03 · Your choice</span><p className="mt-2 text-sm leading-6">You decide whether to continue. You can leave now and return to your journal without sending anything.</p></li>
         </ol>
         <div className="rounded-xl border border-border bg-background p-4">
@@ -212,14 +214,14 @@ export default function PatientIntakePage() {
         </div>
         <div className="flex items-start gap-3 rounded-xl border border-border p-4">
           <Checkbox id="patient-intake-consent" checked={agreed} onCheckedChange={(checked) => setAgreed(checked === true)} data-testid="checkbox-intake-consent"/>
-          <label htmlFor="patient-intake-consent" className="min-h-11 cursor-pointer pt-2 text-sm font-semibold leading-6">I understand and agree to this use of my story and answers.</label>
+          <label htmlFor="patient-intake-consent" className="min-h-12 cursor-pointer pt-2 text-sm font-semibold leading-6">I agree to this</label>
         </div>
         <p className="text-xs leading-5 text-muted-foreground">Consent version: {INTAKE_CONSENT_VERSION}. This is not a promise of anonymity or medical care.</p>
         {actionError && <p role="alert" className="text-sm leading-6 text-destructive">{actionError}</p>}
-        <Button className="min-h-11" disabled={!agreed || consentMutation.isPending} onClick={acceptConsent} data-testid="button-accept-intake-consent">
-          {consentMutation.isPending ? "Saving consent…" : "Agree and continue"} <ArrowRight aria-hidden="true"/>
+        <Button className="min-h-12" disabled={!agreed || consentMutation.isPending} onClick={acceptConsent} data-testid="button-accept-intake-consent">
+          {consentMutation.isPending ? "Saving consent…" : "Start"} <ArrowRight aria-hidden="true"/>
         </Button>
-        {consentMutation.isError && <Button variant="outline" className="min-h-11" disabled={!agreed || consentMutation.isPending} onClick={acceptConsent}>Retry consent</Button>}
+        {consentMutation.isError && <Button variant="outline" className="min-h-12" disabled={!agreed || consentMutation.isPending} onClick={acceptConsent}>Retry consent</Button>}
       </Card>}
 
       {consent && statusQuery.data?.enabled === true && view === "story" && <IntakeStoryEditor story={story} setStory={setStory} onSubmit={() => readStory(tapAnswers, "story")} pending={runMutation.isPending}/>}
@@ -247,7 +249,7 @@ export default function PatientIntakePage() {
                   key={label}
                   type="button"
                   variant={chosen?.noul === value ? "secondary" : "outline"}
-                  className="min-h-11"
+                  className="min-h-12"
                   aria-pressed={chosen?.noul === value}
                   disabled={runMutation.isPending}
                   onClick={() => answerNoul(key, value)}
@@ -259,7 +261,7 @@ export default function PatientIntakePage() {
                   key={value}
                   type="button"
                   variant={chosen?.choice === value ? "secondary" : "outline"}
-                  className="min-h-11 justify-start whitespace-normal text-left"
+                  className="min-h-12 justify-start whitespace-normal text-left"
                   aria-pressed={chosen?.choice === value}
                   disabled={runMutation.isPending}
                   onClick={() => answerQuestion(key, { choice: value })}
@@ -267,12 +269,12 @@ export default function PatientIntakePage() {
                 ><span className="font-semibold">{value.replaceAll("_", " ")}</span><span className="ml-1 text-sm text-muted-foreground">{detail}</span></Button>)}
               </div>}
               {question.type === "score" && <div className="space-y-2">
-                <div className="grid grid-cols-6 gap-2 sm:grid-cols-11" role="group" aria-label={`${question.instructions} Rate from 0 None to 10 Worst`}>
+                <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-11" role="group" aria-label={`${question.instructions} Rate from 0 None to 10 Worst`}>
                   {ratings.map((rating) => <Button
                     key={rating}
                     type="button"
                     variant={chosen?.score === rating ? "secondary" : "outline"}
-                    className="min-h-11 min-w-11 px-2"
+                    className="min-h-12 min-w-12 px-2"
                     aria-label={`${rating}${rating === 0 ? " None" : rating === 5 ? " Moderate" : rating === 10 ? " Worst" : ""}`}
                     aria-pressed={chosen?.score === rating}
                     disabled={runMutation.isPending}
@@ -288,12 +290,12 @@ export default function PatientIntakePage() {
           })}
         </div>
         {actionError && <p role="alert" className="text-sm leading-6 text-destructive">{actionError}</p>}
-        {runMutation.isError && <Button variant="outline" className="min-h-11" disabled={runMutation.isPending} onClick={() => readStory(tapAnswers, "tap-questions")}>Retry structured review</Button>}
+        {runMutation.isError && <Button variant="outline" className="min-h-12" disabled={runMutation.isPending} onClick={() => readStory(tapAnswers, "tap-questions")}>Retry structured review</Button>}
         <div className="flex flex-wrap gap-3">
-          <Button className="min-h-11" disabled={unansweredQuestionCount > 0 || runMutation.isPending} onClick={() => readStory(tapAnswers, "tap-questions")} data-testid="button-submit-tap-answers">
+          <Button className="min-h-12" disabled={unansweredQuestionCount > 0 || runMutation.isPending} onClick={() => readStory(tapAnswers, "tap-questions")} data-testid="button-submit-tap-answers">
             {runMutation.isPending ? "Reviewing answers…" : "Review these answers"} <ArrowRight aria-hidden="true"/>
           </Button>
-          <Button variant="outline" className="min-h-11" onClick={backToStory}>Back to my story</Button>
+          <Button variant="outline" className="min-h-12" onClick={backToStory}>Back to my story</Button>
         </div>
       </Card>}
 
@@ -301,90 +303,80 @@ export default function PatientIntakePage() {
         <header className="space-y-2">
           <p className="eyebrow">Review</p>
           <h2 className="display text-3xl font-medium">Summary</h2>
-          <p className="text-sm leading-6 text-muted-foreground">Review what was read before viewing your provisional starting stage. This is not a confirmed medical stage.</p>
+            <p className="text-sm leading-6 text-muted-foreground">Review the details and structured answers before viewing your starting stage. Your answers are editable.</p>
         </header>
         <Card className="space-y-3 p-5 sm:p-7" data-testid="summary-patient-injury">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Your story</p><h3 className="display mt-2 text-xl font-medium">Injury details</h3></div>
-            <Button variant="outline" className="min-h-11" onClick={backToStory} data-testid="button-edit-patient-story"><ArrowLeft aria-hidden="true"/>Edit story</Button>
+            <Button variant="outline" className="min-h-12" onClick={backToStory} data-testid="button-edit-patient-story"><ArrowLeft aria-hidden="true"/>Edit story</Button>
           </div>
           <p className="rounded-xl border border-border bg-background p-4 text-sm leading-6 whitespace-pre-wrap" data-testid="summary-patient-story">{story}</p>
         </Card>
 
         <Card className="space-y-4 p-5 sm:p-7">
-          <div><h3 className="display text-2xl font-medium">Symptoms</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">Anything not mentioned stays not recorded. Choose Change to edit a rating; each tap reruns the intake rules.</p></div>
+          <div><h3 className="display text-2xl font-medium">Your answers</h3><p className="mt-2 text-sm leading-6 text-muted-foreground">Choose Change to edit any structured answer. Changes are reviewed together when you continue.</p></div>
           <div className="space-y-3">
-            {decision.symptoms.map((symptom, index) => {
-              const selectedMention = tapAnswers[`mentioned_${symptom.name}`] as { noul?: number } | undefined;
-              const selectedScore = tapAnswers[`symptom_${symptom.name}`] as { score?: number } | undefined;
-              const currentLevel = selectedMention?.noul === 0 ? null : selectedScore?.score ?? symptom.level;
-              return <section key={symptom.name} className="space-y-3 rounded-xl border border-border p-4" data-testid={`summary-symptom-${index + 1}`}>
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <div><h4 className="font-semibold">{symptom.label}</h4><p className="text-sm text-muted-foreground">{currentLevel === null ? "Not recorded" : `Recorded: ${currentLevel}/10`}</p></div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="min-h-11"
-                  aria-expanded={editingSymptom === symptom.name}
-                  onClick={() => setEditingSymptom((current) => current === symptom.name ? null : symptom.name)}
-                  data-testid={`button-change-summary-${symptom.name}`}
-                >{editingSymptom === symptom.name ? "Close" : "Change"}</Button>
-              </div>
-              {editingSymptom === symptom.name && <>
-                <div className="grid grid-cols-6 gap-2 sm:grid-cols-11" role="group" aria-label={`Rate ${symptom.label} from 0 None to 10 Worst`}>
-                  {ratings.map((rating) => <Button
-                    key={rating}
-                    type="button"
-                    variant={currentLevel === rating ? "secondary" : "outline"}
-                    className="min-h-11 min-w-11 px-2"
-                    aria-pressed={currentLevel === rating}
-                    disabled={runMutation.isPending}
-                    onClick={() => updateRating(symptom.name, rating)}
-                    data-testid={`button-rating-${symptom.name}-${rating}`}
-                  >{rating}</Button>)}
+            {Object.entries(tapQuestions).map(([key, question], index) => {
+              const chosen = tapAnswers[key] as { noul?: number; choice?: string; score?: number } | undefined;
+              const inferredName = key.startsWith("symptom_") ? key.slice("symptom_".length) : "";
+              const inferredSymptom = decision.symptoms.find(symptom => symptom.name === inferredName);
+              const displayValue = chosen?.score !== undefined ? `${chosen.score}/10`
+                : inferredSymptom?.level !== null && inferredSymptom?.level !== undefined ? `${inferredSymptom.level}/10`
+                : chosen?.choice ? chosen.choice.replaceAll("_", " ")
+                  : chosen?.noul === 1 ? "Yes" : chosen?.noul === 0 ? "No" : chosen?.noul === 0.5 ? "Not sure" : "Not recorded";
+              return <section key={key} className="space-y-3 rounded-xl border border-border p-4" data-testid={`summary-answer-${index + 1}`}>
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <div><h4 className="font-semibold">{question.instructions}</h4><p className="text-sm text-muted-foreground">{displayValue}</p></div>
+                  <Button type="button" variant="outline" className="min-h-12" aria-expanded={editingSymptom === key} onClick={() => setEditingSymptom(current => current === key ? null : key)} data-testid={`button-change-answer-${key}`}>{editingSymptom === key ? "Close" : "Change"}</Button>
                 </div>
-                <div className="flex justify-between text-xs text-muted-foreground"><span>0 None</span><span>5 Moderate</span><span>10 Worst</span></div>
-                <Button type="button" variant="ghost" className="min-h-11 px-3" disabled={runMutation.isPending} onClick={() => clearRating(symptom.name)} data-testid={`button-clear-rating-${symptom.name}`}>Leave this symptom not recorded</Button>
-              </>}
-            </section>;
+                {editingSymptom === key && question.type === "score" && <>
+                  <div className="grid grid-cols-6 gap-2 sm:grid-cols-11" role="group" aria-label={`${question.instructions}, rate from 0 to 10`}>
+                    {ratings.map(rating => <Button key={rating} type="button" variant={(chosen?.score ?? inferredSymptom?.level) === rating ? "secondary" : "outline"} className="min-h-12 min-w-12 px-2" aria-pressed={(chosen?.score ?? inferredSymptom?.level) === rating} disabled={runMutation.isPending} onClick={() => { setTapAnswers(current => ({ ...current, [key]: { score: rating } })); setSummaryAnswersChanged(true); }}>{rating}</Button>)}
+                  </div>
+                  <Button type="button" variant="ghost" className="min-h-12" disabled={runMutation.isPending} onClick={() => { setTapAnswers(current => { const next = { ...current }; delete next[key]; return next; }); setSummaryAnswersChanged(true); }}>Leave not recorded</Button>
+                </>}
+                {editingSymptom === key && question.type === "noul" && <div className="flex flex-wrap gap-2">{tapQuestionAnswers.map(answer => <Button key={answer.label} type="button" variant={chosen?.noul === answer.value ? "secondary" : "outline"} className="min-h-12" aria-pressed={chosen?.noul === answer.value} disabled={runMutation.isPending} onClick={() => { answerNoul(key, answer.value); setSummaryAnswersChanged(true); }}>{answer.label}</Button>)}</div>}
+                {editingSymptom === key && question.type === "choice" && <div className="grid gap-2 sm:grid-cols-2">{Object.entries(question.criteria).map(([value, description]) => <Button key={value} type="button" variant={chosen?.choice === value ? "secondary" : "outline"} className="min-h-12 justify-start whitespace-normal text-left" aria-pressed={chosen?.choice === value} disabled={runMutation.isPending} onClick={() => { answerQuestion(key, { choice: value }); setSummaryAnswersChanged(true); }}>{value.replaceAll("_", " ")} · {description}</Button>)}</div>}
+              </section>;
             })}
           </div>
-          {runMutation.isPending && <p role="status" className="text-sm text-muted-foreground">Rerunning your story with this structured answer…</p>}
+          {runMutation.isPending && <p role="status" className="text-sm text-muted-foreground">Reviewing your updated answers…</p>}
           {actionError && <p role="alert" className="text-sm leading-6 text-destructive">{actionError}</p>}
-          {runMutation.isError && <Button variant="outline" className="min-h-11" disabled={runMutation.isPending} onClick={() => readStory(tapAnswers, "summary")}>Retry summary update</Button>}
+          {runMutation.isError && <Button variant="outline" className="min-h-12" disabled={runMutation.isPending} onClick={() => readStory(tapAnswers, "summary")}>Retry summary update</Button>}
         </Card>
         <div className="flex flex-wrap justify-end gap-3">
-          <Button variant="outline" className="min-h-11" onClick={backToStory}>Back to my story</Button>
-          <Button className="min-h-11" disabled={runMutation.isPending} onClick={() => setView("stage")} data-testid="button-summary-confirm">This looks right <ArrowRight aria-hidden="true"/></Button>
+          <Button variant="outline" className="min-h-12" onClick={backToStory}>Back to my story</Button>
+          <Button className="min-h-12" disabled={runMutation.isPending} onClick={() => summaryAnswersChanged ? readStory(tapAnswers, "summary") : setView("stage")} data-testid="button-summary-confirm">{summaryAnswersChanged ? "Review updated answers" : "This looks right"} <ArrowRight aria-hidden="true"/></Button>
         </div>
       </div>}
 
       {consent && result && decision?.outcome === "start_journal" && view === "stage" && <div className="space-y-5" data-testid="patient-intake-stage">
         {stagesQuery.isError && <Card className="flex flex-wrap items-center justify-between gap-3 p-4" role="alert">
           <p className="text-sm leading-6 text-muted-foreground">Your saved stage history could not be refreshed. This intake result remains available.</p>
-          <Button variant="outline" className="min-h-11" onClick={() => void stagesQuery.refetch()}>Retry stage history</Button>
+          <Button variant="outline" className="min-h-12" onClick={() => void stagesQuery.refetch()}>Retry stage history</Button>
         </Card>}
         <Card className="space-y-4 border-primary/30 bg-secondary p-5 sm:p-7">
           <div className="flex items-start gap-3">
             <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-background text-primary"><ShieldCheck aria-hidden="true" className="size-5"/></span>
-            <div><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Provisional · not a confirmed medical stage</p>
-              <h2 className="display mt-1 text-2xl font-medium">A provisional starting point</h2>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">This suggested stage is not a diagnosis or treatment advice. It does not confirm a medical stage.</p>
+            <div><p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Your live starting stage</p>
+              <h2 className="display mt-1 text-2xl font-medium">A place to begin</h2>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">Your starting stage is live now and can change with weekly reviews or an optional doctor review. This is general information, not a diagnosis or medical advice.</p>
             </div>
           </div>
-          {stageNumber && stageName && storedStage?.status === "provisional" && !storedStage.syntheticOnly ? <>
-            <StageIndicator stage={stageNumber}/>
-            <p className="text-sm font-semibold">Stage {stageNumber} · Pending clinician review</p>
+          {stageNumber && stageName && !storedStage?.syntheticOnly ? <>
+            <div className="grid grid-cols-6 gap-2" role="img" aria-label={`Stage ${stageNumber} of six`}>
+              {Object.keys(STAGES).map(stage => <span key={stage} className={`h-2 rounded-full ${Number(stage) <= stageNumber ? "bg-primary" : "bg-muted"}`}/>)}
+            </div>
             <p className="text-lg font-semibold">Stage {stageNumber} · {stageName}</p>
             <section className="space-y-3" aria-labelledby="why-stage-title">
-              <h3 id="why-stage-title" className="font-semibold">Why stage {stageNumber} was suggested</h3>
+              <h3 id="why-stage-title" className="font-semibold">Why stage {stageNumber}</h3>
               <ul className="space-y-2 text-sm leading-6 text-muted-foreground">
                 {decision.stage?.reasons.map((reason) => <li key={`${reason.rule}-${reason.text}`}>{PLACEMENT_REASONS[reason.rule] ?? reason.text}</li>)}
               </ul>
             </section>
           </> : <div className="space-y-3" role="alert">
-            <p className="text-sm leading-6 text-destructive">No personal provisional stage was returned for this intake.</p>
-            <Button variant="outline" className="min-h-11" disabled={runMutation.isPending} onClick={() => readStory(tapAnswers, "stage")}>Retry this intake</Button>
+            <p className="text-sm leading-6 text-destructive">No live stage was returned yet.</p>
+            <Button variant="outline" className="min-h-12" disabled={runMutation.isPending} onClick={() => readStory(tapAnswers, "stage")}>Retry this intake</Button>
           </div>}
         </Card>
 
@@ -402,10 +394,11 @@ export default function PatientIntakePage() {
 
         <Card className="space-y-3 p-5 sm:p-7">
           <h2 className="display text-2xl font-medium">What happens next</h2>
-          <p className="text-sm leading-6 text-muted-foreground">Your result is saved privately to your account. It is provisional, not a diagnosis or treatment advice. Clinician review is not available yet; seek urgent help for emergency symptoms.</p>
+            <p className="text-sm leading-6 text-muted-foreground">Your stage is saved and live. This is general information, not a diagnosis or treatment advice. Follow guidance from your clinician and seek urgent help for emergencies.</p>
           <div className="flex flex-wrap gap-3">
-            <Button className="min-h-11" onClick={() => setLocation("/dashboard")} data-testid="button-intake-dashboard">Return to dashboard <ArrowRight aria-hidden="true"/></Button>
-            <Button variant="outline" className="min-h-11" onClick={() => setView("summary")} data-testid="button-back-to-summary"><ArrowLeft aria-hidden="true"/>Back to summary</Button>
+            <Button className="min-h-12" onClick={() => setLocation("/dashboard")} data-testid="button-intake-dashboard">Go to dashboard <ArrowRight aria-hidden="true"/></Button>
+            <Button variant="outline" className="min-h-12" asChild><Link href="/dashboard/invite-doctor">Invite your doctor</Link></Button>
+            <Button variant="outline" className="min-h-12" onClick={() => setView("summary")} data-testid="button-back-to-summary"><ArrowLeft aria-hidden="true"/>Back to summary</Button>
           </div>
         </Card>
       </div>}
@@ -413,8 +406,8 @@ export default function PatientIntakePage() {
       {consent && result && decision?.outcome === "find_doctor" && view === "doctor" && <Card className="space-y-4 border-notice-border bg-notice p-5 sm:p-7" role="status">
         <p className="eyebrow">No stage suggested</p><h2 className="display text-3xl font-medium">Please check in with a clinician first</h2>
         <p className="text-sm leading-6">{decision.stageNote ?? decision.headline}</p>
-        <Button className="min-h-11" onClick={() => setLocation("/dashboard")}>Return to dashboard <ArrowRight aria-hidden="true"/></Button>
-        <Button variant="outline" className="min-h-11" onClick={backToStory}>Back to my story</Button>
+        <Button className="min-h-12" onClick={() => setLocation("/dashboard")}>Return to dashboard <ArrowRight aria-hidden="true"/></Button>
+        <Button variant="outline" className="min-h-12" onClick={backToStory}>Back to my story</Button>
       </Card>}
 
       {consent && actionError && view === "story" && <p role="alert" className="text-sm leading-6 text-destructive" data-testid="alert-intake-error">{actionError}</p>}

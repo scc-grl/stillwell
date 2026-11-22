@@ -30,7 +30,7 @@ export default function AccountTypeChoicePage() {
               <CardHeader>
                 <CardTitle className="display text-2xl font-medium">I’m here for my recovery</CardTitle>
                 <CardDescription className="leading-6">
-                  Create a private journal to reflect on your recovery in your own way.
+                  Create a private recovery notebook to record the days you choose.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -39,7 +39,7 @@ export default function AccountTypeChoicePage() {
                 </p>
               </CardContent>
               <CardFooter>
-                <Button asChild className="w-full">
+                <Button asChild className="min-h-12 w-full">
                   <Link href="/sign-up/patient" aria-label="Create a patient account" onClick={() => rememberAccountChoice("patient")}>
                     Continue as a patient <ArrowRight aria-hidden="true" />
                   </Link>
@@ -59,7 +59,7 @@ export default function AccountTypeChoicePage() {
                 </p>
               </CardContent>
               <CardFooter>
-                <Button asChild variant="outline" className="w-full">
+                <Button asChild variant="outline" className="min-h-12 w-full">
                   <Link href="/clinicians/join" aria-label="Create a clinician account">
                     Continue as a clinician <ArrowRight aria-hidden="true" />
                   </Link>
@@ -69,7 +69,7 @@ export default function AccountTypeChoicePage() {
           </div>
           <p className="mt-7 text-sm text-muted-foreground">
             Already have an account?{" "}
-            <Link href="/sign-in" className="font-semibold text-primary underline-offset-4 hover:underline">Sign in</Link>
+            <Link href="/sign-in" className="inline-flex min-h-12 items-center font-semibold text-primary underline-offset-4 hover:underline">Sign in</Link>
           </p>
         </section>
       </div>

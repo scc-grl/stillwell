@@ -7,6 +7,7 @@ import { getClerkProxyHost } from "../middlewares/clerkProxyMiddleware";
 import { careDeliveryResponse } from "../lib/care-team-email";
 import { allowedRequestOrigin } from "../lib/request-origin";
 import { logger } from "../lib/logger";
+import { pool } from "@workspace/db";
 
 const router = Router();
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -53,6 +54,8 @@ function endpoint(handler: Handler, status = 200) {
         throw new CareTeamError("cross_origin", "Cross-origin access is not permitted.", 403);
       const userId = getAuth(req).userId;
       if (!userId) throw new CareTeamError("sign_in_required", "Please sign in to continue.", 401);
+      const { rows: deleting } = await pool.query("SELECT owner_id FROM recovery_account_deletions WHERE owner_id=$1", [userId]);
+      if (deleting.length) throw new CareTeamError("account_deletion_pending", "Account deletion is waiting to finish. Retry Delete account.", 409);
       const result = await handler(req, await careIdentity(userId));
       if (status === 204) res.sendStatus(204);
       else res.status(status).json(result);

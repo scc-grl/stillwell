@@ -47,6 +47,11 @@ test("journal dates and query values never appear in access-log paths", () => {
   assert.equal(requestLogPath("/api/recovery/logs/2026-10-08?ownerId=private"), "/api/recovery/logs/:date");
   assert.equal(requestLogPath("/api/recovery?ownerId=private"), "/api/recovery");
 });
+test("MVP journal dates and doctor patient identifiers are redacted", () => {
+  assert.equal(requestLogPath("/api/recovery/mvp/journal/2026-11-22?private=value"), "/api/recovery/mvp/journal/:date");
+  assert.equal(requestLogPath("/api/clinician/mvp/patients/private-id"), "/api/clinician/mvp/patients/:id");
+  assert.equal(requestLogPath("/api/clinician/mvp/patients/private-id/stage"), "/api/clinician/mvp/patients/:id/stage");
+});
 
 test("clinician journal page URLs redact both connection IDs and calendar dates", () => {
   assert.equal(requestLogPath("/clinician/patients/private-id?email=private"), "/clinician/patients/:id");

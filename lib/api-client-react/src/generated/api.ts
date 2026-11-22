@@ -27,6 +27,7 @@ import type {
 import type {
   AcceptPatientCareInvite200,
   AcceptPatientCareInviteDefault,
+  AccountDeletionInput,
   AccountRegistrationIntent,
   AccountRegistrationIntentInput,
   AccountTypeResponse,
@@ -51,6 +52,8 @@ import type {
   CreatePatientCareInvite201,
   CreatePatientCareInviteBody,
   CreatePatientCareInviteDefault,
+  DoctorMvpPatient,
+  DoctorStageInput,
   GetCarePatientJournalDefault,
   GetCarePatientJournalParams,
   GetMyCarePatients200,
@@ -62,6 +65,10 @@ import type {
   IntakeConsent,
   IntakeConsentInput,
   JournalShareAreasInput,
+  MvpEntry,
+  MvpJournalInput,
+  MvpRecovery,
+  MvpStage,
   NewsletterSubscriptionAccepted,
   NewsletterSubscriptionInput,
   NewsletterUnsubscriptionAccepted,
@@ -129,6 +136,444 @@ const withQueryKey = <T extends object, K>(query: T, queryKey: K): T & { queryKe
   }
   return result;
 };
+
+export const getGetMvpRecoveryUrl = () => {
+
+
+
+
+  return `/api/recovery/mvp`
+}
+
+export const getMvpRecovery = async ( options?: Parameters<typeof customFetch>[1]): Promise<MvpRecovery> => {
+
+  return customFetch<MvpRecovery>(getGetMvpRecoveryUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMvpRecoveryQueryKey = () => {
+    return [
+    `/api/recovery/mvp`
+    ] as const;
+    }
+
+
+export const getGetMvpRecoveryQueryOptions = <TData = Awaited<ReturnType<typeof getMvpRecovery>>, TError = ErrorType<unknown>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMvpRecovery>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMvpRecoveryQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMvpRecovery>>> = ({ signal }) => getMvpRecovery({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMvpRecovery>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetMvpRecoveryQueryResult = NonNullable<Awaited<ReturnType<typeof getMvpRecovery>>>
+export type GetMvpRecoveryQueryError = ErrorType<unknown>
+
+
+export function useGetMvpRecovery<TData = Awaited<ReturnType<typeof getMvpRecovery>>, TError = ErrorType<unknown>>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMvpRecovery>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMvpRecovery>>,
+          TError,
+          Awaited<ReturnType<typeof getMvpRecovery>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMvpRecovery<TData = Awaited<ReturnType<typeof getMvpRecovery>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMvpRecovery>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMvpRecovery>>,
+          TError,
+          Awaited<ReturnType<typeof getMvpRecovery>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetMvpRecovery<TData = Awaited<ReturnType<typeof getMvpRecovery>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMvpRecovery>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetMvpRecovery<TData = Awaited<ReturnType<typeof getMvpRecovery>>, TError = ErrorType<unknown>>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getMvpRecovery>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetMvpRecoveryQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSaveMvpJournalUrl = (date: string,) => {
+
+
+
+
+  return `/api/recovery/mvp/journal/${date}`
+}
+
+export const saveMvpJournal = async (date: string,
+    mvpJournalInput: MvpJournalInput, options?: Parameters<typeof customFetch>[1]): Promise<MvpEntry> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<MvpEntry>(getSaveMvpJournalUrl(date),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(mvpJournalInput)
+  }
+);}
+
+
+
+
+
+export const getSaveMvpJournalMutationKey = () => ['saveMvpJournal'] as const;
+
+export const getSaveMvpJournalMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveMvpJournal>>, TError,SaveMvpJournalMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveMvpJournal>>, TError,SaveMvpJournalMutationVariables, TContext> => {
+
+const mutationKey = getSaveMvpJournalMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveMvpJournal>>, SaveMvpJournalMutationVariables> = (props) => {
+          const {date,data} = props ?? {};
+
+          return  saveMvpJournal(date,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveMvpJournalMutationResult = NonNullable<Awaited<ReturnType<typeof saveMvpJournal>>>
+    export type SaveMvpJournalMutationBody = BodyType<MvpJournalInput>
+    export type SaveMvpJournalMutationError = ErrorType<unknown>
+    export type SaveMvpJournalMutationVariables = {date: string;data: BodyType<MvpJournalInput>}
+
+    export const useSaveMvpJournal = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveMvpJournal>>, TError,SaveMvpJournalMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof saveMvpJournal>>,
+        TError,
+        SaveMvpJournalMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSaveMvpJournalMutationOptions(options), queryClient);
+    }
+
+export const getDeletePatientAccountUrl = () => {
+
+
+
+
+  return `/api/recovery/account`
+}
+
+export const deletePatientAccount = async (accountDeletionInput: AccountDeletionInput, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<void>(getDeletePatientAccountUrl(),
+  {
+    ...options,
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(accountDeletionInput)
+  }
+);}
+
+
+
+
+
+export const getDeletePatientAccountMutationKey = () => ['deletePatientAccount'] as const;
+
+export const getDeletePatientAccountMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePatientAccount>>, TError,DeletePatientAccountMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deletePatientAccount>>, TError,DeletePatientAccountMutationVariables, TContext> => {
+
+const mutationKey = getDeletePatientAccountMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deletePatientAccount>>, DeletePatientAccountMutationVariables> = (props) => {
+          const {data} = props ?? {};
+
+          return  deletePatientAccount(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeletePatientAccountMutationResult = NonNullable<Awaited<ReturnType<typeof deletePatientAccount>>>
+    export type DeletePatientAccountMutationBody = BodyType<AccountDeletionInput>
+    export type DeletePatientAccountMutationError = ErrorType<unknown>
+    export type DeletePatientAccountMutationVariables = {data: BodyType<AccountDeletionInput>}
+
+    export const useDeletePatientAccount = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deletePatientAccount>>, TError,DeletePatientAccountMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof deletePatientAccount>>,
+        TError,
+        DeletePatientAccountMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDeletePatientAccountMutationOptions(options), queryClient);
+    }
+
+export const getGetDoctorMvpPatientUrl = (id: string,) => {
+
+
+
+
+  return `/api/clinician/mvp/patients/${id}`
+}
+
+export const getDoctorMvpPatient = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<DoctorMvpPatient> => {
+
+  return customFetch<DoctorMvpPatient>(getGetDoctorMvpPatientUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDoctorMvpPatientQueryKey = (id: string,) => {
+    return [
+    `/api/clinician/mvp/patients/${id}`
+    ] as const;
+    }
+
+
+export const getGetDoctorMvpPatientQueryOptions = <TData = Awaited<ReturnType<typeof getDoctorMvpPatient>>, TError = ErrorType<unknown>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDoctorMvpPatient>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDoctorMvpPatientQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDoctorMvpPatient>>> = ({ signal }) => getDoctorMvpPatient(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDoctorMvpPatient>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetDoctorMvpPatientQueryResult = NonNullable<Awaited<ReturnType<typeof getDoctorMvpPatient>>>
+export type GetDoctorMvpPatientQueryError = ErrorType<unknown>
+
+
+export function useGetDoctorMvpPatient<TData = Awaited<ReturnType<typeof getDoctorMvpPatient>>, TError = ErrorType<unknown>>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDoctorMvpPatient>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDoctorMvpPatient>>,
+          TError,
+          Awaited<ReturnType<typeof getDoctorMvpPatient>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDoctorMvpPatient<TData = Awaited<ReturnType<typeof getDoctorMvpPatient>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDoctorMvpPatient>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getDoctorMvpPatient>>,
+          TError,
+          Awaited<ReturnType<typeof getDoctorMvpPatient>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetDoctorMvpPatient<TData = Awaited<ReturnType<typeof getDoctorMvpPatient>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDoctorMvpPatient>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetDoctorMvpPatient<TData = Awaited<ReturnType<typeof getDoctorMvpPatient>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getDoctorMvpPatient>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetDoctorMvpPatientQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getChangeDoctorMvpStageUrl = (id: string,) => {
+
+
+
+
+  return `/api/clinician/mvp/patients/${id}/stage`
+}
+
+export const changeDoctorMvpStage = async (id: string,
+    doctorStageInput: DoctorStageInput, options?: Parameters<typeof customFetch>[1]): Promise<MvpStage> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<MvpStage>(getChangeDoctorMvpStageUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(doctorStageInput)
+  }
+);}
+
+
+
+
+
+export const getChangeDoctorMvpStageMutationKey = () => ['changeDoctorMvpStage'] as const;
+
+export const getChangeDoctorMvpStageMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof changeDoctorMvpStage>>, TError,ChangeDoctorMvpStageMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof changeDoctorMvpStage>>, TError,ChangeDoctorMvpStageMutationVariables, TContext> => {
+
+const mutationKey = getChangeDoctorMvpStageMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof changeDoctorMvpStage>>, ChangeDoctorMvpStageMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  changeDoctorMvpStage(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ChangeDoctorMvpStageMutationResult = NonNullable<Awaited<ReturnType<typeof changeDoctorMvpStage>>>
+    export type ChangeDoctorMvpStageMutationBody = BodyType<DoctorStageInput>
+    export type ChangeDoctorMvpStageMutationError = ErrorType<unknown>
+    export type ChangeDoctorMvpStageMutationVariables = {id: string;data: BodyType<DoctorStageInput>}
+
+    export const useChangeDoctorMvpStage = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof changeDoctorMvpStage>>, TError,ChangeDoctorMvpStageMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof changeDoctorMvpStage>>,
+        TError,
+        ChangeDoctorMvpStageMutationVariables,
+        TContext
+      > => {
+      return useMutation(getChangeDoctorMvpStageMutationOptions(options), queryClient);
+    }
 
 export const getGetRecoveryIntakeStatusUrl = () => {
 

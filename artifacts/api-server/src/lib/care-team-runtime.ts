@@ -7,10 +7,10 @@ import { safeEmailProviderErrorCode, sendCareEmail, type CareEmailPayload } from
 import { logger } from "./logger";
 
 const resend = new ReplitConnectors();
-async function sendThroughResend(payload: CareEmailPayload) {
+export async function sendThroughResend(payload: CareEmailPayload, idempotencyKey?: string) {
   const response = await resend.proxy("resend", "/emails", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}) },
     body: JSON.stringify(payload),
   });
   if (!response.ok) {

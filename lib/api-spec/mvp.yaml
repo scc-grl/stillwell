@@ -1,0 +1,168 @@
+paths:
+  /recovery/mvp:
+    get:
+      operationId: getMvpRecovery
+      tags: [recovery]
+      responses:
+        "200":
+          description: Private patient dashboard, recorded days and live stage history.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MvpRecovery" }
+  /recovery/mvp/journal/{date}:
+    put:
+      operationId: saveMvpJournal
+      tags: [recovery]
+      parameters:
+        - { in: path, name: date, required: true, schema: { type: string, pattern: '^\d{4}-\d{2}-\d{2}$' } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/MvpJournalInput" }
+      responses:
+        "200":
+          description: Entry saved; server-computed warning never prevents saving.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MvpEntry" }
+  /recovery/account:
+    delete:
+      operationId: deletePatientAccount
+      tags: [recovery]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AccountDeletionInput" }
+      responses:
+        "204": { description: Patient records and sign-in deleted; doctor accounts retained. }
+  /clinician/mvp/patients/{id}:
+    get:
+      operationId: getDoctorMvpPatient
+      tags: [journal-sharing]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200":
+          description: Authorized doctor projection; never includes patient notes.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DoctorMvpPatient" }
+  /clinician/mvp/patients/{id}/stage:
+    post:
+      operationId: changeDoctorMvpStage
+      tags: [journal-sharing]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DoctorStageInput" }
+      responses:
+        "200":
+          description: Live doctor override recorded with required note.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MvpStage" }
+components:
+  schemas:
+    MvpScores:
+      type: object
+      additionalProperties: false
+      required: [headache, fog, light, sleep]
+      properties:
+        headache: { type: [integer, "null"], minimum: 0, maximum: 10 }
+        fog: { type: [integer, "null"], minimum: 0, maximum: 10 }
+        light: { type: [integer, "null"], minimum: 0, maximum: 10 }
+        sleep: { type: [integer, "null"], minimum: 0, maximum: 10 }
+    MvpJournalInput:
+      type: object
+      additionalProperties: false
+      required: [scores, planScore, note, timezone]
+      properties:
+        scores: { $ref: "#/components/schemas/MvpScores" }
+        planScore: { type: [integer, "null"], minimum: 0, maximum: 10 }
+        note: { type: string, maxLength: 4000 }
+        timezone: { type: string, maxLength: 100 }
+        explainNotes:
+          type: boolean
+          description: Explicit optional consent to use this day's private note for a weekly explanation only.
+    MvpEntry:
+      type: object
+      required: [date, scores, planScore, note, flagged, updatedAt, explainNotes]
+      properties:
+        date: { type: string }
+        scores: { $ref: "#/components/schemas/MvpScores" }
+        planScore: { type: [integer, "null"] }
+        note: { type: string }
+        explainNotes: { type: boolean }
+        flagged: { type: boolean }
+        updatedAt: { type: string }
+    MvpStage:
+      type: object
+      required: [id, stage, source, reasons, ruleIds, rulesVersion, createdAt]
+      properties:
+        id: { type: string }
+        stage: { type: string, enum: ["1", "2", "3", "4", "5", "6", maintenance] }
+        source: { type: string, enum: [intake, weekly, clinician] }
+        reasons:
+          type: array
+          items: { type: string }
+        ruleIds:
+          type: array
+          items: { type: string }
+        rulesVersion: { type: string }
+        createdAt: { type: string }
+    MvpRecovery:
+      type: object
+      required: [entries, stages, daysThisWeek, nextCheck, timezone]
+      properties:
+        entries:
+          type: array
+          items: { $ref: "#/components/schemas/MvpEntry" }
+        stages:
+          type: array
+          items: { $ref: "#/components/schemas/MvpStage" }
+        daysThisWeek: { type: integer }
+        nextCheck: { type: string }
+        timezone: { type: string }
+    DoctorStageInput:
+      type: object
+      additionalProperties: false
+      required: [stage, note]
+      properties:
+        stage: { type: string, enum: ["1", "2", "3", "4", "5", "6", maintenance] }
+        note: { type: string, minLength: 1, maxLength: 1000 }
+    AccountDeletionInput:
+      type: object
+      additionalProperties: false
+      required: [confirmation]
+      properties:
+        confirmation: { type: string, enum: ["DELETE"] }
+    DoctorMvpDay:
+      type: object
+      required: [date, scores, planScore, flagged, jumpSymptoms]
+      properties:
+        date: { type: string }
+        scores: { $ref: "#/components/schemas/MvpScores" }
+        planScore: { type: [integer, "null"] }
+        flagged: { type: boolean }
+        jumpSymptoms:
+          type: array
+          items: { type: string, enum: [headache, fog, light, sleep] }
+    DoctorMvpPatient:
+      type: object
+      required: [id, name, status, days, stages, periodEnd]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        status: { type: string, enum: [active, former] }
+        periodEnd: { type: string }
+        days:
+          type: array
+          items: { $ref: "#/components/schemas/DoctorMvpDay" }
+        stages:
+          type: array
+          items: { $ref: "#/components/schemas/MvpStage" }

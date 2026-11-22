@@ -4,7 +4,8 @@ import test from "node:test";
 
 const page = readFileSync(new URL("../pages/PatientIntakePage.tsx", import.meta.url), "utf8");
 const editor = readFileSync(new URL("../components/IntakeStoryEditor.tsx", import.meta.url), "utf8");
-const dashboard = readFileSync(new URL("../pages/DashboardPage.tsx", import.meta.url), "utf8");
+const dashboard = readFileSync(new URL("../pages/MvpPatientPages.tsx", import.meta.url), "utf8");
+const backend = readFileSync(new URL("../../../api-server/src/lib/web-mvp.ts", import.meta.url), "utf8");
 const app = readFileSync(new URL("../App.tsx", import.meta.url), "utf8");
 
 test("patient route remains patient-gated and uses the current status and consent APIs", () => {
@@ -22,7 +23,7 @@ test("consent is explicit and a patient story editor is only mounted after a suc
   assert.match(page, /TypeSafe reads the story and intake answers/);
   assert.match(page, /profile, name, email, and ID are not sent/);
   assert.match(page, /saved privately to your account/);
-  assert.match(page, /does not save or trace the raw story/);
+  assert.match(page, /not saved or traced by Stillwell as raw story text/);
   assert.match(page, /basic email and phone filter is not full de-identification/);
   assert.match(page, /INTAKE_CONSENT_VERSION/);
 });
@@ -52,7 +53,7 @@ test("account changes discard in-memory story and ignore old in-flight results",
   assert.match(page, /setStory\(""\); setConsent\(null\); setResult\(null\); setTapAnswers\(\{\}\)/);
   assert.match(page, /\}, \[userId\]\)/);
   assert.match(page, /queryKey: \[\.\.\.getGetRecoveryStagesQueryKey\(\), userId\]/);
-  assert.match(dashboard, /queryKey: \[\.\.\.getGetRecoveryStagesQueryKey\(\), userId\]/);
+  assert.match(dashboard, /getGetMvpRecoveryQueryKey\(\), owner/);
   assert.match(page, /if \(requestUser !== currentUser\.current\) return;/);
 });
 
@@ -65,9 +66,9 @@ test("disabled status provides journal access without mounting story controls", 
 });
 
 test("summary preserves editable story and structured 0–10 symptom ratings", () => {
-  assert.match(page, /decision\.symptoms\.map/);
+  assert.match(page, /Object\.entries\(tapQuestions\)/);
   assert.match(page, /Array\.from\(\{ length: 11 \}/);
-  assert.match(page, /symptom_\$\{name\}.*score: rating/s);
+  assert.match(page, /answerQuestion\(key, \{ score: rating \}\)/);
   assert.match(page, /button-edit-patient-story/);
   assert.match(page, /setView\("story"\)/);
   assert.match(page, /PLACEMENT_REASONS\[reason\.rule\]/);
@@ -81,17 +82,14 @@ test("emergency screen receives the local story and adds no warning buttons", ()
 });
 
 test("dashboard personal stage excludes synthetic history and provides Start intake", () => {
-  assert.match(dashboard, /stage\.syntheticOnly/);
-  assert.match(dashboard, /\.filter\(\(stage\) => !stage\.syntheticOnly\)/);
-  assert.match(dashboard, /Stage \$\{previewStageNumber\} · Pending clinician review/);
-  assert.match(dashboard, /Older synthetic sample history is excluded from your personal stages/);
-  assert.match(dashboard, /data-testid="button-start-intake">Start intake/);
+  assert.match(backend, /synthetic_only=false/);
+  assert.match(dashboard, /useGetMvpRecovery/);
+  assert.doesNotMatch(dashboard, /Pending clinician review/);
+  assert.match(dashboard, /href="\/dashboard\/intake">Start intake/);
 });
 test("production dashboard intake follows server status, not a development build flag", () => {
-  assert.doesNotMatch(dashboard, /import\.meta\.env\.DEV/);
-  assert.match(dashboard, /useGetRecoveryIntakeStatus/);
-  assert.match(dashboard, /intakeStatusQuery\.data\?\.enabled === true && <Button/);
-  assert.match(dashboard, /intakeStatusQuery\.data\?\.enabled === true \|\| previewStage \|\| syntheticStagesQuery\.isError/);
+  assert.match(page, /useGetRecoveryIntakeStatus/);
+  assert.match(page, /statusQuery\.data\?\.enabled === true/);
   assert.doesNotMatch(page, /Development preview/);
-  assert.match(page, /not a confirmed medical stage/);
+  assert.doesNotMatch(page, /Pending clinician review|not a confirmed medical stage/);
 });

@@ -1,6 +1,9 @@
 export function requestLogPath(url: string | undefined): string | undefined {
   const path = url?.split("?")[0];
   const lowerPath = path?.toLowerCase();
+  if (/^\/api\/recovery\/mvp\/journal\//i.test(path ?? "")) return "/api/recovery/mvp/journal/:date";
+  if (/^\/api\/clinician\/mvp\/patients\/[^/]+\/stage\/?$/i.test(path ?? "")) return "/api/clinician/mvp/patients/:id/stage";
+  if (/^\/api\/clinician\/mvp\/patients\//i.test(path ?? "")) return "/api/clinician/mvp/patients/:id";
   if (/^\/clinician\/patients\/[^/]+\/days\/[^/]+\/?$/i.test(path ?? "")) return "/clinician/patients/:id/days/:date";
   if (/^\/clinician\/patients\/[^/]+(?:\/.*)?$/i.test(path ?? "")) return "/clinician/patients/:id";
   if (/^\/(?:api\/)?invite\/[^/]+(?:\/.*)?$/i.test(path ?? "")) return lowerPath?.startsWith("/api/") ? "/api/invite/:token" : "/invite/:token";

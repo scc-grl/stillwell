@@ -5,6 +5,8 @@ import { boolean, check, index, jsonb, pgTable, text, timestamp, uniqueIndex, uu
 export const careTeamLinks = pgTable("care_team_links", {
   id: uuid("id").primaryKey().defaultRandom(),
   patientId: text("patient_id"),
+  // Survives disconnect only to honor full-account erasure of former copies.
+  retainedOwnerId: text("retained_owner_id"),
   clinicianId: text("clinician_id").notNull(),
   patientFirstName: text("patient_first_name").notNull(),
   patientLastName: text("patient_last_name").notNull(),

@@ -47,7 +47,19 @@ When a patient disconnects, the clinician keeps a frozen copy of the shared jour
 
 **Why:** The user stated the founder decisions: “When a patient disconnects, the patient history is kept by the clinician and doesn't disappear but they will no longer be updated”; frozen copies survive patient deletions and are kept until the clinician removes them.
 
-**How to apply:** Keep snapshot lifetime independent of the live patient profile and journal. Never cascade patient deletion into a clinician-owned snapshot, and never update a former snapshot from current patient data.
+**How to apply:** Keep snapshot lifetime independent of live journal edits and delete-all recovery data; never update a former snapshot from current patient data. Full sign-in account deletion is the newer exception below.
+
+## Web MVP stage decisions and full account erasure
+
+The founder approved a web-only MVP where written stages are live immediately, without a clinician-confirmation step. Weekly decisions use daily symptom-score baselines, not inferred activity tolerance: baseline is each symptom's prior-seven-day average (intake scores in the first week); fewer than four days holds; a saved warning or a rise of at least three on two days steps back; all days within two and an average recovery-plan score of at least five moves up; otherwise hold. Thresholds must remain in one versioned configuration. These MVP rules await clinical review.
+
+Full **account deletion** deletes everything tied to the patient, including doctor-written notes, doctor access and retained former copies. The doctor's own account stays. This differs from **delete all recovery data**, which still freezes shared history and retains former copies.
+
+Doctors in the web MVP may override the stage with a note, but must never receive patient-written or dictated journal notes.
+
+**Why:** The founder explicitly supplied these MVP rules and the account-erasure decision after the earlier frozen-copy policy.
+
+**How to apply:** Distinguish the two deletion actions in UI and backend. Never infer missing scores as zero or allow AI explanations to change numeric decisions. Do not reuse an unrestricted legacy clinician reader to expose private patient notes.
 
 ## Patient invitation consent
 

@@ -144,14 +144,14 @@ function InviteScreen({ token }: { token: string }) {
   }
 
   const shell = (node: ReactNode) => <LinkShell signedInAs={isSignedIn ? signedInAs : null}>{node}</LinkShell>;
-  const portalButton = <Button onClick={exitToPortal} data-testid="button-go-portal">Go to the clinician portal</Button>;
+  const portalButton = <Button className="min-h-12" onClick={exitToPortal} data-testid="button-go-portal">Go to the clinician portal</Button>;
   const invalid = shell(<EdgeCard icon={Link2Off} heading="This link isn’t valid" testId="invite-invalid"
     body="Open the most recent invite email, or ask the person who invited you to send a new one. Nothing was shared.">
     {portalButton}
   </EdgeCard>);
   const retry = (onRetry: () => void) => shell(<EdgeCard icon={CloudOff} heading="We couldn’t open this invite"
     body="Check your connection and try again. Nothing was shared." testId="invite-retry">
-    <Button onClick={onRetry} data-testid="button-invite-retry">Try again</Button>
+    <Button className="min-h-12" onClick={onRetry} data-testid="button-invite-retry">Try again</Button>
   </EdgeCard>);
   const loading = shell(<LoadingBlock label="Loading the invite" />);
   const expired = shell(<EdgeCard icon={Clock3} heading="This invite has expired" testId="invite-expired"
@@ -162,7 +162,7 @@ function InviteScreen({ token }: { token: string }) {
     body={`It can’t be accepted again, and nothing new was shared. If you think that’s a mistake, ask ${firstName} to invite you again.`}>{portalButton}</EdgeCard>);
   const patientEdge = shell(<EdgeCard icon={Briefcase} heading="This invite is for a clinician account" testId="invite-patient-account"
     body={<><p>You’re signed in to a patient journal with this email. Clinician access needs a separate clinician account, so your own journal stays private.</p><p>Sign out, create a clinician account with your work email, and ask {firstName} to send the invite there.</p></>}>
-    <Button onClick={() => void signOutPatient()} data-testid="button-invite-sign-out">Sign out</Button>
+    <Button className="min-h-12" onClick={() => void signOutPatient()} data-testid="button-invite-sign-out">Sign out</Button>
     <ErrorLine>{actionError}</ErrorLine>
   </EdgeCard>);
 
@@ -221,8 +221,8 @@ function InviteScreen({ token }: { token: string }) {
           {verifying
             ? <EmailVerification variant="invite" onCancel={() => setVerifying(false)} onVerified={() => { setVerifying(false); void review.refetch(); }} />
             : <>
-              <Button onClick={() => void switchAccount()} data-testid="button-switch-account">Sign out and switch account</Button>
-              <Button variant="outline" onClick={() => setVerifying(true)} data-testid="button-add-email">Add and verify this email</Button>
+              <Button className="min-h-12" onClick={() => void switchAccount()} data-testid="button-switch-account">Sign out and switch account</Button>
+              <Button variant="outline" className="min-h-12" onClick={() => setVerifying(true)} data-testid="button-add-email">Add and verify this email</Button>
             </>}
           <ErrorLine>{actionError}</ErrorLine>
         </EdgeCard>);
@@ -242,15 +242,15 @@ function InviteScreen({ token }: { token: string }) {
     const owned = [...patients.data.active, ...patients.data.former].some((patient) => patient.id === ownedId);
     if (!owned) return used;
     return shell(<EdgeCard icon={CheckCheck} heading="You’ve already accepted this invite" testId="invite-already-accepted"
-      body={`${firstName}’s journal is in your patient list.`}>
-      <Button onClick={() => { pendingLink.clear(token); queryClient.removeQueries({ queryKey: review.queryKey }); goJournal(ownedId); }} data-testid="button-open-journal">Open {firstName}’s journal</Button>
+      body={`${firstName}’s recovery scores and stage history are in your patient list. Private journal notes are not shared.`}>
+      <Button className="min-h-12" onClick={() => { pendingLink.clear(token); queryClient.removeQueries({ queryKey: review.queryKey }); goJournal(ownedId); }} data-testid="button-open-journal">Open {firstName}’s recovery summary</Button>
     </EdgeCard>);
   }
 
   if (acceptFailed) {
     return shell(<EdgeCard icon={CloudOff} heading="We couldn’t accept this invite" testId="invite-accept-failed"
       body="Nothing was connected. Check your connection and try again.">
-      <Button disabled={accept.isPending} onClick={runAccept} data-testid="button-accept-retry">{accept.isPending ? "Accepting…" : "Try again"}</Button>
+      <Button className="min-h-12" disabled={accept.isPending} onClick={runAccept} data-testid="button-accept-retry">{accept.isPending ? "Accepting…" : "Try again"}</Button>
     </EdgeCard>);
   }
   return shell(<LoadingBlock label="Accepting the invite" />);

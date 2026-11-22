@@ -17,7 +17,7 @@ const story = "Fictional soccer match story; fake@example.test or +1 415-555-012
 before(async () => {
   await admin.query(`CREATE SCHEMA ${schema}`);
   pool = new Pool({ connectionString: process.env.DATABASE_URL, options: `-c search_path=${schema},public` });
-  for (const table of ["recovery_intake_consents", "recovery_intake_attempts", "recovery_stages"]) {
+  for (const table of ["recovery_intake_consents", "recovery_intake_attempts", "recovery_stages", "recovery_intake_baselines", "recovery_stage_emails", "care_team_links", "recovery_profiles"]) {
     await pool.query(`CREATE TABLE ${schema}.${table} (LIKE public.${table} INCLUDING ALL)`);
   }
   await pool.query("CREATE TABLE recovery_logs(owner_id text, date date, data jsonb, updated_at timestamptz DEFAULT now())");
@@ -25,7 +25,7 @@ before(async () => {
   decision = (await runIntake("fictional", { client: fakeClient(calm) })).decision;
 });
 beforeEach(async () => {
-  await pool.query("TRUNCATE recovery_stages,recovery_intake_consents,recovery_intake_attempts CASCADE");
+  await pool.query("TRUNCATE recovery_stages,recovery_intake_consents,recovery_intake_attempts,recovery_intake_baselines,recovery_stage_emails,care_team_links CASCADE");
   calls = [];
   service = new PatientIntakeService(pool, async (note, answered) => {
     calls.push({ note, answered });

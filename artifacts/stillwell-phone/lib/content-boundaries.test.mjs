@@ -28,9 +28,9 @@ for (const [surface, roots] of [
   });
 }
 
-test("landing page uses the treatment-recommendations boundary", async () => {
+test("web MVP landing retains its medical-advice boundary", async () => {
   const source = await readFile(new URL("website/src/App.tsx", artifacts), "utf8");
   assert.ok(source.includes(
-    "No treatment recommendations, activity prescriptions, or per-person medical algorithms.",
+    "Stillwell offers general recovery information, not medical advice or emergency care.",
   ));
 });

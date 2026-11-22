@@ -43,19 +43,19 @@ export function InviteSignedOut({
       <div className="max-w-xl space-y-5 md:my-auto">
         <Eyebrow>An invite for you</Eyebrow>
         <h1 id="invite-title" className="font-serif text-4xl font-medium leading-tight sm:text-5xl" data-testid="text-invite-title">
-          {firstName} invited you to view their recovery journal
+          {firstName} invited you to review their recovery scores
         </h1>
         <p className="text-base leading-7 text-secondary-foreground">
-          Stillwell is a private, self-guided recovery journal. {firstName} has chosen to share theirs with you.
+          Stillwell is a private concussion recovery notebook. {firstName} has chosen to share a limited recovery summary with you.
         </p>
         <div className="grid gap-3 sm:grid-cols-2">
           <Card className="space-y-2 p-5">
             <h2 className="text-sm font-semibold">You’ll see</h2>
-            <p className="text-sm leading-6 text-muted-foreground">Daily symptom ratings (0–10), routine logs, notes and focus areas, including past entries.</p>
+            <p className="text-sm leading-6 text-muted-foreground">Only symptom scores, recovery-plan scores, current stage, stage reasons, and stage history. You can override the patient’s stage and record a review note.</p>
           </Card>
           <Card className="space-y-2 p-5">
             <h2 className="text-sm font-semibold">You can’t</h2>
-            <p className="text-sm leading-6 text-muted-foreground">Edit anything. {firstName} can remove your access at any time.</p>
+            <p className="text-sm leading-6 text-muted-foreground">You cannot edit journal entries or see the patient’s written or dictated notes. {firstName} can remove your access at any time.</p>
           </Card>
         </div>
         <p className="text-xs leading-5 text-muted-foreground">Patient-reported, not a clinical record. This invite expires {expiresOn}.</p>
@@ -75,7 +75,7 @@ export function InviteSignedOut({
             aria-invalid={Boolean(error)} aria-describedby={error ? "invite-email-error" : undefined}
             className="min-h-12" data-testid="input-invite-email" />
           {error ? <p id="invite-email-error" role="alert" className="text-sm text-destructive">{error}</p> : null}
-          <Button type="submit" className="w-full" data-testid="button-invite-continue">Continue</Button>
+          <Button type="submit" className="min-h-12 w-full" data-testid="button-invite-continue">Continue</Button>
         </form>
         <div className="flex items-center gap-3" role="separator" aria-label="New to Stillwell?">
           <span className="h-px flex-1 bg-border" />
@@ -83,7 +83,7 @@ export function InviteSignedOut({
           <span className="h-px flex-1 bg-border" />
         </div>
         <div className="space-y-2">
-          <Button type="button" variant="outline" className="w-full" onClick={onCreateAccount} data-testid="button-invite-create-account">Create a clinician account</Button>
+          <Button type="button" variant="outline" className="min-h-12 w-full" onClick={onCreateAccount} data-testid="button-invite-create-account">Create a clinician account</Button>
           <p className="text-center text-xs text-muted-foreground">Your invite stays attached while you sign up.</p>
         </div>
       </div>

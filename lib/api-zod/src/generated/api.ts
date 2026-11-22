@@ -8,6 +8,199 @@
 import * as zod from 'zod';
 
 
+export const getMvpRecoveryResponseEntriesItemScoresHeadacheMin = 0;
+export const getMvpRecoveryResponseEntriesItemScoresHeadacheMax = 10;
+
+export const getMvpRecoveryResponseEntriesItemScoresFogMin = 0;
+export const getMvpRecoveryResponseEntriesItemScoresFogMax = 10;
+
+export const getMvpRecoveryResponseEntriesItemScoresLightMin = 0;
+export const getMvpRecoveryResponseEntriesItemScoresLightMax = 10;
+
+export const getMvpRecoveryResponseEntriesItemScoresSleepMin = 0;
+export const getMvpRecoveryResponseEntriesItemScoresSleepMax = 10;
+
+
+
+export const GetMvpRecoveryResponse = zod.object({
+  "entries": zod.array(zod.object({
+  "date": zod.string(),
+  "scores": zod.object({
+  "headache": zod.int().min(getMvpRecoveryResponseEntriesItemScoresHeadacheMin).max(getMvpRecoveryResponseEntriesItemScoresHeadacheMax).nullable(),
+  "fog": zod.int().min(getMvpRecoveryResponseEntriesItemScoresFogMin).max(getMvpRecoveryResponseEntriesItemScoresFogMax).nullable(),
+  "light": zod.int().min(getMvpRecoveryResponseEntriesItemScoresLightMin).max(getMvpRecoveryResponseEntriesItemScoresLightMax).nullable(),
+  "sleep": zod.int().min(getMvpRecoveryResponseEntriesItemScoresSleepMin).max(getMvpRecoveryResponseEntriesItemScoresSleepMax).nullable()
+}),
+  "planScore": zod.int().nullable(),
+  "note": zod.string(),
+  "explainNotes": zod.boolean(),
+  "flagged": zod.boolean(),
+  "updatedAt": zod.string()
+})),
+  "stages": zod.array(zod.object({
+  "id": zod.string(),
+  "stage": zod.enum(['1', '2', '3', '4', '5', '6', 'maintenance']),
+  "source": zod.enum(['intake', 'weekly', 'clinician']),
+  "reasons": zod.array(zod.string()),
+  "ruleIds": zod.array(zod.string()),
+  "rulesVersion": zod.string(),
+  "createdAt": zod.string()
+})),
+  "daysThisWeek": zod.int(),
+  "nextCheck": zod.string(),
+  "timezone": zod.string()
+})
+
+
+export const saveMvpJournalPathDateRegExp = new RegExp('^\\d{4}-\\d{2}-\\d{2}$');
+
+
+export const SaveMvpJournalParams = zod.object({
+  "date": zod.coerce.string().regex(saveMvpJournalPathDateRegExp)
+})
+
+export const saveMvpJournalBodyScoresHeadacheMin = 0;
+export const saveMvpJournalBodyScoresHeadacheMax = 10;
+
+export const saveMvpJournalBodyScoresFogMin = 0;
+export const saveMvpJournalBodyScoresFogMax = 10;
+
+export const saveMvpJournalBodyScoresLightMin = 0;
+export const saveMvpJournalBodyScoresLightMax = 10;
+
+export const saveMvpJournalBodyScoresSleepMin = 0;
+export const saveMvpJournalBodyScoresSleepMax = 10;
+
+export const saveMvpJournalBodyPlanScoreMin = 0;
+export const saveMvpJournalBodyPlanScoreMax = 10;
+
+export const saveMvpJournalBodyNoteMax = 4000;
+
+export const saveMvpJournalBodyTimezoneMax = 100;
+
+
+
+export const SaveMvpJournalBody = zod.object({
+  "scores": zod.object({
+  "headache": zod.int().min(saveMvpJournalBodyScoresHeadacheMin).max(saveMvpJournalBodyScoresHeadacheMax).nullable(),
+  "fog": zod.int().min(saveMvpJournalBodyScoresFogMin).max(saveMvpJournalBodyScoresFogMax).nullable(),
+  "light": zod.int().min(saveMvpJournalBodyScoresLightMin).max(saveMvpJournalBodyScoresLightMax).nullable(),
+  "sleep": zod.int().min(saveMvpJournalBodyScoresSleepMin).max(saveMvpJournalBodyScoresSleepMax).nullable()
+}),
+  "planScore": zod.int().min(saveMvpJournalBodyPlanScoreMin).max(saveMvpJournalBodyPlanScoreMax).nullable(),
+  "note": zod.string().max(saveMvpJournalBodyNoteMax),
+  "timezone": zod.string().max(saveMvpJournalBodyTimezoneMax),
+  "explainNotes": zod.boolean().optional().describe('Explicit optional consent to use this day\'s private note for a weekly explanation only.')
+})
+
+export const saveMvpJournalResponseScoresHeadacheMin = 0;
+export const saveMvpJournalResponseScoresHeadacheMax = 10;
+
+export const saveMvpJournalResponseScoresFogMin = 0;
+export const saveMvpJournalResponseScoresFogMax = 10;
+
+export const saveMvpJournalResponseScoresLightMin = 0;
+export const saveMvpJournalResponseScoresLightMax = 10;
+
+export const saveMvpJournalResponseScoresSleepMin = 0;
+export const saveMvpJournalResponseScoresSleepMax = 10;
+
+
+
+export const SaveMvpJournalResponse = zod.object({
+  "date": zod.string(),
+  "scores": zod.object({
+  "headache": zod.int().min(saveMvpJournalResponseScoresHeadacheMin).max(saveMvpJournalResponseScoresHeadacheMax).nullable(),
+  "fog": zod.int().min(saveMvpJournalResponseScoresFogMin).max(saveMvpJournalResponseScoresFogMax).nullable(),
+  "light": zod.int().min(saveMvpJournalResponseScoresLightMin).max(saveMvpJournalResponseScoresLightMax).nullable(),
+  "sleep": zod.int().min(saveMvpJournalResponseScoresSleepMin).max(saveMvpJournalResponseScoresSleepMax).nullable()
+}),
+  "planScore": zod.int().nullable(),
+  "note": zod.string(),
+  "explainNotes": zod.boolean(),
+  "flagged": zod.boolean(),
+  "updatedAt": zod.string()
+})
+
+
+export const DeletePatientAccountBody = zod.object({
+  "confirmation": zod.enum(['DELETE'])
+})
+
+export const DeletePatientAccountResponse = zod.void()
+
+
+export const GetDoctorMvpPatientParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const getDoctorMvpPatientResponseDaysItemScoresHeadacheMin = 0;
+export const getDoctorMvpPatientResponseDaysItemScoresHeadacheMax = 10;
+
+export const getDoctorMvpPatientResponseDaysItemScoresFogMin = 0;
+export const getDoctorMvpPatientResponseDaysItemScoresFogMax = 10;
+
+export const getDoctorMvpPatientResponseDaysItemScoresLightMin = 0;
+export const getDoctorMvpPatientResponseDaysItemScoresLightMax = 10;
+
+export const getDoctorMvpPatientResponseDaysItemScoresSleepMin = 0;
+export const getDoctorMvpPatientResponseDaysItemScoresSleepMax = 10;
+
+
+
+export const GetDoctorMvpPatientResponse = zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "status": zod.enum(['active', 'former']),
+  "periodEnd": zod.string(),
+  "days": zod.array(zod.object({
+  "date": zod.string(),
+  "scores": zod.object({
+  "headache": zod.int().min(getDoctorMvpPatientResponseDaysItemScoresHeadacheMin).max(getDoctorMvpPatientResponseDaysItemScoresHeadacheMax).nullable(),
+  "fog": zod.int().min(getDoctorMvpPatientResponseDaysItemScoresFogMin).max(getDoctorMvpPatientResponseDaysItemScoresFogMax).nullable(),
+  "light": zod.int().min(getDoctorMvpPatientResponseDaysItemScoresLightMin).max(getDoctorMvpPatientResponseDaysItemScoresLightMax).nullable(),
+  "sleep": zod.int().min(getDoctorMvpPatientResponseDaysItemScoresSleepMin).max(getDoctorMvpPatientResponseDaysItemScoresSleepMax).nullable()
+}),
+  "planScore": zod.int().nullable(),
+  "flagged": zod.boolean(),
+  "jumpSymptoms": zod.array(zod.enum(['headache', 'fog', 'light', 'sleep']))
+})),
+  "stages": zod.array(zod.object({
+  "id": zod.string(),
+  "stage": zod.enum(['1', '2', '3', '4', '5', '6', 'maintenance']),
+  "source": zod.enum(['intake', 'weekly', 'clinician']),
+  "reasons": zod.array(zod.string()),
+  "ruleIds": zod.array(zod.string()),
+  "rulesVersion": zod.string(),
+  "createdAt": zod.string()
+}))
+})
+
+
+export const ChangeDoctorMvpStageParams = zod.object({
+  "id": zod.uuid()
+})
+
+export const changeDoctorMvpStageBodyNoteMax = 1000;
+
+
+
+export const ChangeDoctorMvpStageBody = zod.object({
+  "stage": zod.enum(['1', '2', '3', '4', '5', '6', 'maintenance']),
+  "note": zod.string().min(1).max(changeDoctorMvpStageBodyNoteMax)
+})
+
+export const ChangeDoctorMvpStageResponse = zod.object({
+  "id": zod.string(),
+  "stage": zod.enum(['1', '2', '3', '4', '5', '6', 'maintenance']),
+  "source": zod.enum(['intake', 'weekly', 'clinician']),
+  "reasons": zod.array(zod.string()),
+  "ruleIds": zod.array(zod.string()),
+  "rulesVersion": zod.string(),
+  "createdAt": zod.string()
+})
+
+
 export const GetRecoveryIntakeStatusResponse = zod.object({
   "enabled": zod.boolean()
 })

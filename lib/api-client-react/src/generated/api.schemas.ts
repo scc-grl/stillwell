@@ -809,6 +809,169 @@ export interface ClinicianVerificationResponse {
   verificationStatus: ClinicianVerificationResponseVerificationStatus;
 }
 
+export interface MvpScores {
+  /**
+     * @minimum 0
+     * @maximum 10
+     * @nullable
+     */
+  headache: number | null;
+  /**
+     * @minimum 0
+     * @maximum 10
+     * @nullable
+     */
+  fog: number | null;
+  /**
+     * @minimum 0
+     * @maximum 10
+     * @nullable
+     */
+  light: number | null;
+  /**
+     * @minimum 0
+     * @maximum 10
+     * @nullable
+     */
+  sleep: number | null;
+}
+
+export interface MvpJournalInput {
+  scores: MvpScores;
+  /**
+     * @minimum 0
+     * @maximum 10
+     * @nullable
+     */
+  planScore: number | null;
+  /** @maxLength 4000 */
+  note: string;
+  /** @maxLength 100 */
+  timezone: string;
+  /** Explicit optional consent to use this day's private note for a weekly explanation only. */
+  explainNotes?: boolean;
+}
+
+export interface MvpEntry {
+  date: string;
+  scores: MvpScores;
+  /** @nullable */
+  planScore: number | null;
+  note: string;
+  explainNotes: boolean;
+  flagged: boolean;
+  updatedAt: string;
+}
+
+export type MvpStageStage = typeof MvpStageStage[keyof typeof MvpStageStage];
+
+
+export const MvpStageStage = {
+  NUMBER_1: '1',
+  NUMBER_2: '2',
+  NUMBER_3: '3',
+  NUMBER_4: '4',
+  NUMBER_5: '5',
+  NUMBER_6: '6',
+  maintenance: 'maintenance',
+} as const;
+
+export type MvpStageSource = typeof MvpStageSource[keyof typeof MvpStageSource];
+
+
+export const MvpStageSource = {
+  intake: 'intake',
+  weekly: 'weekly',
+  clinician: 'clinician',
+} as const;
+
+export interface MvpStage {
+  id: string;
+  stage: MvpStageStage;
+  source: MvpStageSource;
+  reasons: string[];
+  ruleIds: string[];
+  rulesVersion: string;
+  createdAt: string;
+}
+
+export interface MvpRecovery {
+  entries: MvpEntry[];
+  stages: MvpStage[];
+  daysThisWeek: number;
+  nextCheck: string;
+  timezone: string;
+}
+
+export type DoctorStageInputStage = typeof DoctorStageInputStage[keyof typeof DoctorStageInputStage];
+
+
+export const DoctorStageInputStage = {
+  NUMBER_1: '1',
+  NUMBER_2: '2',
+  NUMBER_3: '3',
+  NUMBER_4: '4',
+  NUMBER_5: '5',
+  NUMBER_6: '6',
+  maintenance: 'maintenance',
+} as const;
+
+export interface DoctorStageInput {
+  stage: DoctorStageInputStage;
+  /**
+     * @minLength 1
+     * @maxLength 1000
+     */
+  note: string;
+}
+
+export type AccountDeletionInputConfirmation = typeof AccountDeletionInputConfirmation[keyof typeof AccountDeletionInputConfirmation];
+
+
+export const AccountDeletionInputConfirmation = {
+  DELETE: 'DELETE',
+} as const;
+
+export interface AccountDeletionInput {
+  confirmation: AccountDeletionInputConfirmation;
+}
+
+export type DoctorMvpDayJumpSymptomsItem = typeof DoctorMvpDayJumpSymptomsItem[keyof typeof DoctorMvpDayJumpSymptomsItem];
+
+
+export const DoctorMvpDayJumpSymptomsItem = {
+  headache: 'headache',
+  fog: 'fog',
+  light: 'light',
+  sleep: 'sleep',
+} as const;
+
+export interface DoctorMvpDay {
+  date: string;
+  scores: MvpScores;
+  /** @nullable */
+  planScore: number | null;
+  flagged: boolean;
+  jumpSymptoms: DoctorMvpDayJumpSymptomsItem[];
+}
+
+export type DoctorMvpPatientStatus = typeof DoctorMvpPatientStatus[keyof typeof DoctorMvpPatientStatus];
+
+
+export const DoctorMvpPatientStatus = {
+  active: 'active',
+  former: 'former',
+} as const;
+
+export interface DoctorMvpPatient {
+  id: string;
+  name: string;
+  status: DoctorMvpPatientStatus;
+  periodEnd: string;
+  days: DoctorMvpDay[];
+  stages: MvpStage[];
+}
+
 export interface IntakeConsentInput {
   consentAccepted: true;
 }
