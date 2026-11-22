@@ -29,3 +29,6 @@ EMAIL_FROM = "invite@stillwell-care.com"
 
 [userenv.development]
 REAL_ACCOUNT_INTAKE_ENABLED = "true"
+
+[userenv.production]
+REAL_ACCOUNT_INTAKE_ENABLED = "true"

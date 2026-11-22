@@ -3,7 +3,7 @@ import { getAuth } from "@clerk/express";
 import { pool } from "@workspace/db";
 import { ConsentRecoveryIntakeBody } from "@workspace/api-zod";
 import { runPrivatePatientIntake } from "../lib/private-patient-intake";
-import { patientIntakePreviewAllowed, realTextIntakeAllowed } from "../lib/patient-intake-policy";
+import { realTextIntakeAllowed } from "../lib/patient-intake-policy";
 import { IntakeError, PatientIntakeService } from "../lib/patient-intake";
 
 // Mounted AFTER recoveryRouter's existing origin, auth and clinician-role guards.
@@ -12,10 +12,6 @@ const owner = (req: Request) => getAuth(req).userId!;
 const service = new PatientIntakeService(pool, runPrivatePatientIntake);
 patientIntakeRouter.use(["/intake", "/stages"], (_req, res, next) => {
   res.setHeader("Cache-Control", "private, no-store");
-  if (!patientIntakePreviewAllowed(process.env.NODE_ENV)) {
-    res.status(403).json({ error: "Account intake is available in preview only." });
-    return;
-  }
   next();
 });
 patientIntakeRouter.get("/intake/status", (_req, res) => {

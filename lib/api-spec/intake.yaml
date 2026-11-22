@@ -22,7 +22,7 @@ paths:
               $ref: "#/components/schemas/IntakeConsentInput"
       responses:
         "201":
-          description: Consent recorded before any AI call. Signed-in preview only.
+          description: Consent recorded before any AI call. Signed-in patients only; requires the server intake setting.
           content:
             application/json:
               schema:
